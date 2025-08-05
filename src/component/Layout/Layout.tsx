@@ -65,6 +65,7 @@ const AppLayout = () => {
     } else if (path.endsWith("/performance")) {
       setThirdLevelKey("performance");
     }
+    //这里不带有问题详情，这样可以保持原来的选定状态
   }, [location]);
 
   // 第一层导航
@@ -80,13 +81,13 @@ const AppLayout = () => {
       key: "all-projects",
       label: "所有项目",
       icon: <UnorderedListOutlined />,
+      //模拟数据
       children: [
         { key: "project-1", label: "项目A", icon: <ProjectOutlined /> },
         { key: "project-2", label: "项目B", icon: <ProjectOutlined /> },
       ],
       // 使用 onTitleClick 处理分组标题点击
       onTitleClick: () => {
-        console.log("点击了所有项目分组标题");
         navigate("/main/project/all");
       },
     },
@@ -94,13 +95,13 @@ const AppLayout = () => {
       key: "public-projects",
       label: "公开项目",
       icon: <GlobalOutlined />,
+      //模拟数据
       children: [
         { key: "public-1", label: "公开项目A", icon: <ProjectOutlined /> },
         { key: "public-2", label: "公开项目B", icon: <ProjectOutlined /> },
       ],
       // 使用 onTitleClick 处理分组标题点击
       onTitleClick: () => {
-        console.log("点击了公开项目分组标题");
         navigate("/main/project/public");
       },
     },
@@ -118,6 +119,7 @@ const AppLayout = () => {
 
   // 第三层导航 - 项目详情相关
   const projectThirdLevelItems = [
+    //模拟数据或者说待定
     { key: "overview", icon: <EyeOutlined />, label: "总览" },
     { key: "issues", icon: <BugOutlined />, label: "问题" },
     { key: "performance", icon: <BarChartOutlined />, label: "性能" },
@@ -221,23 +223,9 @@ const AppLayout = () => {
           onClick={({ key }) => handleFirstLevelChange(key)}
           className={styles.firstLevelMenu}
         />
-        <div className={styles.userSection}>
-          <Dropdown
-            menu={{
-              items: [
-                { key: "profile", label: "个人信息" },
-                { key: "logout", label: "退出登录" },
-              ],
-            }}
-          >
-            <Button type="text" className={styles.userButton}>
-              用户 <DownOutlined />
-            </Button>
-          </Dropdown>
-        </div>
       </Header>
 
-      <Layout>
+      <Layout className={styles.secondLayout}>
         {/* 第二层导航栏 */}
         <Sider className={styles.secondLevelSider}>
           <Menu
@@ -269,7 +257,8 @@ const AppLayout = () => {
           <div
             style={{
               padding: 20,
-              minHeight: 360,
+              height: "100%",
+              overflowY: "auto",
               background: colorBgContainer,
             }}
           >

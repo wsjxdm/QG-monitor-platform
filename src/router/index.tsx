@@ -4,6 +4,7 @@ import Layout from "../component/Layout/Layout";
 import ProjectAll from "../pages/main/project/ProjectAll/ProjectAll";
 import ProjectPublic from "../pages/main/project/ProjectAll/ProjectPublic";
 import ProjectDetailOverview from "../pages/main/project/projectdetail/ProjectDetailOverview/ProjectDetailOverview";
+import ProjectItemDetail from "../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail";
 import ProjectDetailIssues from "../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues";
 import MessageSystem from "../pages/main/message/MessageSystem";
 import SettingProfile from "../pages/main/setting/SettingProfile";
@@ -41,6 +42,11 @@ export const router = createBrowserRouter([
                   {
                     path: "overview",
                     element: <ProjectDetailOverview />,
+                  },
+                  {
+                    //这是问题详情
+                    path: ":type/:detailId",
+                    element: <ProjectItemDetail />, // 这里可以根据需要调整组件
                   },
                   {
                     path: "issues",
