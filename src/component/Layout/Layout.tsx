@@ -13,6 +13,7 @@ import {
   GlobalOutlined,
   UserOutlined,
   BellOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 
@@ -46,6 +47,8 @@ const AppLayout = () => {
       setSecondLevelKey("public-projects");
     } else if (path === "/main/message/system") {
       setSecondLevelKey("system-message");
+    } else if (path === "/main/message/task") {
+      setSecondLevelKey("task-message");
     } else if (path === "/main/setting/profile") {
       setSecondLevelKey("profile");
     } else if (path.includes("/main/project/") && path.includes("/detail/")) {
@@ -109,7 +112,8 @@ const AppLayout = () => {
 
   // 第二层导航 - 消息相关
   const messageSecondLevelItems = [
-    { key: "system-message", icon: <BellOutlined />, label: "系统信息" },
+    { key: "system-message", icon: <BellOutlined />, label: "系统通知" },
+    { key: "task-message", icon: <CheckCircleOutlined />, label: "任务通知" },
   ];
 
   // 第二层导航 - 设置相关
@@ -165,6 +169,8 @@ const AppLayout = () => {
       navigate("/main/project/public");
     } else if (key === "system-message") {
       navigate("/main/message/system"); // 显示系统消息
+    } else if (key === "task-message") {
+      navigate("/main/message/task"); // 显示任务消息
     } else if (key === "profile") {
       navigate("/main/setting/profile"); // 显示个人信息
     } else if (key.startsWith("project-") || key.startsWith("public-")) {
@@ -225,7 +231,7 @@ const AppLayout = () => {
         />
       </Header>
 
-      <Layout className={styles.secondLayout}>
+      <Layout>
         {/* 第二层导航栏 */}
         <Sider className={styles.secondLevelSider}>
           <Menu
@@ -257,8 +263,6 @@ const AppLayout = () => {
           <div
             style={{
               padding: 20,
-              height: "100%",
-              overflowY: "auto",
               background: colorBgContainer,
             }}
           >
