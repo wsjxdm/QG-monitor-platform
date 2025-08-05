@@ -1,8 +1,9 @@
 .layout {
-  min-height: 100vh;
+  height: 100%;
   background-color: #ffffff;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .firstLevelHeader {
@@ -57,12 +58,21 @@
   display: flex;
 }
 
+.secondLayout {
+  flex: 1;
+  overflow: hidden;
+}
+
 .secondLevelSider {
   background: #ffffff !important;
   border-right: 1px solid #f0f0f0;
   height: calc(100vh - 64px);
   overflow-y: auto;
   width: 256px;
+}
+
+.secondLevelSider::-webkit-scrollbar {
+  display: none;
 }
 
 .secondLevelMenu {
@@ -76,6 +86,10 @@
   height: calc(100vh - 64px);
   overflow-y: auto;
   width: 150px;
+}
+
+.thirdLevelSider::-webkit-scrollbar {
+  display: none;
 }
 
 .thirdLevelMenu {
@@ -93,8 +107,14 @@
   background: #ffffff;
   overflow-y: auto;
   flex: 1;
+  height: 100%;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
 }
 
 .content :global(.ant-layout-content) {
   overflow-y: auto;
+  height: 100%;
 }
