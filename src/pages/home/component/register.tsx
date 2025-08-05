@@ -1,14 +1,12 @@
 import { Form, Input, Button, Space, message } from "antd";
 import { registerAPI } from "../../../api/service/userService";
 import { getCodeAPI } from "../../../api/service/userService";
-
-
+import { useState, useEffect } from "react";
+import '@ant-design/v5-patch-for-react-19';
 
 const RegisterForm = () => {
-
-
     const [form] = Form.useForm();
-
+    const [countdown, setCountdown] = useState(0);
     //注册API
     const handleRegister = async (values: any) => {
         const response = await registerAPI(values.email, values.password, values.verificationCode);
@@ -21,18 +19,34 @@ const RegisterForm = () => {
 
     //获取验证码
     const handleGetCode = async () => {
+
         const email = form.getFieldValue("email");
+
         if (!email) {
             message.error("请输入邮箱");
             return;
         }
         const response = await getCodeAPI(email);
+
         if (response.status === 200) {
+            setCountdown(60);
             message.success("验证码已发送");
         } else {
             message.error("验证码发送失败");
         }
     };
+
+
+    //发送验证码的倒计时
+    useEffect(() => {
+        if (countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(prev => prev - 1);
+            }, 1000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [countdown]);
 
     return (
         <div>
@@ -89,9 +103,9 @@ const RegisterForm = () => {
                         <Button
                             type="link"
                             onClick={handleGetCode}
-                        // disabled={countdown > 0}
+                            disabled={countdown > 0}
                         >
-                            发送验证码
+                            {countdown > 0 ? `(${countdown})秒后重新发送` : '发送验证码'}
                         </Button>
                     </Space.Compact>
                 </Form.Item>
