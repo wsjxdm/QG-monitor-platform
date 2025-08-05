@@ -1,10 +1,9 @@
 import Form from "./component/form";
 import Introduction from "./component/introduction";
 import Title from "./component/title";
-import Footer from "./component/foot"; // 引入Footer组件
+import Footer from "./component/foot";
 import React from "react";
 import { Row, Col } from "antd";
-
 const Home: React.FC = () => {
     return (
         <div style={{
@@ -33,20 +32,20 @@ const Home: React.FC = () => {
                 }}>
                     <div style={{ width: '100%', maxWidth: '1200px' }}>
                         <Row
-                            gutter={[0, 24]} // 减少水平间距从24到12
+                            gutter={[0, 24]}
                             justify="center"
                             style={{ margin: 0 }}
                         >
-                            <Col xs={24} md={9} lg={9}> {/* 调整列宽 */}
+                            <Col xs={24} md={9} lg={9}>
                                 <Introduction />
                             </Col>
-                            <Col xs={24} md={11} lg={13}> {/* 调整列宽 */}
+                            <Col xs={24} md={11} lg={13}>
                                 <Form />
                             </Col>
                         </Row>
                     </div>
                 </div>
-                <Footer /> {/* 将Footer放在内容区域之后，但在主容器内 */}
+                <Footer />
             </div>
         </div>
     );

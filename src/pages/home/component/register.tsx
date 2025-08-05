@@ -1,17 +1,45 @@
-import { Form, Input, Button, Space } from "antd";
-
+import { Form, Input, Button, Space, message } from "antd";
+import { registerAPI } from "../../../api/service/userService";
+import { getCodeAPI } from "../../../api/service/userService";
 
 
 
 const RegisterForm = () => {
 
+
     const [form] = Form.useForm();
+
+    //注册API
+    const handleRegister = async (values: any) => {
+        const response = await registerAPI(values.email, values.password, values.verificationCode);
+        if (response.status === 200) {
+            message.success("注册成功");
+        } else {
+            message.error("验证码错误");
+        }
+    };
+
+    //获取验证码
+    const handleGetCode = async () => {
+        const email = form.getFieldValue("email");
+        if (!email) {
+            message.error("请输入邮箱");
+            return;
+        }
+        const response = await getCodeAPI(email);
+        if (response.status === 200) {
+            message.success("验证码已发送");
+        } else {
+            message.error("验证码发送失败");
+        }
+    };
+
     return (
-        <div className="login-form">
+        <div>
             <Form
                 form={form}
                 name="register"
-                // onFinish={onFinish}
+                onFinish={handleRegister}
                 layout="vertical"
                 autoComplete="off"
             >
@@ -60,22 +88,18 @@ const RegisterForm = () => {
                         </Form.Item>
                         <Button
                             type="link"
-                        // onClick={handlerSendVerificationCode}
+                            onClick={handleGetCode}
                         // disabled={countdown > 0}
                         >
-                            {/* {countdown > 0 ? `${countdown}s后重试` : "发送验证码"} */}
+                            发送验证码
                         </Button>
                     </Space.Compact>
                 </Form.Item>
 
                 <Form.Item>
-                    <Space>
+                    <Space style={{ width: "100%" }}>
                         <Button type="primary" htmlType="submit" block
-                            style={
-                                {
-                                    backgroundColor: '#1890ff'
-                                }
-                            }>
+                            style={{ backgroundColor: '#1890ff' }}>
                             注册
                         </Button>
                         <Button htmlType="button">

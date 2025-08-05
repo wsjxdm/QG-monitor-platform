@@ -13,7 +13,7 @@ const Introduction: React.FC = () => {
             border: "1px solid #ccc",
             borderRadius: "15px",
             height: 'auto', // 改为自动高度
-            maxWidth: '50%', // 限制最大宽度
+            maxWidth: '85%',
             margin: '0 auto',
         }}>
             <Title level={2} style={{

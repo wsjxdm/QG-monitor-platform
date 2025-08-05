@@ -1,7 +1,6 @@
 import { Tabs, ConfigProvider } from "antd";
 import Loginform from "./loginform";
 import RegisterForm from "./register";
-import React from "react";
 
 const Form = () => {
     const items = [
@@ -15,6 +14,7 @@ const Form = () => {
             label: `注册`,
             children: <RegisterForm />,
         },
+
     ]
 
     return (

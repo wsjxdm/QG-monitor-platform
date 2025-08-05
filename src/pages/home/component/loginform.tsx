@@ -1,69 +1,159 @@
-import { Form, Input, Button, Typography } from "antd";
-
+import { Form, Input, Button, Typography, Space } from "antd";
+import { useState } from "react";
 
 
 const Loginform = () => {
-
     const [form] = Form.useForm();
     const { Text } = Typography;
+    const [isForgotPassword, setIsForgotPassword] = useState(false); // 切换登录和找回密码
+
+    const handleForgotPassword = () => {
+        setIsForgotPassword(true);
+    };
+    const handleBackToLogin = () => {
+        setIsForgotPassword(false);
+    };
+
+    if (!isForgotPassword) {
+        return (
+            <div className="login-form">
+                <Form
+                    form={form}
+                    name="login"
+                    // onFinish={handleLogin}
+                    layout="vertical"
+                    autoComplete="off"
+                >
+                    <Form.Item
+                        label="邮箱"
+                        name="email"
+                        rules={[
+                            { required: true, message: "请输入邮箱!" },
+                            { type: "email", message: "请输入有效的邮箱!" },
+                        ]}
+                    >
+                        <Input placeholder="请输入邮箱" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="密码"
+                        name="password"
+                        rules={[
+                            { required: true, message: "请输入密码!" },
+                            { min: 6, message: "密码至少6个字符!" },
+                        ]}
+                    >
+                        <Input.Password placeholder="请输入密码" />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block
+                            style={{ backgroundColor: '#1890ff' }}>
+                            登录
+                        </Button>
+                    </Form.Item>
+
+                    <Form.Item style={{ marginBottom: 0 }}>
+                        <Text type="secondary">
+                            <Button
+                                type="link"
+                                size="small"
+                                onClick={handleForgotPassword}
+                                style={{ float: "right" }}
+                            >
+                                忘记密码？
+                            </Button>
+                        </Text>
+                    </Form.Item>
+                </Form>
+            </div>
+        )
+    }
     return (
-        <div className="login-form">
+        <div>
             <Form
                 form={form}
-                name="login"
-                // onFinish={handleLogin}
+                name="findPassword"
+                // onFinish={onFinish}
                 layout="vertical"
                 autoComplete="off"
             >
                 <Form.Item
-                    label="邮箱"
                     name="email"
-                    rules={[
-                        { required: true, message: "请输入邮箱!" },
-                        { type: "email", message: "请输入有效的邮箱!" },
-                    ]}
+                    label="邮箱"
+                    rules={[{ required: true, type: "email", message: "请输入有效邮箱" }]}
                 >
                     <Input placeholder="请输入邮箱" />
                 </Form.Item>
-
                 <Form.Item
-                    label="密码"
                     name="password"
+                    label="新密码"
                     rules={[
-                        { required: true, message: "请输入密码!" },
+                        { required: true, message: "请输入新密码" },
                         { min: 6, message: "密码至少6个字符!" },
                     ]}
                 >
-                    <Input.Password placeholder="请输入密码" />
+                    <Input.Password placeholder="请输入新密码" />
+                </Form.Item>
+                <Form.Item
+                    name="confirmPassword"
+                    label="确认密码"
+                    rules={[
+                        { required: true, message: "请输入确认密码" },
+                        { min: 6, message: "密码至少6个字符!" },
+                    ]}
+                >
+                    <Input.Password placeholder="请输入确认密码" />
+                </Form.Item>
+                <Form.Item
+                    label="验证码"
+                    required
+                    rules={[{ required: true, message: "请输入验证码" }]}
+                >
+                    <Space.Compact>
+                        <Form.Item
+                            name="code"
+                            noStyle
+                            rules={[{ required: true, message: "请输入验证码" }]}
+                        >
+                            <Input.OTP
+                                formatter={(str) => str.toUpperCase()}
+                                style={{ flex: 1 }}
+                            />
+                        </Form.Item>
+                    </Space.Compact>
                 </Form.Item>
 
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" block
-                        style={
-                            {
-                                backgroundColor: '#1890ff'
-                            }
-                        }>
-                        登录
-                    </Button>
+                    <Space>
+                        {/* 这里发送完可以显示一个多少秒后继续发送 */}
+                        <Button type="primary" htmlType="submit" block
+                            style={{ backgroundColor: '#1890ff' }}>
+                            发送验证码
+                        </Button>
+                        <Button htmlType="button">
+                            {/* onClick={onReset} */}
+                            重置
+                        </Button>
+                    </Space>
                 </Form.Item>
-
                 <Form.Item style={{ marginBottom: 0 }}>
                     <Text type="secondary">
                         <Button
                             type="link"
                             size="small"
-                            // onClick={() =>
-                            // }
+                            onClick={handleBackToLogin}
                             style={{ float: "right" }}
                         >
-                            忘记密码？
+                            返回登录
                         </Button>
                     </Text>
                 </Form.Item>
             </Form>
         </div>
-    )
+    );
 }
+
+
 
 export default Loginform;
