@@ -7,6 +7,7 @@ import ProjectDetailOverview from "../pages/main/project/projectdetail/ProjectDe
 import ProjectItemDetail from "../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail";
 import ProjectDetailIssues from "../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues";
 import MessageSystem from "../pages/main/message/MessageSystem";
+import MessageTask from "../pages/main/message/MessageTask";
 import SettingProfile from "../pages/main/setting/SettingProfile";
 
 import App from "../App";
@@ -64,6 +65,10 @@ export const router = createBrowserRouter([
               {
                 path: "system",
                 element: <MessageSystem />,
+              },
+              {
+                path: "task",
+                element: <MessageTask />,
               },
             ],
           },
