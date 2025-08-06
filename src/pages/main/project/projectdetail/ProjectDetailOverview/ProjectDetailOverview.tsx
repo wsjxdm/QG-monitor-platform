@@ -56,7 +56,7 @@ interface projectData {
   id: string | number;
   name: string;
   description: string;
-  createdTime: string;
+  createdTime: string | number | Date;
   isPublic: boolean;
   invitedCode: string;
   groupCode?: string;
@@ -160,7 +160,7 @@ const ProjectDetailOverview: React.FC = () => {
   const leaveProject = async () => {
     console.log("退出项目:", projectId);
     try {
-      await exitProjectAPI(projectId);
+      await exitProjectAPI(projectId, 1);
       navigate("/main/project/all");
     } catch (error) {}
   };

@@ -14,7 +14,10 @@ export const searchProjects = async (query: string) => {
 };
 
 //加入项目
-export const joinProject = async (invitedCode: string, userId: string) => {
+export const joinProject = async (
+  invitedCode: string,
+  userId: string | number
+) => {
   try {
     const response = await apiClient.post("/api/project/join", {
       invitedCode,
@@ -32,7 +35,7 @@ export const createProject = async (
   name: string,
   description: string,
   isPublic: boolean,
-  userId: string
+  userId: string | number
 ) => {
   try {
     const response = await apiClient.post("/api/project/create", {

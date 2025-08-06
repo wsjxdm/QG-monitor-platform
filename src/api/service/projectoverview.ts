@@ -78,10 +78,14 @@ export const deleteProjectAPI = async (projectId: string) => {
 };
 
 //退出项目
-export const exitProjectAPI = async (projectId: string) => {
+export const exitProjectAPI = async (
+  projectId: string,
+  userId: string | number
+) => {
   try {
     const response = await apiClient.post(`/api/project/exitProject`, {
       projectId,
+      userId,
     });
     console.log("Exit project response:", response);
     return response.data;
@@ -91,11 +95,16 @@ export const exitProjectAPI = async (projectId: string) => {
 };
 
 //踢除用户
-export const kickUserAPI = async (projectId: string, userId: string) => {
+export const kickUserAPI = async (
+  projectId: string,
+  userId: string | number
+) => {
   try {
     const response = await apiClient.delete(`/api/project/kickUser`, {
-      projectId,
-      userId,
+      data: {
+        projectId,
+        userId,
+      },
     });
     console.log("Kick user response:", response);
     return response.data;
@@ -107,7 +116,7 @@ export const kickUserAPI = async (projectId: string, userId: string) => {
 //修改用户层级
 export const changeUserLevelAPI = async (
   projectId: string,
-  userId: string,
+  userId: string | number,
   level: string
 ) => {
   try {
