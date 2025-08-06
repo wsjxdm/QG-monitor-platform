@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { List, Card, Avatar, Typography, Empty, notification } from 'antd'; // 添加Badge组件
+import { List, Card, Avatar, Typography, Empty } from 'antd'; // 添加Badge组件
 import { ClockCircleOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import styles from './MessageSystem.module.css';
@@ -43,7 +43,9 @@ const mockMessages: MessageItem[] = [
 const MessageSystem: React.FC = () => {
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const notification = useSelector(
+    (state: any) => state.ws.messageByType.notification || {}
+  );
   useEffect(() => {
     // 模拟数据加载
     setTimeout(() => {
@@ -54,10 +56,8 @@ const MessageSystem: React.FC = () => {
 
   //接收到websocket发送过来的新的消息后加入到原来的数据中
   useEffect(() => {
-    const notification = useSelector(
-      (state: any) => state.ws.messageByType.notification || []
-    );
-
+    //如果接收到的notification是空对象，则不进行任何操作
+    if (Object.keys(notification).length === 0) return;
     setMessages([
       ...messages,
       notification]

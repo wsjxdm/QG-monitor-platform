@@ -1,6 +1,6 @@
 import { type Middleware } from 'redux';
 import { setConnected, setError, messageReceived } from '../slice/websocketSlice';
-import { message } from 'antd';
+import { message, notification } from 'antd';
 import '@ant-design/v5-patch-for-react-19';
 
 export const wsMiddleware: Middleware<{}> = (store) => {
@@ -36,6 +36,13 @@ export const wsMiddleware: Middleware<{}> = (store) => {
             try {
                 const msg = JSON.parse(event.data); // 假设后端消息格式：{ type: 'xxx', data: {} }
                 if (!msg.type) throw new Error('消息缺少type字段');
+                // 如果消息类型是 notification，则显示全局通知
+                if (msg.type === 'notification') {
+                    notification.info({
+                        message: `指派通知`,
+                        description: "您有一条新的消息"
+                    });
+                }
                 store.dispatch(messageReceived(msg)); // 分发消息到Redux
             } catch (err: any) {
                 console.error('解析消息失败:', err);
