@@ -50,7 +50,7 @@ const SettingProfile: React.FC = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      await updateUserAPI(values);
+      // await updateUserAPI(values);
       setUserData({
         ...values,
         avatar: avatarUrl,
