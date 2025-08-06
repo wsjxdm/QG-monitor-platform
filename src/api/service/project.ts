@@ -89,3 +89,34 @@ export const exitProjectAPI = async (projectId: string) => {
     console.error("Error exiting project:", error);
   }
 };
+
+//踢除用户
+export const kickUserAPI = async (projectId: string, userId: string) => {
+  try {
+    const response = await apiClient.delete(`/api/project/kickUser`, {
+      projectId,
+      userId,
+    });
+    console.log("Kick user response:", response);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error kicking user:", error);
+  }
+};
+
+//修改用户层级
+export const changeUserLevelAPI = async (
+  projectId: string,
+  userId: string,
+  level: string
+) => {
+  try {
+    const response = await apiClient.put(`/api/project/changeUserLevel`, {
+      projectId,
+      userId,
+      level,
+    });
+    console.log("Change user level response:", response);
+    return response.data;
+  } catch (error: any) {}
+};

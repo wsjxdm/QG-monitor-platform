@@ -34,7 +34,6 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     // 对响应数据做点什么
-    message.success(response.data.message);
     return response.data;
   },
   (error) => {

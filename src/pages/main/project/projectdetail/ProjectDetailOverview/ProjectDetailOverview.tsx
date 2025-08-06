@@ -42,8 +42,9 @@ import {
   updateProjectInfo,
   deleteProjectAPI,
   exitProjectAPI,
+  kickUserAPI,
+  changeUserLevelAPI,
 } from "../../../../../api/service/project";
-import project from "../../../../../mock/project";
 
 const { Title, Text } = Typography;
 
@@ -63,8 +64,8 @@ interface projectData {
 
 interface ProjectMember {
   id: string | number;
-  name: string;
-  role: number;
+  userName: string;
+  userRole: number;
   avatar?: string;
 }
 
@@ -136,15 +137,15 @@ const ProjectDetailOverview: React.FC = () => {
 
   // 删除项目
   const deleteProject = async () => {
-    console.log(deleteConfirmText, projectData.name);
-    console.log(deleteConfirmText == projectData.name);
-    if (deleteConfirmText == projectData.name) {
+    // 使用 trim() 去除空格并确保类型一致
+    if (deleteConfirmText.trim() === projectData.name.trim()) {
       try {
         await deleteProjectAPI(projectId);
         message.success("项目删除成功");
         console.log("删除项目:", projectId);
       } catch (error) {
         console.error("删除项目失败:", error);
+        message.error("删除项目失败");
       }
     } else {
       message.error("项目名称不匹配，请重新输入");
@@ -185,22 +186,32 @@ const ProjectDetailOverview: React.FC = () => {
   };
 
   // 更新成员角色
-  const updateMemberRole = (memberId: number, newRole: number) => {
-    setGroupMembers((prevMembers) =>
-      prevMembers.map((member) =>
-        member.id === memberId ? { ...member, role: newRole } : member
-      )
-    );
-    message.success("成员角色更新成功");
+  const updateMemberRole = async (memberId: number, newRole: number) => {
+    try {
+      await changeUserLevelAPI(projectId, memberId, newRole);
+      setGroupMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.id === memberId ? { ...member, userRole: newRole } : member
+        )
+      );
+      message.success("成员角色更新成功");
+    } catch (error) {
+      message.error("成员角色更新失败");
+    }
     closeContextMenu();
   };
 
   // 移除成员
-  const removeMember = (memberId: number) => {
-    setGroupMembers((prevMembers) =>
-      prevMembers.filter((member) => member.id !== memberId)
-    );
-    message.success("成员移除成功");
+  const removeMember = async (memberId: number) => {
+    try {
+      await kickUserAPI(projectId, memberId);
+      setGroupMembers((prevMembers) =>
+        prevMembers.filter((member) => member.id !== memberId)
+      );
+      message.success("成员移除成功");
+    } catch (error) {
+      message.error("成员移除失败");
+    }
     closeContextMenu();
   };
 
@@ -245,9 +256,9 @@ const ProjectDetailOverview: React.FC = () => {
   };
 
   // 按角色分组成员
-  const owners = groupMembers.filter((member) => member.role === 1);
-  const admins = groupMembers.filter((member) => member.role === 2);
-  const members = groupMembers.filter((member) => member.role === 3);
+  const owners = groupMembers.filter((member) => member.userRole === 1);
+  const admins = groupMembers.filter((member) => member.userRole === 2);
+  const members = groupMembers.filter((member) => member.userRole === 3);
 
   // 渲染可编辑字段
   const renderEditableField = (
@@ -557,6 +568,11 @@ const ProjectDetailOverview: React.FC = () => {
                 key: "role2",
                 label: "设为管理员",
                 onClick: () => updateMemberRole(contextMenuMember.id, 2),
+              },
+              {
+                key: "role3",
+                label: "设为普通成员",
+                onClick: () => updateMemberRole(contextMenuMember.id, 3),
               },
               {
                 key: "remove",

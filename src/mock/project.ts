@@ -175,80 +175,26 @@ export default [
         data: [
           {
             id: 1,
-            name: "林润鑫",
-            role: 1,
+            userName: "林润鑫",
+            userRole: 1,
             avatar: "",
           },
           {
             id: 2,
-            name: "吴树杰",
-            role: 1,
+            userName: "吴树杰",
+            userRole: 1,
             avatar: "",
           },
           {
             id: 3,
-            name: "吴纯瑶",
-            role: 1,
+            userName: "吴纯瑶",
+            userRole: 1,
             avatar: "",
           },
           {
             id: 4,
-            name: "黄耿标",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 5,
-            name: "陆汝棠",
-            role: 3,
-            avatar: "",
-          },
-          {
-            id: 6,
-            name: "邓钰宜",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 7,
-            name: "罗叶叶",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 8,
-            name: "陈思宇",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 9,
-            name: "李思涵",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 10,
-            name: "王宇",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 11,
-            name: "梦菲",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 12,
-            name: "张三",
-            role: 2,
-            avatar: "",
-          },
-          {
-            id: 13,
-            name: "李四",
-            role: 2,
+            userName: "黄耿标",
+            userRole: 2,
             avatar: "",
           },
         ],
@@ -283,6 +229,26 @@ export default [
       return {
         code: 200,
         message: "退出项目成功",
+      };
+    },
+  },
+  {
+    url: "/api/project/kickUser",
+    method: "delete",
+    response: () => {
+      return {
+        code: 200,
+        message: "踢出用户成功",
+      };
+    },
+  },
+  {
+    url: "/api/project/changeUserLevel",
+    method: "put",
+    response: () => {
+      return {
+        code: 200,
+        message: "修改用户层级成功",
       };
     },
   },
