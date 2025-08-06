@@ -1,17 +1,36 @@
-import { Form, Input, Button, Typography, Space } from "antd";
+import { Form, Input, Button, Typography, Space, message } from "antd";
 import { useState } from "react";
-
-
+import '@ant-design/v5-patch-for-react-19';
+import { getCodeAPI } from "../../../api/service/userService";
 const Loginform = () => {
     const [form] = Form.useForm();
     const { Text } = Typography;
     const [isForgotPassword, setIsForgotPassword] = useState(false); // 切换登录和找回密码
-
+    const [countdown, setCountdown] = useState(0);
     const handleForgotPassword = () => {
         setIsForgotPassword(true);
     };
     const handleBackToLogin = () => {
         setIsForgotPassword(false);
+    };
+
+    //获取验证码
+    const handleGetCode = async () => {
+
+        const email = form.getFieldValue("email");
+
+        if (!email) {
+            message.error("请输入邮箱");
+            return;
+        }
+        const response = await getCodeAPI(email);
+
+        if (response.status === 200) {
+            setCountdown(60);
+            message.success("验证码已发送");
+        } else {
+            message.error("验证码发送失败");
+        }
     };
 
     if (!isForgotPassword) {
@@ -121,6 +140,13 @@ const Loginform = () => {
                                 style={{ flex: 1 }}
                             />
                         </Form.Item>
+                        <Button
+                            type="link"
+                            onClick={handleGetCode}
+                            disabled={countdown > 0}
+                        >
+                            {countdown > 0 ? `(${countdown})秒后重新发送` : '发送验证码'}
+                        </Button>
                     </Space.Compact>
                 </Form.Item>
 
@@ -129,7 +155,7 @@ const Loginform = () => {
                         {/* 这里发送完可以显示一个多少秒后继续发送 */}
                         <Button type="primary" htmlType="submit" block
                             style={{ backgroundColor: '#1890ff' }}>
-                            发送验证码
+                            确认修改密码
                         </Button>
                         <Button htmlType="button">
                             {/* onClick={onReset} */}

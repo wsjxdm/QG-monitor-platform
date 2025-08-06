@@ -4,7 +4,9 @@ import Title from "./component/title";
 import Footer from "./component/foot";
 import React from "react";
 import { Row, Col } from "antd";
+
 const Home: React.FC = () => {
+
     return (
         <div style={{
             width: "100%",
