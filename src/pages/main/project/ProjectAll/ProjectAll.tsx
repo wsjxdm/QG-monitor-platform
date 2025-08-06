@@ -22,7 +22,7 @@ import {
   CalendarOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { getPrivateProjects } from "../../../../api/service/project";
+import { getPrivateProjects } from "../../../../api/service/projectoverview";
 
 const { Title, Text } = Typography;
 

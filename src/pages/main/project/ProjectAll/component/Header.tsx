@@ -19,44 +19,28 @@ import {
   Menu,
   Typography,
 } from "antd";
+import {
+  searchProjects,
+  joinProject,
+  createProject,
+} from "../../../../../api/service/projectheader";
 import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
 const { Text, Title } = Typography;
 
-// 模拟数据 搜索项目数据
-const mockProjects = [
-  {
-    id: "project-1",
-    name: "电商平台监控",
-    description:
-      "电商网站的前端监控项目1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-    isPublic: true,
-  },
-  {
-    id: "project-2",
-    name: "企业管理系统",
-    description: "内部OA系统的监控",
-    isPublic: false,
-  },
-  {
-    id: "project-3",
-    name: "移动端应用",
-    description: "手机APP的性能监控",
-    isPublic: true,
-  },
-  {
-    id: "project-4",
-    name: "数据可视化平台",
-    description: "大数据展示平台监控",
-    isPublic: false,
-  },
-];
+//搜索项目
+interface searchProject {
+  id: string;
+  name: string;
+  description: string;
+  isPublic: boolean;
+}
 
 const ProjectHeader: React.FC = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
-  const [searchResults, setSearchResults] = useState<typeof mockProjects>([]);
+  const [searchResults, setSearchResults] = useState<searchProject[]>([]);
   const [isSearchDropdownVisible, setIsSearchDropdownVisible] = useState(false);
   const [isJoinModalVisible, setIsJoinModalVisible] = useState(false);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
@@ -66,16 +50,16 @@ const ProjectHeader: React.FC = () => {
   const isPublic = Form.useWatch("isPublic", createForm);
 
   // 处理搜索
-  const handleSearch = (value: string) => {
+  const handleSearch = async (value: string) => {
     setSearchValue(value);
     if (value.trim()) {
-      const filtered = mockProjects.filter(
-        (project) =>
-          project.name.toLowerCase().includes(value.toLowerCase()) ||
-          project.description.toLowerCase().includes(value.toLowerCase())
-      );
-      setSearchResults(filtered);
-      setIsSearchDropdownVisible(true);
+      try {
+        const filtered = await searchProjects(value);
+        setSearchResults(filtered);
+        setIsSearchDropdownVisible(true);
+      } catch (error) {
+        message.error("搜索项目失败，请稍后重试");
+      }
     } else {
       setSearchResults([]);
       setIsSearchDropdownVisible(false);
@@ -103,14 +87,12 @@ const ProjectHeader: React.FC = () => {
   // 处理加入项目
   const handleJoinProject = async (values: any) => {
     try {
-      // 模拟API调用
-      console.log("加入项目:", values);
-      // 这里应该调用实际的API
+      const response = await joinProject(values.invitedCode, "1");
       message.success("成功加入项目");
       setIsJoinModalVisible(false);
       joinForm.resetFields();
       // 跳转到项目总览页面（这里使用模拟项目ID）
-      navigate(`/main/project/project-1/detail/overview`);
+      navigate(`/main/project/${response.projectId}/detail/overview`);
     } catch (error) {
       message.error("加入项目失败");
     }
@@ -119,14 +101,16 @@ const ProjectHeader: React.FC = () => {
   // 处理创建项目
   const handleCreateProject = async (values: any) => {
     try {
-      // 模拟API调用
-      console.log("创建项目:", values);
-      // 这里应该调用实际的API
+      const { projectId } = await createProject(
+        values.name,
+        values.description,
+        isPublic,
+        "1"
+      );
       message.success("项目创建成功");
       setIsCreateModalVisible(false);
       createForm.resetFields();
-      // 跳转到新创建的项目总览页面（这里使用模拟项目ID）
-      navigate(`/main/project/project-1/detail/overview`, {
+      navigate(`/main/project/${projectId}/detail/overview`, {
         state: { isNew: true }, // 表示这是新创建的项目
       });
     } catch (error) {

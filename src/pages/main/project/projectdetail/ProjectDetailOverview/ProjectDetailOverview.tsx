@@ -44,7 +44,7 @@ import {
   exitProjectAPI,
   kickUserAPI,
   changeUserLevelAPI,
-} from "../../../../../api/service/project";
+} from "../../../../../api/service/projectoverview";
 
 const { Title, Text } = Typography;
 
@@ -245,7 +245,7 @@ const ProjectDetailOverview: React.FC = () => {
                   />
                 </Badge>
                 <div style={{ marginTop: "10px" }}>
-                  <Text strong>{member.name}</Text>
+                  <Text strong>{member.userName}</Text>
                 </div>
               </div>
             </Col>
