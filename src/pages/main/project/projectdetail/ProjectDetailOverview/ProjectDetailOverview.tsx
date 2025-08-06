@@ -36,6 +36,7 @@ import {
   UserOutlined,
   DownOutlined,
 } from "@ant-design/icons";
+import { useLocation } from "react-router-dom";
 import {
   getProjectInfo,
   getProjectMembers,
@@ -71,6 +72,7 @@ interface ProjectMember {
 
 const ProjectDetailOverview: React.FC = () => {
   const { projectId } = useParams();
+  const { isNew } = useLocation()?.state || {};
   const [projectData, setProjectData] = useState<projectData>(
     {} as projectData
   );
@@ -78,7 +80,9 @@ const ProjectDetailOverview: React.FC = () => {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [isTutorialModalVisible, setIsTutorialModalVisible] = useState(false);
+  const [isTutorialModalVisible, setIsTutorialModalVisible] = useState(
+    isNew ? true : false
+  );
   const [contextMenuMember, setContextMenuMember] = useState<any>(null);
   const navigate = useNavigate();
 
