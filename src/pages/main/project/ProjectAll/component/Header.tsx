@@ -31,25 +31,25 @@ const mockProjects = [
     name: "电商平台监控",
     description:
       "电商网站的前端监控项目1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-    is_public: true,
+    isPublic: true,
   },
   {
     id: "project-2",
     name: "企业管理系统",
     description: "内部OA系统的监控",
-    is_public: false,
+    isPublic: false,
   },
   {
     id: "project-3",
     name: "移动端应用",
     description: "手机APP的性能监控",
-    is_public: true,
+    isPublic: true,
   },
   {
     id: "project-4",
     name: "数据可视化平台",
     description: "大数据展示平台监控",
-    is_public: false,
+    isPublic: false,
   },
 ];
 
@@ -63,7 +63,7 @@ const ProjectHeader: React.FC = () => {
   const [joinForm] = Form.useForm();
   const [createForm] = Form.useForm();
   // 在组件内部使用useWatch监听表单值
-  const isPublic = Form.useWatch("is_public", createForm);
+  const isPublic = Form.useWatch("isPublic", createForm);
 
   // 处理搜索
   const handleSearch = (value: string) => {
@@ -126,7 +126,9 @@ const ProjectHeader: React.FC = () => {
       setIsCreateModalVisible(false);
       createForm.resetFields();
       // 跳转到新创建的项目总览页面（这里使用模拟项目ID）
-      navigate(`/main/project/project-1/detail/overview`);
+      navigate(`/main/project/project-1/detail/overview`, {
+        state: { isNew: true }, // 表示这是新创建的项目
+      });
     } catch (error) {
       message.error("项目创建失败");
     }
@@ -134,7 +136,7 @@ const ProjectHeader: React.FC = () => {
 
   // 处理权限选择的函数
   const handlePermissionChange = (isPublic: boolean) => {
-    createForm.setFieldsValue({ is_public: isPublic });
+    createForm.setFieldsValue({ isPublic });
   };
 
   return (
@@ -161,14 +163,14 @@ const ProjectHeader: React.FC = () => {
                         avatar={
                           <Avatar
                             icon={
-                              item.is_public ? (
+                              item.isPublic ? (
                                 <UnlockOutlined />
                               ) : (
                                 <LockOutlined />
                               )
                             }
                             style={{
-                              backgroundColor: item.is_public
+                              backgroundColor: item.isPublic
                                 ? "#52c41a"
                                 : "#1890ff",
                             }}
@@ -177,7 +179,7 @@ const ProjectHeader: React.FC = () => {
                         title={
                           <div>
                             <Text strong>{item.name}</Text>
-                            {item.is_public ? (
+                            {item.isPublic ? (
                               <span className={styles.publicTag}>公开</span>
                             ) : (
                               <span className={styles.privateTag}>私有</span>
@@ -279,7 +281,7 @@ const ProjectHeader: React.FC = () => {
             <Input.TextArea placeholder="请输入项目介绍" rows={4} />
           </Form.Item>
 
-          <Form.Item name="is_public" label="项目权限" initialValue={false}>
+          <Form.Item name="isPublic" label="项目权限" initialValue={false}>
             <div className={styles.radioGroup}>
               <div
                 className={`${styles.radioOption} ${

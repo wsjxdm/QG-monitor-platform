@@ -1,8 +1,12 @@
+import { message } from "antd";
 import "./App.css";
-import AppLayout from "./component/Layout/Layout";
+import { Outlet } from "react-router-dom";
 
+message.config({
+  top: 50,
+});
 function App() {
-  return <AppLayout></AppLayout>;
+  return <Outlet />;
 }
 
 export default App;
