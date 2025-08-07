@@ -15,6 +15,9 @@ export default [
           timestamp: "2023-01-01",
           moduleName: "用户登录",
           moduleId: 1,
+          name: "linrunxin",
+          delegatorId: 1,
+          avatarUrl: "",
         },
         {
           id: 2,
@@ -120,6 +123,72 @@ export default [
         code: 200,
         message: "success",
         data: filteredData,
+      };
+    },
+  },
+  {
+    url: "/api/error/getProjectMember",
+    method: "get",
+    response: ({ query }) => {
+      console.log("获取项目成员:", query);
+      return {
+        code: 200,
+        message: "获取到项目普通成员列表成功",
+        data: [
+          {
+            id: 1,
+            name: "linrunxin",
+            email: "linrunxin@example.com",
+            avatar: null,
+            role: 3,
+          },
+          {
+            id: 2,
+            name: "wushujie",
+            email: "wushujie@example.com",
+            avatar: null,
+            role: 3,
+          },
+          {
+            id: 3,
+            name: "wuchunyao",
+            email: "wuchunyao@example.com",
+            avatar: null,
+            role: 3,
+          },
+          {
+            id: 4,
+            name: "huanggengbiao",
+            email: "huanggengbiao@example.com",
+            avatar: null,
+            role: 3,
+          },
+          {
+            id: 5,
+            name: "zhangyong",
+            email: "zhangyong@example.com",
+            avatar: null,
+            role: 3,
+          },
+          {
+            id: 6,
+            name: "zhangyong",
+            email: "zhangyong@example.com",
+            avatar: null,
+            role: 3,
+          },
+        ],
+      };
+    },
+  },
+  {
+    url: "/api/projects/alertIssueNumber",
+    method: "put",
+    response: ({ errorId, userId }) => {
+      console.log("指派错误:", errorId, "给用户:", userId);
+      return {
+        code: 200,
+        message: "指派成功",
       };
     },
   },

@@ -82,7 +82,7 @@ export default [
         code: 200,
         data: [
           {
-            id: "project-1",
+            id: 1,
             name: "电商平台监控",
             invitedCode: "PUB1A2B3C4D5E6F",
             description: "电商网站的前端监控项目，包含错误收集、性能监控等功能",
@@ -92,7 +92,7 @@ export default [
             performanceScore: 85,
           },
           {
-            id: "project-3",
+            id: 3,
             name: "移动端应用",
             invitedCode: "PUB2G3H4I5J6K7L",
             description: "手机APP的性能监控，关注启动时间、内存使用等指标",
@@ -102,7 +102,7 @@ export default [
             performanceScore: 78,
           },
           {
-            id: "project-5",
+            id: 5,
             name: "数据分析平台",
             invitedCode: "PUB3M4N5O6P7Q8R",
             description: "大数据分析平台的监控系统，关注数据处理性能",
@@ -112,7 +112,7 @@ export default [
             performanceScore: 92,
           },
           {
-            id: "project-6",
+            id: 6,
             name: "在线教育系统",
             invitedCode: "PUB4S5T6U7V8W9X",
             description: "在线教育平台的监控，关注课程访问和用户学习行为",
@@ -122,7 +122,7 @@ export default [
             performanceScore: 88,
           },
           {
-            id: "project-7",
+            id: 7,
             name: "社交网络应用",
             invitedCode: "PUB5Y6Z7A8B9C0D",
             description: "社交平台的监控系统，关注用户互动和内容分发",
@@ -132,7 +132,7 @@ export default [
             performanceScore: 81,
           },
           {
-            id: "project-8",
+            id: 8,
             name: "云存储服务",
             invitedCode: "PUB6E7F8G9H0I1J",
             description: "云存储服务监控，关注文件上传下载性能和稳定性",
@@ -153,7 +153,7 @@ export default [
       return {
         code: 200,
         data: {
-          id: "project-1",
+          id: 1,
           name: "电商平台监控",
           description: "电商网站的前端监控项目，包含错误收集、性能监控等功能",
           createdTime: "2023-01-15 10:30:00",
