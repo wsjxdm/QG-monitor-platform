@@ -4,7 +4,7 @@ import { message } from 'antd';
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
-    baseURL: 'http://192.168.1.161:8080',
+    baseURL: 'http://192.168.1.108:8080',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -14,7 +14,8 @@ const apiClient: AxiosInstance = axios.create({
 // 请求拦截器
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        // 在发送请求之前做些什么
+        // 在发送请求之前带上token
+        //这里应该使用对token进行加密
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -34,14 +35,6 @@ apiClient.interceptors.response.use(
         return response.data;
     },
     (error) => {
-        // 对响应错误做点什么
-        if (error.response?.status === 401) {
-            // 处理未授权错误
-            localStorage.removeItem('token');
-            // 可以跳转到登录页
-            // window.location.href = '/login';
-        }
-
         if (error.response?.status === 500) {
             // 处理服务器错误
             message.error('服务器内部错误');

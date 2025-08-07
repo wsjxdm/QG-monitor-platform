@@ -66,26 +66,6 @@ export const decryptWithRSA = (encryptedData: string, privateKeyPem: string): st
     }
 };
 
-// 生成 RSA 密钥对
-export const generateRSAKeyPair = (): { publicKey: string; privateKey: string } => {
-    try {
-        // 生成 RSA 密钥对
-        const keyPair = forge.pki.rsa.generateKeyPair(2048);
-
-        // 将公钥和私钥转换为 PEM 格式
-        const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
-        const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
-
-        return {
-            publicKey: publicKeyPem,
-            privateKey: privateKeyPem
-        };
-    } catch (error) {
-        console.error('RSA 密钥对生成失败:', error);
-        throw error;
-    }
-};
-
 // 结合 AES 和 RSA 的加密函数
 // 1. 生成随机 AES 密钥
 // 2. 使用 AES 密钥加密数据
@@ -133,26 +113,6 @@ export const decryptWithAESAndRSA = (
         return decryptedData;
     } catch (error) {
         console.error('AES+RSA 解密失败:', error);
-        throw error;
-    }
-};
-
-// Base64 编码函数
-export const base64Encode = (data: string): string => {
-    try {
-        return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(data));
-    } catch (error) {
-        console.error('Base64 编码失败:', error);
-        throw error;
-    }
-};
-
-// Base64 解码函数
-export const base64Decode = (data: string): string => {
-    try {
-        return CryptoJS.enc.Base64.parse(data).toString(CryptoJS.enc.Utf8);
-    } catch (error) {
-        console.error('Base64 解码失败:', error);
         throw error;
     }
 };
