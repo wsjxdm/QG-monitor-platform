@@ -36,7 +36,7 @@ const ProjectPublic: React.FC = () => {
       description: string;
       isPublic: boolean;
       invitedCode: string;
-      createTime: string;
+      createTime: string | number | Date;
       errorCount: number;
       performanceScore: number;
     }[]

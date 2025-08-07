@@ -6,6 +6,7 @@ import ProjectPublic from "../pages/main/project/ProjectAll/ProjectPublic";
 import ProjectDetailOverview from "../pages/main/project/projectdetail/ProjectDetailOverview/ProjectDetailOverview";
 import ProjectItemDetail from "../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail";
 import ProjectDetailIssues from "../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues";
+import ProjectDetailPerformance from "../pages/main/project/projectdetail/ProjectDetailPerformance/ProjectDetailPerformance";
 import MessageSystem from "../pages/main/message/MessageSystem";
 import MessageTask from "../pages/main/message/MessageTask";
 import SettingProfile from "../pages/main/setting/SettingProfile";
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
                   {
                     path: "issues",
                     element: <ProjectDetailIssues />,
+                  },
+                  {
+                    path: "performance",
+                    element: <ProjectDetailPerformance />,
                   },
                   // 后面再加上监控的东西
                 ],
