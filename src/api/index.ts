@@ -1,6 +1,10 @@
 import axios from "axios";
-import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { message } from 'antd';
+import type {
+    AxiosInstance,
+    AxiosResponse,
+    InternalAxiosRequestConfig,
+} from "axios";
+import { message } from "antd";
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({

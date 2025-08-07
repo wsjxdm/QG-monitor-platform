@@ -11,6 +11,7 @@ import MessageTask from "../pages/main/message/MessageTask";
 import SettingProfile from "../pages/main/setting/SettingProfile";
 
 import App from "../App";
+import AppLayout from "../component/Layout/Layout";
 
 export const router = createBrowserRouter([
   {
@@ -23,7 +24,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/main",
-        element: <App />,
+        element: <AppLayout />,
         children: [
           // 项目路由
           {
