@@ -2,6 +2,7 @@ import { Tabs, ConfigProvider } from "antd";
 import Loginform from "./loginform";
 import RegisterForm from "./register";
 
+
 const Form = () => {
     const items = [
         {
@@ -18,16 +19,17 @@ const Form = () => {
     ]
 
     return (
-        <div style={{
-            background: 'white',
-            border: '1px solid #ccc',
-            borderRadius: '10px',
-            padding: '20px',
-            height: 'auto', // 改为自动高度
-            minHeight: '400px', // 设置最小高度而不是固定高度
-            display: 'flex',
-            flexDirection: 'column'
-        }}>
+        <div
+            style={{
+                background: 'white',
+                borderRadius: '10px',
+                padding: '20px',
+                height: 'auto', // 改为自动高度
+                minHeight: '400px', // 设置最小高度而不是固定高度
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 8px 16px rgb(24, 144, 255)',
+            }}>
             <ConfigProvider
                 theme={{
                     components: {

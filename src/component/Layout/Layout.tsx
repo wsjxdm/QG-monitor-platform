@@ -16,6 +16,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 const { Header, Sider, Content } = Layout;
 
@@ -215,6 +216,21 @@ const AppLayout = () => {
       secondLevelKey.startsWith("public-")) &&
     !["all-projects", "public-projects"].includes(secondLevelKey) &&
     firstLevelKey === "project";
+
+
+  const dispatch = useDispatch();
+
+  //=========组件初始化时配置全局socket==========
+  useEffect(() => {
+    // 应用加载时全局连接WebSocket
+    dispatch({ type: "ws/connect" });
+    console.log("你好");
+
+    // 应用卸载时断开连接
+    return () => {
+      dispatch({ type: "ws/disconnect" });
+    };
+  }, [dispatch]);
 
   return (
     <Layout className={styles.layout}>
