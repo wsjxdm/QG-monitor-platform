@@ -28,11 +28,15 @@ export const userSlice = createSlice({
         // 设置用户信息
         setUser: (state, action: PayloadAction<UserInfo>) => {
             state.id = action.payload.id;
-            state.name = action.payload.name;
             state.token = action.payload.token;
-            state.avater = action.payload.avater;
-            state.email = action.payload.email;
-            state.createdAt = action.payload.createdAt;
+            localStorage.setItem(
+                "user",
+                JSON.stringify(
+                    {
+                        id: action.payload.id,
+                        token: action.payload.token,
+                    }
+                ));
         },
         // 更新用户名
         setUserName: (state, action: PayloadAction<string>) => {
@@ -53,11 +57,8 @@ export const userSlice = createSlice({
         // 清除用户信息（登出时使用）
         clearUser: (state) => {
             state.id = null;
-            state.name = null;
             state.token = null;
-            state.avater = null;
-            state.email = null;
-            state.createdAt = null;
+            localStorage.removeItem("user");
         },
     },
 });
