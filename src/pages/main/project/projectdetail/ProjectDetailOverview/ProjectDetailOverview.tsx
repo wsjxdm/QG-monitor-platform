@@ -6,6 +6,7 @@ import {
   Typography,
   Modal,
   Card,
+  Spin,
   Empty,
   Button,
   Input,
@@ -36,6 +37,10 @@ import {
   UserOutlined,
   DownOutlined,
 } from "@ant-design/icons";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useLocation } from "react-router-dom";
 import {
   getProjectInfo,
@@ -45,6 +50,7 @@ import {
   exitProjectAPI,
   kickUserAPI,
   changeUserLevelAPI,
+  getTutorialMarkdown,
 } from "../../../../../api/service/projectoverview";
 
 const { Title, Text } = Typography;
@@ -83,6 +89,24 @@ const ProjectDetailOverview: React.FC = () => {
   const [isTutorialModalVisible, setIsTutorialModalVisible] = useState(
     isNew ? true : false
   );
+  const [isTutorialModalLoading, setIsTutorialModalLoading] = useState(false);
+  // 在 useState 声明区域添加
+  const [markdown, setMarkdown] =
+    useState(`# Hello, world!\n\nThis is a simple paragraph with some **bold** text.
+
+| Syntax      | Description |
+| ----------- | ----------- |
+| Header      | Title       |
+| Paragraph   | Text        |
+
+\`\`\`js
+import React from "react";
+
+function App() {
+  return <h1>Hello, React!</h1>;
+}
+\`\`\`
+`);
   const [contextMenuMember, setContextMenuMember] = useState<any>(null);
   const navigate = useNavigate();
 
@@ -166,8 +190,22 @@ const ProjectDetailOverview: React.FC = () => {
   };
 
   // 显示教程弹窗
-  const showTutorialModal = () => {
+  // 显示教程弹窗
+  const showTutorialModal = async () => {
     setIsTutorialModalVisible(true);
+    setIsTutorialModalLoading(true);
+    try {
+      // 从后台获取markdown文件
+      const markdownContent = await getTutorialMarkdown();
+      console.log("获取到的教程:", markdownContent);
+      // 设置获取到的内容
+      setMarkdown(markdownContent);
+      setIsTutorialModalLoading(false);
+    } catch (error) {
+      message.error("获取文件失败，请稍后重试");
+      // 出错时也停止加载状态
+      setIsTutorialModalLoading(false);
+    }
   };
 
   // 隐藏教程弹窗
@@ -538,8 +576,8 @@ const ProjectDetailOverview: React.FC = () => {
           </div>
         </div>
       </div>
-
       {/* 教程弹窗 */}
+      // 教程弹窗
       <Modal
         title="项目接入教程"
         open={isTutorialModalVisible}
@@ -552,10 +590,38 @@ const ProjectDetailOverview: React.FC = () => {
         width={800}
       >
         <div>
-          <Title level={5}>1. 项目初始化</Title>
+          {isTutorialModalLoading ? (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              <Spin tip="加载中..." />
+            </div>
+          ) : (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code({ node, inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || "");
+                  return !inline && match ? (
+                    <SyntaxHighlighter
+                      style={atomDark}
+                      language={match[1]}
+                      PreTag="div"
+                      {...props}
+                    >
+                      {String(children).replace(/\n$/, "")}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {markdown}
+            </ReactMarkdown>
+          )}
         </div>
       </Modal>
-
       {/* 成员操作右键菜单 */}
       {contextMenuMember && (
         <Dropdown

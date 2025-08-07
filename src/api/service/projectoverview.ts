@@ -129,3 +129,14 @@ export const changeUserLevelAPI = async (
     return response.data;
   } catch (error: any) {}
 };
+
+//获取教程md文件
+export const getTutorialMarkdown = async () => {
+  try {
+    const response = await apiClient.get("/api/project/tutorial");
+    console.log("Tutorial markdown response:", response);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching tutorial markdown:", error);
+  }
+};
