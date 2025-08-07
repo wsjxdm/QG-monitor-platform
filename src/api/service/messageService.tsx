@@ -31,7 +31,7 @@ export const updateStatusAPI = async (id: number) => {
 //这个id就是userId
 export const deleteAllAPI = async (id: number) => {
     try {
-        const response = await apiClient.delete(`notifications/deleteById/${id}`);
+        const response = await apiClient.delete(`notifications/deleteByReceiverId/${id}`);
         return response.data;
     } catch (error: any) {
         console.error("Error deleting all:", error);
@@ -43,7 +43,7 @@ export const deleteAllAPI = async (id: number) => {
 //删除单条信息
 export const deleteByIdAPI = async (id: number) => {
     try {
-        const response = await apiClient.delete(`notifications/deleteByReceiverId/${id}`);
+        const response = await apiClient.delete(`notifications/deleteById/${id}`);
         return response.data;
     } catch (error: any) {
         console.error("Error deleting message:", error);

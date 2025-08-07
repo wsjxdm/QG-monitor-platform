@@ -1,12 +1,20 @@
 import { Form, Input, Button, Typography, Space, message } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import '@ant-design/v5-patch-for-react-19';
 import { getCodeAPI } from "../../../api/service/userService";
+import { login } from "../../../api/service/userService";
+import { findPassword } from "../../../api/service/userService";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setUser } from "../../../store/slice/userSlice";
+
 const Loginform = () => {
     const [form] = Form.useForm();
     const { Text } = Typography;
     const [isForgotPassword, setIsForgotPassword] = useState(false); // 切换登录和找回密码
     const [countdown, setCountdown] = useState(0);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
     const handleForgotPassword = () => {
         setIsForgotPassword(true);
     };
@@ -14,6 +22,26 @@ const Loginform = () => {
         setIsForgotPassword(false);
     };
 
+    //登录成功后的处理
+    const handleLogin = async (values: any) => {
+        const response = await login(values.email, values.password)
+        if (response.code === 200) {
+            console.log("登录成功");
+            navigate("/main");
+            dispatch(setUser(response.data));
+        }
+    };
+
+    //发送验证码的倒计时
+    useEffect(() => {
+        if (countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(prev => prev - 1);
+            }, 1000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [countdown]);
     //获取验证码
     const handleGetCode = async () => {
 
@@ -25,11 +53,25 @@ const Loginform = () => {
         }
         const response = await getCodeAPI(email);
 
-        if (response.status === 200) {
+        if (response.code === 200) {
             setCountdown(60);
             message.success("验证码已发送");
         } else {
             message.error("验证码发送失败");
+        }
+    };
+    //找回密码
+    const handlefindPassword = async () => {
+        const response = await findPassword(
+            form.getFieldValue("email"),
+            form.getFieldValue("code"),
+            form.getFieldValue("password")
+        );
+        if (response.code === 200) {
+            message.success("密码修改成功");
+            setIsForgotPassword(false);
+        } else {
+            message.error("验证码错误");
         }
     };
 
@@ -39,7 +81,7 @@ const Loginform = () => {
                 <Form
                     form={form}
                     name="login"
-                    // onFinish={handleLogin}
+                    onFinish={handleLogin}
                     layout="vertical"
                     autoComplete="off"
                 >
@@ -93,7 +135,7 @@ const Loginform = () => {
             <Form
                 form={form}
                 name="findPassword"
-                // onFinish={onFinish}
+                onFinish={handlefindPassword}
                 layout="vertical"
                 autoComplete="off"
             >

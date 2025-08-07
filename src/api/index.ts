@@ -8,19 +8,11 @@ import { message } from "antd";
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
-<<<<<<< HEAD
-    baseURL: 'http://192.168.1.161:8080',
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-=======
-  // baseURL: "http://192.168.1.161:8080",
-  timeout: 50000,
+  baseURL: 'http://192.168.1.161:8080',
+  timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
->>>>>>> e599f7932b175d16c626a2c939f1ad08981fdcc5
 });
 
 // 请求拦截器
