@@ -5,11 +5,13 @@ import { Table, Select, Input, Button, Empty, Spin } from "antd";
 import type { TableProps } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 
+//定义筛选项
 interface FilterOption {
   label: string;
   value: string | number;
 }
 
+// 定义组件的props
 interface FilterConfig {
   key: string;
   label: string;
@@ -43,12 +45,14 @@ const TableWithSelector = <T extends object>({
     setLocalLoading(loading);
   }, [loading]);
 
+  // 处理筛选项变化
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     onFilterChange?.(newFilters);
   };
 
+  // 重置筛选项
   const handleResetFilters = () => {
     const resetFilters: Record<string, any> = {};
     filterConfig.forEach((config) => {
@@ -58,12 +62,13 @@ const TableWithSelector = <T extends object>({
     onFilterChange?.(resetFilters);
   };
 
+  // 根据类型渲染筛选项
   const renderFilterItem = (config: FilterConfig) => {
     if (config.type === "select") {
       return (
         <Select
           key={config.key}
-          style={{ width: 160 }}
+          style={{ maxWidth: 160 }}
           placeholder={config.placeholder || `请选择${config.label}`}
           value={filters[config.key]}
           onChange={(value) => handleFilterChange(config.key, value)}
@@ -112,6 +117,7 @@ const TableWithSelector = <T extends object>({
       </div>
 
       {/* 表格区域 */}
+      {/*! 能不能把Id存成key值而不展示出来*/}
       <div className={styles.tableContainer}>
         <Spin spinning={localLoading}>
           {dataSource && dataSource.length > 0 ? (

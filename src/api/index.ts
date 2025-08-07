@@ -8,7 +8,8 @@ import { message } from "antd";
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
-  timeout: 10000,
+  // baseURL: "http://192.168.1.161:8080",
+  timeout: 50000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -49,6 +50,7 @@ apiClient.interceptors.response.use(
       // 处理服务器错误
       message.error("服务器内部错误");
     }
+    message.error(error.message);
 
     //和后台对再写
     return Promise.reject(error);

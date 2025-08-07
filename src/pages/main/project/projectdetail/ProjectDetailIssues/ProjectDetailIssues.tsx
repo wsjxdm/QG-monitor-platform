@@ -17,6 +17,10 @@ interface ErrorItem {
   timestamp?: string | number | Date;
   message?: string;
   isHandled?: boolean;
+  moduleName?: string;
+  delegatorId?: string | number | null;
+  name?: string | null;
+  avatarUrl?: string | null;
 }
 
 const ProjectDetailIssues: React.FC = () => {
@@ -36,36 +40,34 @@ const ProjectDetailIssues: React.FC = () => {
     {
       key: "type",
       label: "错误类型",
-      type: "select" as const,
-      options: [
-        { label: "空指针", value: "空指针" },
-        { label: "网络错误", value: "网络错误" },
-        { label: "SQL注入", value: "SQL注入" },
-        { label: "XSS漏洞", value: "XSS漏洞" },
-        { label: "命令注入", value: "命令注入" },
-        { label: "资源泄露", value: "资源泄露" },
-        { label: "权限绕过", value: "权限绕过" },
-        { label: "数据篡改", value: "数据篡改" },
-        { label: "拒绝服务", value: "拒绝服务" },
-        { label: "信息泄露", value: "信息泄露" },
-        { label: "跨站脚本", value: "跨站脚本" },
-      ],
-      placeholder: "请选择错误类型",
+      type: "input" as const,
+      placeholder: "请输入错误类型",
     },
     {
       key: "platform",
       label: "平台",
-      type: "input" as const,
-      placeholder: "请输入平台名称",
+      type: "select" as const,
+      options: [
+        { label: "web", value: "web" },
+        { label: "java", value: "java" },
+        { label: "android", value: "android" },
+      ],
+    },
+    {
+      key: "moduleName",
+      label: "模块名称",
+      type: "select" as const,
+      options: [
+        { label: "模块1", value: 1 },
+        { label: "模块2", value: 2 },
+        { label: "模块3", value: 3 },
+        { label: "模块4", value: 4 },
+        { label: "模块5", value: 5 },
+      ],
     },
   ];
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-    },
     {
       title: "平台",
       dataIndex: "platform",
@@ -82,6 +84,11 @@ const ProjectDetailIssues: React.FC = () => {
       dataIndex: "timestamp",
       key: "timestamp",
     },
+    {
+      title: "模块名称",
+      dataIndex: "moduleName",
+      key: "moduleName",
+    },
   ];
 
   // 获取错误数据的函数
@@ -89,7 +96,12 @@ const ProjectDetailIssues: React.FC = () => {
     setLoading(true);
     console.log("获取错误数据:", filterParams);
     try {
-      const response = await getErrorDataAPI(filterParams);
+      //!传环境env，projectId
+      const response = await getErrorDataAPI({
+        ...filterParams,
+        projectId,
+        env: "dev",
+      });
       console.log("获取错误数据响应:", response);
 
       setData(response || []);
