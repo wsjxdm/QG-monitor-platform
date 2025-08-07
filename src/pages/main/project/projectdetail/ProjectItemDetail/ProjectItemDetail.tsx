@@ -5,6 +5,24 @@ import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
+//错误展示
+interface ErrorItem {
+  id: string;
+  platform: string;
+  projectId: string | number;
+  moduleId: number | string;
+  type: string;
+  timestamp: string | number | Date;
+  message: string;
+  isHandled: boolean;
+  stack: string;
+  userAgent: string;
+  url: string;
+  breadcrumbs: string[];
+  env: string;
+  event: string | number;
+}
+
 const ProjectItemDetail: React.FC = () => {
   const { projectId, type, detailId } = useParams();
   const navigate = useNavigate();
