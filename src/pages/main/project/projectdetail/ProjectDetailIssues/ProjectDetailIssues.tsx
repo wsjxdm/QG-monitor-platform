@@ -20,8 +20,10 @@ import {
 
 const { Title } = Typography;
 
+//todo 用户的权限判断
 const currentUser = {
   role: 2,
+  id: 1,
 };
 
 // 错误展示
@@ -81,7 +83,7 @@ const ProjectDetailIssues: React.FC = () => {
       ],
     },
     {
-      key: "moduleName",
+      key: "moduleId",
       label: "模块名称",
       type: "select" as const,
       options: [
@@ -107,7 +109,7 @@ const ProjectDetailIssues: React.FC = () => {
   // 处理指派错误
   const handleAssignError = async (
     errorId: string | number,
-    userId: string | number
+    delegatorId: string | number
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
@@ -116,7 +118,7 @@ const ProjectDetailIssues: React.FC = () => {
         return;
       }
 
-      await assignErrorAPI(errorId, userId);
+      await assignErrorAPI(errorId, delegatorId, currentUser.id);
       message.success("指派成功");
 
       // 更新本地数据而不重新获取
@@ -125,8 +127,8 @@ const ProjectDetailIssues: React.FC = () => {
           item.id == errorId
             ? {
                 ...item,
-                delegatorId: userId,
-                name: members.find((m) => m.id == userId)?.name || null,
+                delegatorId: delegatorId,
+                name: members.find((m) => m.id == delegatorId)?.name || null,
               }
             : item
         )

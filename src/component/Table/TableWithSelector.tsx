@@ -25,7 +25,6 @@ interface TableWithSelectorProps<T> extends TableProps<T> {
   loading?: boolean;
   onFilterChange?: (filters: Record<string, any>) => void;
   onRefresh?: () => void;
-  showResetButton?: boolean; // 是否显示重置按钮
 }
 
 const TableWithSelector = <T extends object>({
@@ -35,7 +34,6 @@ const TableWithSelector = <T extends object>({
   onFilterChange,
   onRefresh,
   onRow,
-  showResetButton = true,
   ...tableProps
 }: TableWithSelectorProps<T>) => {
   const [filters, setFilters] = useState<Record<string, any>>({});
@@ -50,16 +48,6 @@ const TableWithSelector = <T extends object>({
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     onFilterChange?.(newFilters);
-  };
-
-  // 重置筛选项
-  const handleResetFilters = () => {
-    const resetFilters: Record<string, any> = {};
-    filterConfig.forEach((config) => {
-      resetFilters[config.key] = config.type === "select" ? undefined : "";
-    });
-    setFilters(resetFilters);
-    onFilterChange?.(resetFilters);
   };
 
   // 根据类型渲染筛选项
@@ -110,9 +98,6 @@ const TableWithSelector = <T extends object>({
           >
             刷新
           </Button>
-          {showResetButton && (
-            <Button onClick={handleResetFilters}>重置</Button>
-          )}
         </div>
       </div>
 

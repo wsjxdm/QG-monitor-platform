@@ -33,12 +33,15 @@ export const getProjectMembersAPI = async (projectId: string | undefined) => {
 //指派错误
 export const assignErrorAPI = async (
   errorId: string | number,
-  userId: string | number
+  delegatorId: string | number,
+  responsibleId: string | number
 ) => {
+  console.log("指派错误参数:", errorId, delegatorId, responsibleId);
   try {
     const response = await apiClient.put("/api/projects/alertIssueNumber", {
       errorId,
-      userId,
+      delegatorId,
+      responsibleId,
     });
     console.log("指派错误响应:", response);
     return response.data;
