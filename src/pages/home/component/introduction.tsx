@@ -1,21 +1,27 @@
 import React from 'react';
 import { Typography, Row, Col, Image } from 'antd';
+import { useRef } from 'react';
+import { use3DTilt } from '../../../hook/3D';
 
 const { Title, Text } = Typography;
 
 const Introduction: React.FC = () => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    use3DTilt(containerRef);
     return (
-        <div style={{
-            background: 'white',
-            color: '#000',
-            padding: '50px',
-            textAlign: 'left',
-            border: "1px solid #ccc",
-            borderRadius: "15px",
-            height: 'auto', // 改为自动高度
-            maxWidth: '85%',
-            margin: '0 auto',
-        }}>
+        <div
+            ref={containerRef}
+            style={{
+                background: 'white',
+                color: '#000',
+                padding: '50px',
+                textAlign: 'left',
+                borderRadius: "15px",
+                height: 'auto', // 改为自动高度
+                maxWidth: '85%',
+                margin: '0 auto',
+                boxShadow: '0 8px 16px rgb(24, 144, 255)',
+            }}>
             <Title level={2} style={{
                 margin: '0 0 15px 0',
                 color: '#000',
