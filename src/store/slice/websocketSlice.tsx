@@ -22,7 +22,9 @@ const wsSlice = createSlice({
         // 接收消息并按type存储（覆盖旧消息，只保留最新）
         messageReceived: (state, action) => {
             const { type, data } = action.payload;
-            // 存储最新消息，并附加时间戳
+            console.log("类别", type, data);
+
+            // 存储最新消息
             state.messageByType[type] = {
                 ...data,
             };

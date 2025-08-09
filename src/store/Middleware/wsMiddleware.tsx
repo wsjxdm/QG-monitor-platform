@@ -41,13 +41,20 @@ export const wsMiddleware: Middleware<{}> = (store) => {
         const msg = JSON.parse(event.data); // 假设后端消息格式：{ type: 'xxx', data: {} }
         if (!msg.type) throw new Error("消息缺少type字段");
         // 如果消息类型是 notification，则显示全局通知
-        if (msg.type === "notification") {
+        if (msg.type === "notifications") {
           notification.info({
             message: `指派通知`,
-            description: "您有一条新的消息",
+            description: "您有新的消息",
           });
         }
-        store.dispatch(messageReceived(msg)); // 分发消息到Redux
+        if (msg.type === "designate") {
+          notification.info({
+            message: `通知牛马`,
+            description: "您有新任务了哦~马上干活！",
+          });
+        }
+        store.dispatch(messageReceived(msg.data)); // 分发消息到Redux
+        console.log("接收到消息:", msg.data);
       } catch (err: any) {
         console.error("解析消息失败:", err);
         store.dispatch(setError(`消息格式错误: ${err.message}`));

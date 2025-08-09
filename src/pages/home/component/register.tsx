@@ -4,14 +4,17 @@ import { getCodeAPI } from "../../../api/service/userService";
 import { useState, useEffect } from "react";
 import '@ant-design/v5-patch-for-react-19';
 
-const RegisterForm = () => {
+const RegisterForm = ({ onTabChange }) => {
     const [form] = Form.useForm();
     const [countdown, setCountdown] = useState(0);
     //注册API
     const handleRegister = async (values: any) => {
-        const response = await registerAPI(values.email, values.password, values.verificationCode);
-        if (response.status === 200) {
+        console.log(values.code);
+
+        const response = await registerAPI(values.email, values.password, values.code);
+        if (response.code === 200) {
             message.success("注册成功");
+            onTabChange?.('1'); // 切换到登录 tab
         } else {
             message.error("验证码错误");
         }
@@ -26,9 +29,12 @@ const RegisterForm = () => {
             message.error("请输入邮箱");
             return;
         }
-        const response = await getCodeAPI(email);
+        const response = await getCodeAPI(email)
 
-        if (response.status === 200) {
+        //不管这个报错
+        if (response.code === 200) {
+            console.log("开始");
+
             setCountdown(60);
             message.success("验证码已发送");
         } else {
