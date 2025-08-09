@@ -36,7 +36,7 @@ const ProjectPublic: React.FC = () => {
       description: string;
       isPublic: boolean;
       invitedCode: string;
-      createTime: string | number | Date;
+      createTime: string | number;
       errorCount: number;
       performanceScore: number;
     }[]
@@ -71,7 +71,7 @@ const ProjectPublic: React.FC = () => {
       <ProjectHeader />
 
       {/* 项目网格列表 */}
-      {PublicProjects.length > 0 ? (
+      {PublicProjects?.length > 0 ? (
         <div style={{ marginTop: "20px" }}>
           <Row gutter={[16, 16]}>
             {PublicProjects.map((project) => (

@@ -1,4 +1,3 @@
-// src/pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -45,10 +44,10 @@ interface ErrorItem {
 // 项目成员接口
 interface ProjectMember {
   id: string | number;
-  name: string;
-  email: string;
-  avatarUrl?: string;
-  role: number;
+  username: string;
+  email?: string;
+  avatar?: string;
+  userRole: number;
 }
 
 const ProjectDetailIssues: React.FC = () => {
@@ -67,7 +66,7 @@ const ProjectDetailIssues: React.FC = () => {
 
   const filterConfig = [
     {
-      key: "type",
+      key: "errorType",
       label: "错误类型",
       type: "input" as const,
       placeholder: "请输入错误类型",
@@ -110,7 +109,8 @@ const ProjectDetailIssues: React.FC = () => {
   // 处理指派错误
   const handleAssignError = async (
     errorId: string | number,
-    delegatorId: string | number
+    delegatorId: string | number,
+    plateform: string
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
@@ -119,7 +119,7 @@ const ProjectDetailIssues: React.FC = () => {
         return;
       }
 
-      await assignErrorAPI(errorId, delegatorId, currentUser.id);
+      await assignErrorAPI(errorId, delegatorId, plateform, currentUser.id);
       message.success("指派成功");
 
       // 更新本地数据而不重新获取
@@ -129,7 +129,8 @@ const ProjectDetailIssues: React.FC = () => {
             ? {
                 ...item,
                 delegatorId: delegatorId,
-                name: members.find((m) => m.id == delegatorId)?.name || null,
+                username:
+                  members.find((m) => m.id == delegatorId)?.username || null,
               }
             : item
         )
@@ -147,26 +148,23 @@ const ProjectDetailIssues: React.FC = () => {
       (member) => member.id == record.delegatorId
     );
 
-    // 只显示普通成员(role == 3)作为可指派选项
+    // 只显示普通成员(userRole == 3)作为可指派选项
     const menuItems = members
-      .filter((member) => member.role == 3)
+      .filter((member) => member.userRole == 3)
       .map((member) => ({
         key: member.id,
         label: (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Avatar
-              size="small"
-              src={member.avatarUrl}
-              icon={<UserOutlined />}
-            />
-            <span>{member.name}</span>
+            <Avatar size="small" src={member.avatar} icon={<UserOutlined />} />
+            <span>{member.username}</span>
           </div>
         ),
       }));
 
     const menuProps = {
       items: menuItems,
-      onClick: ({ key }: { key: string }) => handleAssignError(record.id, key),
+      onClick: ({ key }: { key: string }) =>
+        handleAssignError(record.id, key, record.platform),
     };
 
     return (
@@ -174,9 +172,18 @@ const ProjectDetailIssues: React.FC = () => {
         style={{ textAlign: "center", minWidth: 120 }}
         onClick={(e) => e.stopPropagation()}
       >
-        {record.delegatorId ? (
-          <Tooltip title={`已指派给: ${assignedMember?.name || "未知用户"}`}>
-            <span>{assignedMember?.name || "未知用户"}</span>
+        {record?.delegatorId ? (
+          <Tooltip
+            title={`已指派给: ${assignedMember?.username || "未知用户"}`}
+          >
+            <Avatar
+              size="small"
+              src={assignedMember?.avatar}
+              icon={<UserOutlined />}
+            />
+            <span style={{ marginLeft: 8 }}>
+              {assignedMember?.username || "未知用户"}
+            </span>
           </Tooltip>
         ) : (
           <span style={{ color: "#ff4d4f" }}>未指派</span>
@@ -206,8 +213,8 @@ const ProjectDetailIssues: React.FC = () => {
     },
     {
       title: "错误类型",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "errorType",
+      key: "errorType",
       width: 150,
       minWidth: 150,
       render: (type: string) => <span>{type}</span>,
@@ -259,7 +266,6 @@ const ProjectDetailIssues: React.FC = () => {
       const response = await getErrorDataAPI({
         ...filterParams,
         projectId,
-        env: "dev",
       });
       const arry1 = response[0];
       const arry2 = response[1];
@@ -267,20 +273,19 @@ const ProjectDetailIssues: React.FC = () => {
       const updataArry1 = arry1.map((item: any) => {
         return {
           ...item,
-          platform: "web",
+          platform: "java",
         };
       });
       const updataArry2 = arry2.map((item: any) => {
         return {
           ...item,
-          platform: "java",
+          platform: "web",
         };
       });
       const updataArry3 = arry3.map((item: any) => {
         return {
           ...item,
           platform: "android",
-          type: item.errorType,
           timestamp: new Date(item.timestamp)
             .toLocaleString("zh-CN", {
               year: "numeric",

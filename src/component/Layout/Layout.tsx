@@ -56,25 +56,24 @@ const AppLayout = () => {
     } else if (path === "/main/setting/profile") {
       setSecondLevelKey("profile");
     } else if (path.includes("/main/project/") && path.includes("/detail/")) {
-      // 从路径中提取项目ID
+      // 处理直接访问项目详情页的情况
+      const pathParts = path.split("/");
+      const projectIndex = pathParts.indexOf("project");
+      if (projectIndex !== -1 && pathParts[projectIndex + 1]) {
+        setSecondLevelKey(pathParts[projectIndex + 1]);
+        // 同时设置第三层导航
+        const detailIndex = pathParts.indexOf("detail");
+        if (detailIndex !== -1 && pathParts[detailIndex + 1]) {
+          setThirdLevelKey(pathParts[detailIndex + 1]);
+        }
+      }
+    } else if (path.includes("/main/project/") && !path.includes("/detail/")) {
+      // 处理访问项目列表页的情况
       const pathParts = path.split("/");
       const projectIndex = pathParts.indexOf("project");
       if (projectIndex !== -1 && pathParts[projectIndex + 1]) {
         setSecondLevelKey(pathParts[projectIndex + 1]);
       }
-    }
-
-    // 更新第三层导航状态
-    if (path.endsWith("/overview")) {
-      setThirdLevelKey("overview");
-    } else if (path.endsWith("/issues")) {
-      setThirdLevelKey("issues");
-    } else if (path.endsWith("/performance")) {
-      setThirdLevelKey("performance");
-    } else if (path.endsWith("/log")) {
-      setThirdLevelKey("log");
-    } else if (path.endsWith("/behavior")) {
-      setThirdLevelKey("behavior");
     }
   }, [location]);
 
@@ -107,8 +106,8 @@ const AppLayout = () => {
       icon: <GlobalOutlined />,
       //模拟数据
       children: [
-        { key: 1, label: "公开项目A", icon: <ProjectOutlined /> },
-        { key: 2, label: "公开项目B", icon: <ProjectOutlined /> },
+        { key: 3, label: "公开项目A", icon: <ProjectOutlined /> },
+        { key: 4, label: "公开项目B", icon: <ProjectOutlined /> },
       ],
       // 使用 onTitleClick 处理分组标题点击
       onTitleClick: () => {
@@ -182,8 +181,8 @@ const AppLayout = () => {
       navigate("/main/message/task"); // 显示任务消息
     } else if (key === "profile") {
       navigate("/main/setting/profile"); // 显示个人信息
-    } else if (key.startsWith("project-") || key.startsWith("public-")) {
-      // 只有选择具体项目时才进入项目详情页，并显示第三层导航
+    } else {
+      // 处理项目点击，导航到项目详情总览页
       navigate(`/main/project/${key}/detail/overview`);
     }
   };
@@ -194,7 +193,6 @@ const AppLayout = () => {
 
     // 获取当前项目ID（从第二层选中的项目）
     const projectId = secondLevelKey;
-    // 修改判断逻辑，不再检查 project- 或 public- 前缀
     if (
       !["all-projects", "public-projects"].includes(projectId) &&
       firstLevelKey === "project" &&
@@ -227,8 +225,9 @@ const AppLayout = () => {
   const showThirdLevel =
     !["all-projects", "public-projects"].includes(secondLevelKey) &&
     firstLevelKey === "project" &&
-    !isNaN(Number(secondLevelKey));
-
+    (secondLevelKey.startsWith("project-") ||
+      secondLevelKey.startsWith("public-") ||
+      !isNaN(Number(secondLevelKey)));
 
   const dispatch = useDispatch();
 
