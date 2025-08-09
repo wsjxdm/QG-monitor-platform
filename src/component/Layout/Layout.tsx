@@ -13,6 +13,7 @@ import {
   GlobalOutlined,
   UserOutlined,
   BellOutlined,
+  FileTextOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
@@ -26,6 +27,8 @@ const AppLayout = () => {
   const [secondLevelKey, setSecondLevelKey] = useState("all-projects");
   const [thirdLevelKey, setThirdLevelKey] = useState("overview");
   const [openKeys, setOpenKeys] = useState(["all-projects", "public-projects"]);
+
+  //todo 获取项目信息并绑定路由
 
   // 根据当前路径更新导航状态
   useEffect(() => {
@@ -67,8 +70,11 @@ const AppLayout = () => {
       setThirdLevelKey("issues");
     } else if (path.endsWith("/performance")) {
       setThirdLevelKey("performance");
+    } else if (path.endsWith("/log")) {
+      setThirdLevelKey("log");
+    } else if (path.endsWith("/behavior")) {
+      setThirdLevelKey("behavior");
     }
-    //这里不带有问题详情，这样可以保持原来的选定状态
   }, [location]);
 
   // 第一层导航
@@ -127,6 +133,8 @@ const AppLayout = () => {
     { key: "overview", icon: <EyeOutlined />, label: "总览" },
     { key: "issues", icon: <BugOutlined />, label: "问题" },
     { key: "performance", icon: <BarChartOutlined />, label: "性能" },
+    { key: "log", icon: <FileTextOutlined />, label: "日志" },
+    { key: "behavior", icon: <UserOutlined />, label: "行为" },
   ];
 
   const {
