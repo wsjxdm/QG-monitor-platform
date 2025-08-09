@@ -20,8 +20,10 @@ import {
 
 const { Title } = Typography;
 
+//todo 用户的权限判断
 const currentUser = {
   role: 2,
+  id: 1,
 };
 
 // 错误展示
@@ -81,10 +83,11 @@ const ProjectDetailIssues: React.FC = () => {
       ],
     },
     {
-      key: "moduleName",
+      key: "moduleId",
       label: "模块名称",
       type: "select" as const,
       options: [
+        //todo 这里的模块名称需要从后端获取
         { label: "模块1", value: 1 },
         { label: "模块2", value: 2 },
         { label: "模块3", value: 3 },
@@ -107,7 +110,7 @@ const ProjectDetailIssues: React.FC = () => {
   // 处理指派错误
   const handleAssignError = async (
     errorId: string | number,
-    userId: string | number
+    delegatorId: string | number
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
@@ -116,7 +119,7 @@ const ProjectDetailIssues: React.FC = () => {
         return;
       }
 
-      await assignErrorAPI(errorId, userId);
+      await assignErrorAPI(errorId, delegatorId, currentUser.id);
       message.success("指派成功");
 
       // 更新本地数据而不重新获取
@@ -125,8 +128,8 @@ const ProjectDetailIssues: React.FC = () => {
           item.id == errorId
             ? {
                 ...item,
-                delegatorId: userId,
-                name: members.find((m) => m.id == userId)?.name || null,
+                delegatorId: delegatorId,
+                name: members.find((m) => m.id == delegatorId)?.name || null,
               }
             : item
         )
@@ -217,23 +220,11 @@ const ProjectDetailIssues: React.FC = () => {
       minWidth: 150,
     },
     {
-      title: "模块名称",
-      dataIndex: "moduleName",
-      key: "moduleName",
+      title: "环境",
+      dataIndex: "environment",
+      key: "environment",
       width: 120,
       minWidth: 120,
-    },
-    {
-      title: "操作",
-      key: "action",
-      fixed: "right" as const,
-      width: 100,
-    },
-    {
-      title: "操作",
-      key: "action",
-      fixed: "right" as const,
-      width: 100,
     },
     {
       title: "指派人",
@@ -270,7 +261,41 @@ const ProjectDetailIssues: React.FC = () => {
         projectId,
         env: "dev",
       });
-      setData(response || []);
+      const arry1 = response[0];
+      const arry2 = response[1];
+      const arry3 = response[2];
+      const updataArry1 = arry1.map((item: any) => {
+        return {
+          ...item,
+          platform: "web",
+        };
+      });
+      const updataArry2 = arry2.map((item: any) => {
+        return {
+          ...item,
+          platform: "java",
+        };
+      });
+      const updataArry3 = arry3.map((item: any) => {
+        return {
+          ...item,
+          platform: "android",
+          type: item.errorType,
+          timestamp: new Date(item.timestamp)
+            .toLocaleString("zh-CN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            })
+            .replace(/\//g, "-"),
+        };
+      });
+
+      setData([...updataArry1, ...updataArry2, ...updataArry3]);
     } catch (error) {
       console.error("获取错误数据失败:", error);
     } finally {
