@@ -1,11 +1,33 @@
 // src/pages/main/project/projectdetail/ProjectDetailLog/ProjectDetailLog.tsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Table, Typography, Spin, Empty, Button, Space, Tag } from "antd";
+import {
+  Table,
+  Typography,
+  Spin,
+  Empty,
+  Button,
+  Space,
+  Tag,
+  Row,
+  Col,
+} from "antd";
 import { ReloadOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 
 const { Text, Title } = Typography;
+
+interface environmentSnapshot {
+  ip: string;
+  protocol?: string;
+  httpMethod?: string;
+  browserName?: string;
+  browserVersion?: string;
+  osName?: string;
+  osVersion?: string;
+  language?: string;
+  isAjax?: boolean;
+}
 
 // 日志数据接口
 interface LogItem {
@@ -17,7 +39,7 @@ interface LogItem {
   environment: string;
   type: string;
   stack: string;
-  environmentSnapshot: string;
+  environmentSnapshot: environmentSnapshot;
   event: string;
 }
 
@@ -46,15 +68,18 @@ const ProjectDetailLog: React.FC = () => {
         stack: `Error: Something went wrong\n    at Function.process (${
           index + 1
         })\n    at Module.main (main.js)`,
-        environmentSnapshot: JSON.stringify(
-          {
-            nodeVersion: "16.14.0",
-            os: "linux",
-            memory: `${512 + index * 128}MB`,
-          },
-          null,
-          2
-        ),
+        environmentSnapshot: {
+          ip: `192.168.1.${index + 1}`,
+          protocol: index % 2 === 0 ? "HTTP/1.1" : "HTTP/2",
+          httpMethod:
+            index % 3 === 0 ? "GET" : index % 3 === 1 ? "POST" : "PUT",
+          browserName: index % 2 === 0 ? "Chrome" : "Firefox",
+          browserVersion: `${80 + index}.0.1`,
+          osName: index % 2 === 0 ? "Windows" : "MacOS",
+          osVersion: `10.1${index}`,
+          language: "zh-CN",
+          isAjax: index % 2 === 0,
+        },
         event: JSON.stringify(
           {
             userId: `user-${index + 1}`,
@@ -186,22 +211,55 @@ const ProjectDetailLog: React.FC = () => {
           </div>
           <div>
             <Text strong>环境快照: </Text>
-            <pre
+            <div
               style={{
                 background: "#f5f5f5",
                 padding: "12px",
                 borderRadius: "4px",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-all",
                 margin: "8px 0 0 0",
                 fontSize: "12px",
               }}
             >
-              {record.environmentSnapshot}
-            </pre>
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <Text strong>IP地址: </Text>
+                  <Text>{record.environmentSnapshot.ip}</Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong>协议: </Text>
+                  <Text>{record.environmentSnapshot.protocol || "N/A"}</Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong>HTTP方法: </Text>
+                  <Text>{record.environmentSnapshot.httpMethod || "N/A"}</Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong>浏览器: </Text>
+                  <Text>
+                    {record.environmentSnapshot.browserName}{" "}
+                    {record.environmentSnapshot.browserVersion || ""}
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong>操作系统: </Text>
+                  <Text>
+                    {record.environmentSnapshot.osName}{" "}
+                    {record.environmentSnapshot.osVersion || ""}
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong>语言: </Text>
+                  <Text>{record.environmentSnapshot.language || "N/A"}</Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong>AJAX请求: </Text>
+                  <Text>{record.environmentSnapshot.isAjax ? "是" : "否"}</Text>
+                </Col>
+              </Row>
+            </div>
           </div>
           <div>
-            <Text strong>事件详情: </Text>
+            <Text strong>次数: </Text>
             <pre
               style={{
                 background: "#f5f5f5",

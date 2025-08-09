@@ -8,7 +8,7 @@ import { message } from "antd";
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
-  // baseURL: "http://192.168.1.161:8080",
+  baseURL: "http://192.168.1.156:8080",
   timeout: 50000,
   headers: {
     "Content-Type": "application/json",

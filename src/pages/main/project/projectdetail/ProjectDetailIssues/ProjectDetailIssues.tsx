@@ -87,6 +87,7 @@ const ProjectDetailIssues: React.FC = () => {
       label: "模块名称",
       type: "select" as const,
       options: [
+        //todo 这里的模块名称需要从后端获取
         { label: "模块1", value: 1 },
         { label: "模块2", value: 2 },
         { label: "模块3", value: 3 },
@@ -219,23 +220,11 @@ const ProjectDetailIssues: React.FC = () => {
       minWidth: 150,
     },
     {
-      title: "模块名称",
-      dataIndex: "moduleName",
-      key: "moduleName",
+      title: "环境",
+      dataIndex: "environment",
+      key: "environment",
       width: 120,
       minWidth: 120,
-    },
-    {
-      title: "操作",
-      key: "action",
-      fixed: "right" as const,
-      width: 100,
-    },
-    {
-      title: "操作",
-      key: "action",
-      fixed: "right" as const,
-      width: 100,
     },
     {
       title: "指派人",
@@ -272,7 +261,41 @@ const ProjectDetailIssues: React.FC = () => {
         projectId,
         env: "dev",
       });
-      setData(response || []);
+      const arry1 = response[0];
+      const arry2 = response[1];
+      const arry3 = response[2];
+      const updataArry1 = arry1.map((item: any) => {
+        return {
+          ...item,
+          platform: "web",
+        };
+      });
+      const updataArry2 = arry2.map((item: any) => {
+        return {
+          ...item,
+          platform: "java",
+        };
+      });
+      const updataArry3 = arry3.map((item: any) => {
+        return {
+          ...item,
+          platform: "android",
+          type: item.errorType,
+          timestamp: new Date(item.timestamp)
+            .toLocaleString("zh-CN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            })
+            .replace(/\//g, "-"),
+        };
+      });
+
+      setData([...updataArry1, ...updataArry2, ...updataArry3]);
     } catch (error) {
       console.error("获取错误数据失败:", error);
     } finally {

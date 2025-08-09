@@ -19,13 +19,25 @@ const { Title, Text } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
+interface environmentSnapshot {
+  ip: string;
+  protocol?: string;
+  httpMethod?: string;
+  browserName?: string;
+  browserVersion?: string;
+  osName?: string;
+  osVersion?: string;
+  language?: string;
+  isAjax?: boolean;
+}
+
 interface BackendPerformance {
   id: number | string;
   timestamp: string | number | Date;
   module?: string | number;
   projectId: string | number;
   environment?: string;
-  environmentSnapshot?: string;
+  environmentSnapshot?: environmentSnapshot;
   api?: string;
   sessionId?: string | number;
   slow?: boolean;
@@ -38,7 +50,10 @@ interface FrontendPerformance {
   projectId: string | number;
   sessionId?: string | number;
   userAgent?: string;
-  metrics?: any;
+  metrics?: {
+    vitals?: { fcp: number | string; lcp: number | string };
+    navigation?: { domReady: number | string; loadComplete: number | string };
+  };
   captureType?: string;
   duration?: number;
 }
@@ -50,7 +65,7 @@ interface MobilePerformance {
   deviceModule?: string;
   osVersion?: string;
   batteryLevel?: number;
-  memoryUsage?: number;
+  memoryUsage?: { usedMemory: string | number; totalMemory: string | number };
   operationFps?: string;
   duration?: number;
 }
@@ -119,15 +134,18 @@ const ProjectDetailPerformance: React.FC = () => {
           api: `/api/v1/resource/${index + 1}`,
           duration: Math.floor(Math.random() * 5000) + 100,
           slow: index % 5 === 0,
-          environmentSnapshot: JSON.stringify(
-            {
-              nodeVersion: "16.14.0",
-              os: "linux",
-              memory: `${512 + index * 128}MB`,
-            },
-            null,
-            2
-          ),
+          environmentSnapshot: {
+            ip: `192.168.1.${index + 1}`,
+            protocol: index % 2 === 0 ? "HTTP/1.1" : "HTTP/2",
+            httpMethod:
+              index % 3 === 0 ? "GET" : index % 3 === 1 ? "POST" : "PUT",
+            browserName: index % 2 === 0 ? "Chrome" : "Firefox",
+            browserVersion: `${80 + index}.0.1`,
+            osName: index % 2 === 0 ? "Windows" : "MacOS",
+            osVersion: `10.1${index}`,
+            language: "zh-CN",
+            isAjax: index % 2 === 0,
+          },
           sessionId: `session-${index + 1}`,
         })
       );
@@ -188,9 +206,14 @@ const ProjectDetailPerformance: React.FC = () => {
           userAgent:
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
           metrics: {
-            cpu: `${Math.floor(Math.random() * 100)}%`,
-            memory: `${Math.floor(Math.random() * 1000)}MB`,
-            network: `${Math.floor(Math.random() * 100)}Mbps`,
+            vitals: {
+              lcp: index * 100,
+              fcp: index * 50,
+            },
+            navigation: {
+              domReady: index * 30,
+              loadComplete: index * 70,
+            },
           },
           captureType:
             index % 4 === 0
@@ -261,7 +284,10 @@ const ProjectDetailPerformance: React.FC = () => {
           osVersion: index % 2 === 0 ? `OS-${index + 1}.0` : undefined,
           batteryLevel:
             index % 2 === 0 ? Math.floor(Math.random() * 100) : undefined,
-          memoryUsage: Math.floor(Math.random() * 4096),
+          memoryUsage: {
+            usedMemory: `${Math.floor(Math.random() * 4096)}MB`,
+            totalMemory: `${Math.floor(Math.random() * 4096)}MB`,
+          },
           operationFps:
             index % 3 === 0
               ? `${Math.floor(Math.random() * 60)} FPS`
@@ -306,6 +332,8 @@ const ProjectDetailPerformance: React.FC = () => {
   };
 
   useEffect(() => {
+    //todo 可以先获取后端的，其他等切换的时候获取，也可以通过plateform:all来获取所有数据
+
     // 初始加载所有数据
     fetchBackendData({});
     fetchFrontendData({});
@@ -459,13 +487,6 @@ const ProjectDetailPerformance: React.FC = () => {
       width: 100,
       render: (duration?: number) => (duration ? `${duration}ms` : null),
     },
-    {
-      title: "慢查询",
-      dataIndex: "slow",
-      key: "slow",
-      width: 100,
-      render: (slow?: boolean) => (slow ? <Tag color="red">慢查询</Tag> : null),
-    },
   ];
 
   // 前端性能表格列定义
@@ -572,12 +593,6 @@ const ProjectDetailPerformance: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {record.environment && (
-              <Col span={8}>
-                <Text strong>环境: </Text>
-                {renderEnvironmentTag(record.environment)}
-              </Col>
-            )}
             {record.duration && (
               <Col span={8}>
                 <Text strong>耗时: </Text>
@@ -592,29 +607,59 @@ const ProjectDetailPerformance: React.FC = () => {
             )}
           </Row>
 
-          {record.api && (
-            <div>
-              <Text strong>API: </Text>
-              <Text>{record.api}</Text>
-            </div>
-          )}
-
           {record.environmentSnapshot && (
             <div>
               <Text strong>环境快照: </Text>
-              <pre
+              <div
                 style={{
                   background: "#f5f5f5",
                   padding: "12px",
                   borderRadius: "4px",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-all",
                   margin: "8px 0 0 0",
                   fontSize: "12px",
                 }}
               >
-                {record.environmentSnapshot}
-              </pre>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Text strong>IP地址: </Text>
+                    <Text>{record.environmentSnapshot.ip}</Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>协议: </Text>
+                    <Text>{record.environmentSnapshot.protocol || "N/A"}</Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>HTTP方法: </Text>
+                    <Text>
+                      {record.environmentSnapshot.httpMethod || "N/A"}
+                    </Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>浏览器: </Text>
+                    <Text>
+                      {record.environmentSnapshot.browserName}{" "}
+                      {record.environmentSnapshot.browserVersion || ""}
+                    </Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>操作系统: </Text>
+                    <Text>
+                      {record.environmentSnapshot.osName}{" "}
+                      {record.environmentSnapshot.osVersion || ""}
+                    </Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>语言: </Text>
+                    <Text>{record.environmentSnapshot.language || "N/A"}</Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>AJAX请求: </Text>
+                    <Text>
+                      {record.environmentSnapshot.isAjax ? "是" : "否"}
+                    </Text>
+                  </Col>
+                </Row>
+              </div>
             </div>
           )}
         </Space>
@@ -677,19 +722,33 @@ const ProjectDetailPerformance: React.FC = () => {
           {record.metrics && (
             <div>
               <Text strong>指标数据: </Text>
-              <pre
-                style={{
-                  background: "#f5f5f5",
-                  padding: "12px",
-                  borderRadius: "4px",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-all",
-                  margin: "8px 0 0 0",
-                  fontSize: "12px",
-                }}
-              >
-                {JSON.stringify(record.metrics, null, 2)}
-              </pre>
+              <Row gutter={16} style={{ marginTop: 10 }}>
+                {record.metrics.vitals && (
+                  <Col span={12}>
+                    <Text>关键性能指标: </Text>
+                    <div>
+                      <Text>FCP: {record.metrics.vitals.fcp}ms</Text>
+                      <br />
+                      <Text>LCP: {record.metrics.vitals.lcp}ms</Text>
+                    </div>
+                  </Col>
+                )}
+                {record.metrics.navigation && (
+                  <Col span={12}>
+                    <Text>导航指标: </Text>
+                    <div>
+                      <Text>
+                        DOM Ready: {record.metrics.navigation.domReady}ms
+                      </Text>
+                      <br />
+                      <Text>
+                        Load Complete: {record.metrics.navigation.loadComplete}
+                        ms
+                      </Text>
+                    </div>
+                  </Col>
+                )}
+              </Row>
             </div>
           )}
         </Space>
@@ -737,7 +796,10 @@ const ProjectDetailPerformance: React.FC = () => {
             {record.memoryUsage && (
               <Col span={8}>
                 <Text strong>内存使用: </Text>
-                <Text>{record.memoryUsage}MB</Text>
+                <Text>
+                  {record.memoryUsage.usedMemory} /{" "}
+                  {record.memoryUsage.totalMemory}
+                </Text>
               </Col>
             )}
           </Row>

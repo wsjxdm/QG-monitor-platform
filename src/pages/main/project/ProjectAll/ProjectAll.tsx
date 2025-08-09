@@ -71,7 +71,7 @@ const ProjectAll: React.FC = () => {
       <ProjectHeader />
 
       {/* 项目网格列表 */}
-      {PrivateProjects.length > 0 ? (
+      {PrivateProjects?.length > 0 ? (
         <div style={{ marginTop: "20px" }}>
           <Row gutter={[16, 16]}>
             {PrivateProjects.map((project) => (

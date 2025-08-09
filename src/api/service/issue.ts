@@ -5,7 +5,7 @@ import apiClient from "../index";
 export const getErrorDataAPI = async (params: Record<string, any>) => {
   console.log("获取错误数据参数:", params);
   try {
-    const response = await apiClient.get(`/api/error/getErrorData`, {
+    const response = await apiClient.get(`errors/selectByCondition`, {
       params,
     });
     console.log("获取错误数据响应:", response);
