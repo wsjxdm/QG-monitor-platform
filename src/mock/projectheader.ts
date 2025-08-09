@@ -13,26 +13,25 @@ export default [
         message: "success",
         data: [
           {
-            id: "project-1",
+            id: 1,
             name: "电商平台监控",
-            description:
-              "电商网站的前端监控项目1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            description: "电商网站的前端监控项目",
             isPublic: true,
           },
           {
-            id: "project-2",
+            id: 2,
             name: "企业管理系统",
             description: "内部OA系统的监控",
             isPublic: false,
           },
           {
-            id: "project-3",
+            id: 3,
             name: "移动端应用",
             description: "手机APP的性能监控",
             isPublic: true,
           },
           {
-            id: "project-4",
+            id: 4,
             name: "数据可视化平台",
             description: "大数据展示平台监控",
             isPublic: false,
@@ -48,7 +47,7 @@ export default [
       return {
         code: 200,
         data: {
-          projectId: "11111111",
+          projectId: 1,
         },
         message: "加入项目成功",
       };
@@ -61,7 +60,7 @@ export default [
       return {
         code: 200,
         data: {
-          projectId: "project-1",
+          projectId: 1,
         },
         message: "项目创建成功",
       };

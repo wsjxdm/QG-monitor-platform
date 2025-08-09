@@ -12,4 +12,9 @@ export default defineConfig({
       localEnabled: true, // 本地开发环境启用
     }),
   ],
+  server: {
+    headers: {
+      "Content-Security-Policy": "frame-ancestors 'none'",
+    },
+  },
 });

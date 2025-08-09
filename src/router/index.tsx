@@ -7,6 +7,8 @@ import ProjectDetailOverview from "../pages/main/project/projectdetail/ProjectDe
 import ProjectItemDetail from "../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail";
 import ProjectDetailIssues from "../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues";
 import ProjectDetailPerformance from "../pages/main/project/projectdetail/ProjectDetailPerformance/ProjectDetailPerformance";
+import ProjectDetailLog from "../pages/main/project/projectdetail/ProjectDetailLog/ProjectDetailLog";
+import ProjectDetailBehavior from "../pages/main/project/projectdetail/ProjectDetailBehavior/ProjectDetailBehavior";
 import MessageSystem from "../pages/main/message/MessageSystem";
 import MessageTask from "../pages/main/message/MessageTask";
 import SettingProfile from "../pages/main/setting/SettingProfile";
@@ -17,7 +19,7 @@ import AppLayout from "../component/Layout/Layout";
 export const router = createBrowserRouter([
   {
     path: "/",
-
+    element: <App />,
     children: [
       {
         index: true,
@@ -58,6 +60,14 @@ export const router = createBrowserRouter([
                   {
                     path: "performance",
                     element: <ProjectDetailPerformance />,
+                  },
+                  {
+                    path: "log",
+                    element: <ProjectDetailLog />,
+                  },
+                  {
+                    path: "behavior",
+                    element: <ProjectDetailBehavior />,
                   },
                   // 后面再加上监控的东西
                 ],

@@ -6,6 +6,7 @@ import {
   Typography,
   Modal,
   Card,
+  Spin,
   Empty,
   Button,
   Input,
@@ -36,6 +37,11 @@ import {
   UserOutlined,
   DownOutlined,
 } from "@ant-design/icons";
+import { Line } from "@ant-design/plots";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useLocation } from "react-router-dom";
 import {
   getProjectInfo,
@@ -45,11 +51,12 @@ import {
   exitProjectAPI,
   kickUserAPI,
   changeUserLevelAPI,
+  getTutorialMarkdown,
 } from "../../../../../api/service/projectoverview";
 
 const { Title, Text } = Typography;
 
-//用户权限，这里3为普通用户
+//todo 用户权限，以及不可见的话要跳转
 const currentUserRole: number = 2; // 当前用户角色
 
 interface projectData {
@@ -70,6 +77,64 @@ interface ProjectMember {
   avatar?: string;
 }
 
+const Chart = React.memo(
+  ({ onReady }) => {
+    const config = {
+      colorField: "series",
+      yField: "value",
+      xField: (d) => new Date(d["Date"]),
+      axis: {
+        x: {
+          labelAutoRotate: false,
+        },
+      },
+      data: {
+        type: "fetch",
+        value:
+          "https://gw.alipayobjects.com/os/antfincdn/3PtP0m%26VuK/trend-data.json",
+      },
+      onReady,
+    };
+    return <Line {...config} />;
+  },
+  () => true
+);
+
+const Demo = () => {
+  const [data, setData] = React.useState([]);
+  return (
+    <div style={{ height: "100%" }}>
+      {data.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            zIndex: 10,
+            background: "#ccc",
+            padding: "10px",
+            borderRadius: "6px",
+          }}
+        >
+          {data.map((d, i) => (
+            <div key={i}>
+              {d.series} : {d.value}
+            </div>
+          ))}
+        </div>
+      )}
+      <Chart
+        onReady={({ chart }) => {
+          chart.on("plot:click", (e) => {
+            const { x, y } = e;
+            setData(chart.getDataByXY({ x, y }, { shared: true }));
+          });
+        }}
+      />
+    </div>
+  );
+};
+
 const ProjectDetailOverview: React.FC = () => {
   const { projectId } = useParams();
   const { isNew } = useLocation()?.state || {};
@@ -83,10 +148,32 @@ const ProjectDetailOverview: React.FC = () => {
   const [isTutorialModalVisible, setIsTutorialModalVisible] = useState(
     isNew ? true : false
   );
+  const [isTutorialModalLoading, setIsTutorialModalLoading] = useState(false);
+  // 在 useState 声明区域添加
+  const [markdown, setMarkdown] =
+    useState(`# Hello, world!\n\nThis is a simple paragraph with some **bold** text.
+
+| Syntax      | Description |
+| ----------- | ----------- |
+| Header      | Title       |
+| Paragraph   | Text        |
+
+\`\`\`js
+import React from "react";
+
+function App() {
+  return <h1>Hello, React!</h1>;
+}
+\`\`\`
+`);
   const [contextMenuMember, setContextMenuMember] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log(
+      "%c [ ]-273",
+      "color: #f00; font-weight: bold;background: #fff;width: 100%;"
+    );
     //获取项目资料
     getProjectInfo(projectId, currentUserRole).then((res) => {
       if (res) {
@@ -146,7 +233,7 @@ const ProjectDetailOverview: React.FC = () => {
       try {
         await deleteProjectAPI(projectId);
         message.success("项目删除成功");
-        console.log("删除项目:", projectId);
+        navigate("/main/project/all");
       } catch (error) {
         console.error("删除项目失败:", error);
         message.error("删除项目失败");
@@ -166,8 +253,22 @@ const ProjectDetailOverview: React.FC = () => {
   };
 
   // 显示教程弹窗
-  const showTutorialModal = () => {
+  // 显示教程弹窗
+  const showTutorialModal = async () => {
     setIsTutorialModalVisible(true);
+    setIsTutorialModalLoading(true);
+    try {
+      // 从后台获取markdown文件
+      const markdownContent = await getTutorialMarkdown();
+      console.log("获取到的教程:", markdownContent);
+      // 设置获取到的内容
+      setMarkdown(markdownContent);
+      setIsTutorialModalLoading(false);
+    } catch (error) {
+      message.error("获取文件失败，请稍后重试");
+      // 出错时也停止加载状态
+      setIsTutorialModalLoading(false);
+    }
   };
 
   // 隐藏教程弹窗
@@ -510,12 +611,9 @@ const ProjectDetailOverview: React.FC = () => {
               项目监控数据
             </Title>
             <div className={styles.chartContainer}>
-              <Space>
-                <BarChartOutlined
-                  style={{ fontSize: "32px", color: "#1890ff" }}
-                />
-                <Text type="secondary">项目数据图表展示区域</Text>
-              </Space>
+              <div style={{ width: "100%", height: "100%" }}>
+                <Demo />
+              </div>
             </div>
           </div>
         </div>
@@ -552,10 +650,38 @@ const ProjectDetailOverview: React.FC = () => {
         width={800}
       >
         <div>
-          <Title level={5}>1. 项目初始化</Title>
+          {isTutorialModalLoading ? (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              <Spin tip="加载中..." />
+            </div>
+          ) : (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code({ node, inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || "");
+                  return !inline && match ? (
+                    <SyntaxHighlighter
+                      style={atomDark}
+                      language={match[1]}
+                      PreTag="div"
+                      {...props}
+                    >
+                      {String(children).replace(/\n$/, "")}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {markdown}
+            </ReactMarkdown>
+          )}
         </div>
       </Modal>
-
       {/* 成员操作右键菜单 */}
       {contextMenuMember && (
         <Dropdown

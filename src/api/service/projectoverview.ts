@@ -3,7 +3,7 @@ import apiClient from "../index";
 // 修复私有项目获取函数
 export const getPrivateProjects = async () => {
   try {
-    // 确保使用正确的baseURL
+    //todo 带上用户id
     const response = await apiClient.get("/api/project/private");
     console.log("Private projects response:", response);
     return response.data;
@@ -55,7 +55,7 @@ export const updateProjectInfo = async (projectId: string, data: any) => {
   try {
     const response = await apiClient.put(`/api/project/updateProjectData`, {
       projectId,
-      ...data,
+      data,
     });
     console.log("Update project info response:", response);
     return response;
@@ -101,10 +101,7 @@ export const kickUserAPI = async (
 ) => {
   try {
     const response = await apiClient.delete(`/api/project/kickUser`, {
-      data: {
-        projectId,
-        userId,
-      },
+      params: { projectId, userId },
     });
     console.log("Kick user response:", response);
     return response.data;
@@ -128,4 +125,15 @@ export const changeUserLevelAPI = async (
     console.log("Change user level response:", response);
     return response.data;
   } catch (error: any) {}
+};
+
+//获取教程md文件
+export const getTutorialMarkdown = async () => {
+  try {
+    const response = await apiClient.get("/api/project/tutorial");
+    console.log("Tutorial markdown response:", response);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching tutorial markdown:", error);
+  }
 };

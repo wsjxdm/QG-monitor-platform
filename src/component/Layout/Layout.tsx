@@ -13,6 +13,7 @@ import {
   GlobalOutlined,
   UserOutlined,
   BellOutlined,
+  FileTextOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
@@ -45,6 +46,8 @@ const AppLayout = () => {
     dispatch(fetchUserInfo(2));
   }, [dispatch]);
 
+
+  //todo 获取项目信息并绑定路由
 
   // 根据当前路径更新导航状态
   useEffect(() => {
@@ -86,8 +89,11 @@ const AppLayout = () => {
       setThirdLevelKey("issues");
     } else if (path.endsWith("/performance")) {
       setThirdLevelKey("performance");
+    } else if (path.endsWith("/log")) {
+      setThirdLevelKey("log");
+    } else if (path.endsWith("/behavior")) {
+      setThirdLevelKey("behavior");
     }
-    //这里不带有问题详情，这样可以保持原来的选定状态
   }, [location]);
 
   // 第一层导航
@@ -105,8 +111,8 @@ const AppLayout = () => {
       icon: <UnorderedListOutlined />,
       //模拟数据
       children: [
-        { key: "project-1", label: "项目A", icon: <ProjectOutlined /> },
-        { key: "project-2", label: "项目B", icon: <ProjectOutlined /> },
+        { key: 1, label: "项目A", icon: <ProjectOutlined /> },
+        { key: 2, label: "项目B", icon: <ProjectOutlined /> },
       ],
       // 使用 onTitleClick 处理分组标题点击
       onTitleClick: () => {
@@ -119,8 +125,8 @@ const AppLayout = () => {
       icon: <GlobalOutlined />,
       //模拟数据
       children: [
-        { key: "public-1", label: "公开项目A", icon: <ProjectOutlined /> },
-        { key: "public-2", label: "公开项目B", icon: <ProjectOutlined /> },
+        { key: 1, label: "公开项目A", icon: <ProjectOutlined /> },
+        { key: 2, label: "公开项目B", icon: <ProjectOutlined /> },
       ],
       // 使用 onTitleClick 处理分组标题点击
       onTitleClick: () => {
@@ -146,6 +152,8 @@ const AppLayout = () => {
     { key: "overview", icon: <EyeOutlined />, label: "总览" },
     { key: "issues", icon: <BugOutlined />, label: "问题" },
     { key: "performance", icon: <BarChartOutlined />, label: "性能" },
+    { key: "log", icon: <FileTextOutlined />, label: "日志" },
+    { key: "behavior", icon: <UserOutlined />, label: "行为" },
   ];
 
   const {
@@ -204,7 +212,12 @@ const AppLayout = () => {
 
     // 获取当前项目ID（从第二层选中的项目）
     const projectId = secondLevelKey;
-    if (projectId.startsWith("project-") || projectId.startsWith("public-")) {
+    // 修改判断逻辑，不再检查 project- 或 public- 前缀
+    if (
+      !["all-projects", "public-projects"].includes(projectId) &&
+      firstLevelKey === "project" &&
+      !isNaN(Number(projectId))
+    ) {
       navigate(`/main/project/${projectId}/detail/${key}`);
     }
   };
@@ -230,10 +243,9 @@ const AppLayout = () => {
 
   // 判断是否显示第三层导航栏 - 只有在选择了具体项目时才显示
   const showThirdLevel =
-    (secondLevelKey.startsWith("project-") ||
-      secondLevelKey.startsWith("public-")) &&
     !["all-projects", "public-projects"].includes(secondLevelKey) &&
-    firstLevelKey === "project";
+    firstLevelKey === "project" &&
+    !isNaN(Number(secondLevelKey));
 
 
   //=========组件初始化时配置全局socket==========
