@@ -32,6 +32,7 @@ const MessageTask: React.FC = () => {
       messageTypeCode={1}
       renderAvatar={renderAvatar}
       renderTitle={renderTitle}
+      isSenderExist={1}
     />
   );
 };

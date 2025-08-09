@@ -10,7 +10,9 @@ import { useSelector } from 'react-redux';
 import { deleteAllAPI } from '../../../api/service/messageService';
 import { deleteByIdAPI } from '../../../api/service/messageService';
 
+
 const { Title, Text } = Typography;
+
 
 interface MessageItem {
     id: number;
@@ -20,6 +22,7 @@ interface MessageItem {
     isRead: boolean;
     avatar?: string; // 可选的头像字段
     senderName?: string; // 可选的发送者名称
+    isSenderExist?: number;
 }
 
 interface MessageListProps {
@@ -29,6 +32,7 @@ interface MessageListProps {
     messageTypeCode: number;
     renderAvatar?: (item: MessageItem) => React.ReactNode;
     renderTitle?: (item: MessageItem) => React.ReactNode;
+    isSenderExist?: number;
 }
 
 const MessageList: React.FC<MessageListProps> = ({
@@ -37,10 +41,12 @@ const MessageList: React.FC<MessageListProps> = ({
     receiverId,
     messageTypeCode,
     renderAvatar,
-    renderTitle
+    renderTitle,
+    isSenderExist
 }) => {
     const [messages, setMessages] = useState<MessageItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [ischange, setIschange] = useState(false);//用于触发重新渲染
     const notification = useSelector(
         (state: any) => state.ws.messageByType[messageType] || {}
     );
@@ -56,7 +62,7 @@ const MessageList: React.FC<MessageListProps> = ({
             setLoading(false);
         };
         fetchMessages();
-    }, []);
+    }, [ischange]);
 
     useEffect(() => {
         if (Object.keys(notification).length === 0) return;
@@ -94,8 +100,13 @@ const MessageList: React.FC<MessageListProps> = ({
 
     //清空所有消息
     const handleClearAll = async () => {
-        const response = await deleteAllAPI(receiverId);
-        if (response) {
+        console.log(isSenderExist);
+
+        const response = await deleteAllAPI(receiverId, isSenderExist);
+
+        console.log(response);
+
+        if (response.code === 200) {
             setMessages([]);
         } else {
             console.error("清空消息失败");
@@ -105,7 +116,7 @@ const MessageList: React.FC<MessageListProps> = ({
     //删除单条消息
     const handleClearSingle = async (id: number) => {
         const response = await deleteByIdAPI(id);
-        if (response) {
+        if (response.code === 200) {
             setMessages(messages.filter((message) => message.id !== id));
         } else {
             console.error("删除消息失败");

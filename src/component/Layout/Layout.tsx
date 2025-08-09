@@ -17,6 +17,8 @@ import {
 } from "@ant-design/icons";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { fetchUserInfo } from "../../store/slice/userSlice";
+import { decryptWithAESAndRSA } from "../../utils/encrypt";
 
 const { Header, Sider, Content } = Layout;
 
@@ -27,6 +29,22 @@ const AppLayout = () => {
   const [secondLevelKey, setSecondLevelKey] = useState("all-projects");
   const [thirdLevelKey, setThirdLevelKey] = useState("overview");
   const [openKeys, setOpenKeys] = useState(["all-projects", "public-projects"]);
+  const dispatch = useDispatch();
+
+
+  // ==== 页面刷新时重新获取用户信息存入redux===
+  // ==== 页面刷新时重新获取用户信息存入redux===
+  useEffect(() => {
+    // const reGetInfo = async () => {
+    //   console.log("页面刷新时重新获取用户信息");
+
+    //   const userInfo = await fetchUserInfo(2)
+    //   console.log(userInfo);
+    // };
+    // reGetInfo();
+    dispatch(fetchUserInfo(2));
+  }, [dispatch]);
+
 
   // 根据当前路径更新导航状态
   useEffect(() => {
@@ -217,8 +235,6 @@ const AppLayout = () => {
     !["all-projects", "public-projects"].includes(secondLevelKey) &&
     firstLevelKey === "project";
 
-
-  const dispatch = useDispatch();
 
   //=========组件初始化时配置全局socket==========
   useEffect(() => {

@@ -28,11 +28,18 @@ export const updateStatusAPI = async (id: number) => {
 };
 
 //删除所有信息
-//这个id就是userId
-export const deleteAllAPI = async (id: number) => {
+//这个id就是用户的id
+export const deleteAllAPI = async (id: number, isSenderExist: number) => {
     try {
-        const response = await apiClient.delete(`notifications/deleteByReceiverId/${id}`);
-        return response.data;
+        const response = await apiClient.delete(`notifications/deleteByReceiverId`,
+            {
+                params: {
+                    receiverId: id,
+                    isSenderExist
+                }
+            }
+        );
+        return response;
     } catch (error: any) {
         console.error("Error deleting all:", error);
         throw error; // 重新抛出错误以便上层处理
@@ -44,7 +51,7 @@ export const deleteAllAPI = async (id: number) => {
 export const deleteByIdAPI = async (id: number) => {
     try {
         const response = await apiClient.delete(`notifications/deleteById/${id}`);
-        return response.data;
+        return response;
     } catch (error: any) {
         console.error("Error deleting message:", error);
         throw error; // 重新抛出错误以便上层处理
