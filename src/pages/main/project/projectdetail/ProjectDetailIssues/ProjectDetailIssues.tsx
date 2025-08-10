@@ -21,7 +21,7 @@ const { Title } = Typography;
 
 //todo 用户的权限判断
 const currentUser = {
-  role: 2,
+  role: 1,
   id: 1,
 };
 
@@ -48,6 +48,7 @@ interface ProjectMember {
   email?: string;
   avatar?: string;
   userRole: number;
+  power?: number | string;
 }
 
 const ProjectDetailIssues: React.FC = () => {
@@ -55,8 +56,10 @@ const ProjectDetailIssues: React.FC = () => {
   const navigate = useNavigate();
 
   // 跳转到错误详情页
-  const goToErrorDetail = (errorId: number) => {
-    navigate(`/main/project/${projectId}/detail/error/${errorId}`);
+  const goToErrorDetail = (errorId: number, platform: string) => {
+    navigate(`/main/project/${projectId}/detail/error/${errorId}`, {
+      state: { platform },
+    });
   };
 
   const [data, setData] = useState<ErrorItem[]>([]);
@@ -76,9 +79,9 @@ const ProjectDetailIssues: React.FC = () => {
       label: "平台",
       type: "select" as const,
       options: [
-        { label: "web", value: "web" },
-        { label: "java", value: "java" },
-        { label: "android", value: "android" },
+        { label: "前端", value: "frontend" },
+        { label: "后端", value: "backend" },
+        { label: "移动", value: "mobile" },
       ],
     },
     {
@@ -96,11 +99,15 @@ const ProjectDetailIssues: React.FC = () => {
     },
   ];
 
+  useEffect(() => {
+    console.log("更新后的项目成员:", members);
+  }, [members]);
+
   // 获取项目成员
   const fetchProjectMembers = async () => {
     try {
       const response = await getProjectMembersAPI(projectId);
-      setMembers(response || []);
+      setMembers(response);
     } catch (error) {
       console.error("获取项目成员失败:", error);
     }
@@ -114,7 +121,7 @@ const ProjectDetailIssues: React.FC = () => {
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
-      if (currentUser && currentUser.role == 3) {
+      if (currentUser && currentUser.role == 2) {
         message.warning("普通成员不能指派问题");
         return;
       }
@@ -148,9 +155,9 @@ const ProjectDetailIssues: React.FC = () => {
       (member) => member.id == record.delegatorId
     );
 
-    // 只显示普通成员(userRole == 3)作为可指派选项
+    // 只显示普通成员(userRole == 2)作为可指派选项
     const menuItems = members
-      .filter((member) => member.userRole == 3)
+      .filter((member) => member.userRole == 2)
       .map((member) => ({
         key: member.id,
         label: (
@@ -160,7 +167,6 @@ const ProjectDetailIssues: React.FC = () => {
           </div>
         ),
       }));
-
     const menuProps = {
       items: menuItems,
       onClick: ({ key }: { key: string }) =>
@@ -273,19 +279,19 @@ const ProjectDetailIssues: React.FC = () => {
       const updataArry1 = arry1.map((item: any) => {
         return {
           ...item,
-          platform: "java",
+          platform: "backend",
         };
       });
       const updataArry2 = arry2.map((item: any) => {
         return {
           ...item,
-          platform: "web",
+          platform: "frontend",
         };
       });
       const updataArry3 = arry3.map((item: any) => {
         return {
           ...item,
-          platform: "android",
+          platform: "mobile",
           timestamp: new Date(item.timestamp)
             .toLocaleString("zh-CN", {
               year: "numeric",
@@ -343,7 +349,7 @@ const ProjectDetailIssues: React.FC = () => {
           scroll={{ x: "max-content" }}
           onRow={(record) => ({
             onClick: () => {
-              goToErrorDetail(record.id as number);
+              goToErrorDetail(record.id as number, record.platform);
             },
           })}
           rowKey="id"
@@ -364,7 +370,7 @@ const ProjectDetailIssues: React.FC = () => {
         onRefresh={handleRefresh}
         onRow={(record) => ({
           onClick: () => {
-            goToErrorDetail(record.id as number);
+            goToErrorDetail(record.id as number, record.platform);
           },
         })}
         rowKey="id"

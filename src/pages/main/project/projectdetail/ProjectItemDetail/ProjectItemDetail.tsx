@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button, Card, Typography, Space } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 
@@ -8,24 +8,71 @@ const { Title, Text } = Typography;
 //错误展示
 interface ErrorItem {
   id: string;
-  platform: string;
   projectId: string | number;
   moduleId: number | string;
   type: string;
-  timestamp: string | number | Date;
-  message: string;
+  timestamp: string | number | Date; //todo 转字符串
+  message?: string;
   isHandled: boolean;
-  stack: string;
+  stack?: string;
   userAgent: string;
   url: string;
-  breadcrumbs: string[];
+  captureType: string;
+  breadcrumbs?: Array<{
+    category?: string;
+    message?: string;
+    level?: string;
+    timestamp?: string;
+    data?: {
+      title?: string;
+      referrer?: string;
+      timestamp?: string | number;
+    };
+    captureType?: string;
+  }>;
   env: string;
   event: string | number;
+  errorType?: string;
+  //todo sourceMap代码
+  tag?: [
+    environment?: string,
+    version?: string,
+    userId?: string,
+    custonField?: string
+  ];
+}
+
+//http错误，包含ErrorItem的内容，以及其他特有的错误信息
+interface HttpErrorItem extends ErrorItem {
+  duration: number;
+  errorType: string;
+  message: string;
+  request?: {
+    url: string;
+    method: string;
+  };
+  response?: {
+    status: number;
+  };
+}
+
+//资源请求错误
+interface ResourceErrorItem extends ErrorItem {
+  errorType: string;
+  message: string;
+  resourceType: string;
+  resourceUrl: string;
+  elementInfo?: {
+    tagName: string;
+    id?: string;
+  };
 }
 
 const ProjectItemDetail: React.FC = () => {
   const { projectId, type, detailId } = useParams();
   const navigate = useNavigate();
+  //从路由跳转中获取state
+  const { state } = useLocation();
 
   // 根据类型显示不同的标题和内容
   const renderContent = () => {

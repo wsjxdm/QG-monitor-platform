@@ -3,19 +3,40 @@ import { registerAPI } from "../../../api/service/userService";
 import { getCodeAPI } from "../../../api/service/userService";
 import { useState, useEffect } from "react";
 import '@ant-design/v5-patch-for-react-19';
+import { encryptWithAESAndRSA } from "../../../utils/encrypt";
+
 
 const RegisterForm = ({ onTabChange }) => {
     const [form] = Form.useForm();
     const [countdown, setCountdown] = useState(0);
+    const publicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg177flG/MiZd5TIYuH+eOINrFFgu6K1jmTqeUDw5Lm2SPofC1fV++V6yhJu8Vveaa0WhFElSrp5F4vsZ34HB7kpZmH6Vp/u9tdohDrXe+cVdO74ILxsw9CLpEpFrFHmgThVSKtNfwCExZeOT5lN6UKgsxp+HIFbhKWF9NMpmeYw5ie10YevN9Fq9x11aeg+ZgKct1GzF9RfOcX0h6Mz4xu45q5bWRQS+djvprBS5tvYOCVZj9KEanltbFFq71PmiQLdkH7imCFtwHPZzK5TAYeknH+raSjlGDMsijs+I8tR8XpuQcXtwIDAQAB
+-----END PUBLIC KEY-----`;
     //注册API
     const handleRegister = async (values: any) => {
-        console.log(values.code);
 
-        const response = await registerAPI(values.email, values.password, values.code);
-        if (response.code === 200) {
+
+
+        //加密注册的数据
+        const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
+            JSON.stringify({
+                users: {
+                    email: values.email,
+                    password: values.password
+                },
+                code: values.code
+            }),
+            publicKey
+        );
+        const response = await registerAPI(encryptedData, encryptedKey);
+        if (response.code === 201) {
             message.success("注册成功");
             onTabChange?.('1'); // 切换到登录 tab
-        } else {
+        }
+        else if (response.code === 409) {
+            message.error("注册失败，可能是邮箱已存在");
+        }
+        else {
             message.error("验证码错误");
         }
     };
@@ -29,7 +50,14 @@ const RegisterForm = ({ onTabChange }) => {
             message.error("请输入邮箱");
             return;
         }
-        const response = await getCodeAPI(email)
+        const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
+            JSON.stringify({ email: email }),
+            publicKey
+        );
+        console.log("找回密码");
+
+
+        const response = await getCodeAPI(encryptedData, encryptedKey);
 
         //不管这个报错
         if (response.code === 200) {

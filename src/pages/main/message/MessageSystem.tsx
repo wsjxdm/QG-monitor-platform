@@ -9,6 +9,7 @@ const MessageSystem: React.FC = () => {
       messageType="notifications"
       receiverId={3}
       messageTypeCode={0}
+      isSenderExist={0}
     />
   );
 };

@@ -8,8 +8,8 @@ import { message } from "antd";
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
-  baseURL: "http://192.168.1.156:8080",
-  // baseURL: "http://192.168.1.161:8080",
+  // baseURL: "http://192.168.1.156:8080",
+  baseURL: "http://192.168.1.161:8080",
   timeout: 100000,
   headers: {
     "Content-Type": "application/json",
@@ -21,10 +21,13 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 在发送请求之前带上token
     //这里应该使用对token进行加密
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // const token = JSON.parse(localStorage.getItem("user")).token;
+    // const key = JSON.parse(localStorage.getItem("user")).key;
+
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`;
+    //   config.headers.RSAKey = `${key}`;
+    // }
     return config;
   },
   (error) => {
@@ -39,8 +42,15 @@ apiClient.interceptors.response.use(
     // 对响应数据做点什么
     return response.data;
   },
+
   (error) => {
-    if (error.response?.status === 500) {
+    //处理token过期
+    if (error.response?.code === 401) {
+      message.error("登录已过期，请重新登录");
+      localStorage.removeItem("users");
+      window.location.href = "/"; // 重定向到登录页面
+    }
+    if (error.response?.code === 500) {
       // 处理服务器错误
       message.error("服务器内部错误");
     }

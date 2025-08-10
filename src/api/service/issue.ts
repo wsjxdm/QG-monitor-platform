@@ -22,7 +22,6 @@ export const getProjectMembersAPI = async (projectId: string | undefined) => {
     const response = await apiClient.get("/roles/getMemberList", {
       params: { projectId },
     });
-    console.log("Project members response:", response);
     return response.data;
   } catch (error) {
     console.error("获取项目成员失败:", error);

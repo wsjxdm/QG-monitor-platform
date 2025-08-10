@@ -1,69 +1,122 @@
-import CryptoJS from 'crypto-js';
-import forge from 'node-forge';
+import CryptoJS from "crypto-js";
+import forge from "node-forge";
 
 // AES 加密函数
-export const encryptWithAES = (data: string, key: string): string => {
-    try {
-        const encrypted = CryptoJS.AES.encrypt(data, key).toString();
-        return encrypted;
-    } catch (error) {
-        console.error('AES 加密失败:', error);
-        throw error;
-    }
+export const encryptWithAES = (data: string, keyBase64: string): string => {
+  try {
+    // 将Base64密钥转为CryptoJS格式
+    const key = CryptoJS.enc.Base64.parse(keyBase64);
+
+    // 生成随机IV（16字节）
+    const iv = CryptoJS.lib.WordArray.random(16);
+
+    // 加密配置（明确指定参数）
+    const encrypted = CryptoJS.AES.encrypt(data, key, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7,
+    });
+
+    // 组合IV和密文，输出Base64
+    return CryptoJS.enc.Base64.stringify(iv.concat(encrypted.ciphertext));
+  } catch (error) {
+    console.error("AES 加密失败:", error);
+    throw error;
+  }
 };
 
 // AES 解密函数
 export const decryptWithAES = (ciphertext: string, key: string): string => {
-    try {
-        const bytes = CryptoJS.AES.decrypt(ciphertext, key);
-        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-        return decrypted;
-    } catch (error) {
-        console.error('AES 解密失败:', error);
-        throw error;
-    }
+  try {
+    // 1. Base64解码获取完整数据
+    const encryptedBytes = CryptoJS.enc.Base64.parse(ciphertext);
+
+    // 2. 提取IV（前16字节）
+    const iv = CryptoJS.lib.WordArray.create(
+      encryptedBytes.words.slice(0, 4), // 16 bytes = 4 words
+      16
+    );
+
+    // 3. 提取密文（剩余部分）
+    const ciphertextBytes = CryptoJS.lib.WordArray.create(
+      encryptedBytes.words.slice(4),
+      encryptedBytes.sigBytes - 16
+    );
+
+    // 4. 将字符串密钥转为CryptoJS格式
+    const keyBytes = CryptoJS.enc.Base64.parse(key);
+
+    // 5. 解密
+    const decrypted = CryptoJS.AES.decrypt(
+      { ciphertext: ciphertextBytes } as CryptoJS.lib.CipherParams,
+      keyBytes,
+      {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7,
+      }
+    );
+    console.log("Decrypted raw bytes:", decrypted.toString(CryptoJS.enc.Hex));
+    return decrypted.toString(CryptoJS.enc.Utf8);
+  } catch (error) {
+    console.error("AES 解密失败:", error);
+    throw error;
+  }
 };
 
 // 生成随机 AES 密钥
-export const generateAESKey = (length: number = 32): string => {
-    // 生成指定长度的随机字符串作为 AES 密钥
-    return CryptoJS.lib.WordArray.random(length).toString();
+export const generateAESKey = (): string => {
+  // 生成指定长度的随机字节数组
+  const wordArray = CryptoJS.lib.WordArray.random(32);
+  // 转换为 base64 格式字符串
+  return CryptoJS.enc.Base64.stringify(wordArray);
 };
-
 // RSA 加密函数
 export const encryptWithRSA = (data: string, publicKeyPem: string): string => {
-    try {
-        // 将 PEM 格式的公钥转换为 forge 公钥对象
-        const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
+  try {
+    const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
 
-        // 使用 RSA 公钥加密数据
-        const encrypted = publicKey.encrypt(data, 'RSA-OAEP');
+    // 显式指定 OAEP 参数：SHA-256
+    const encrypted = publicKey.encrypt(data, "RSA-OAEP", {
+      md: forge.md.sha256.create(),
+      mgf1: {
+        md: forge.md.sha256.create(),
+      },
+    });
 
-        // 将加密后的二进制数据转换为 base64 格式
-        return forge.util.encode64(encrypted);
-    } catch (error) {
-        console.error('RSA 加密失败:', error);
-        throw error;
-    }
+    return forge.util.encode64(encrypted);
+  } catch (error) {
+    console.error("RSA 加密失败:", error);
+    throw error;
+  }
 };
 
-// RSA 解密函数
-export const decryptWithRSA = (encryptedData: string, privateKeyPem: string): string => {
-    try {
-        // 将 PEM 格式的私钥转换为 forge 私钥对象
-        const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+// RSA 解密函数 用一开始给的私钥来解密密码
+export const decryptWithRSA = (
+  encryptedData: string,
+  privateKeyPem: string
+): string => {
+  try {
+    // console.log("", privateKeyPem);
+    // console.log("", encryptedData);
 
-        // 将 base64 格式的加密数据转换为二进制数据
-        const encryptedBytes = forge.util.decode64(encryptedData);
+    const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+    const encryptedBytes = forge.util.decode64(encryptedData);
 
-        // 使用 RSA 私钥解密数据
-        const decrypted = privateKey.decrypt(encryptedBytes, 'RSA-OAEP');
+    // 显式指定与后端一致的 OAEP 参数
+    const decrypted = privateKey.decrypt(encryptedBytes, "RSA-OAEP", {
+      md: forge.md.sha256.create(), // SHA-256 哈希
+      mgf1: {
+        md: forge.md.sha256.create(), // MGF1 使用 SHA-256
+      },
+    });
+    console.log("decrypted:", decrypted);
 
-        return decrypted;
-    } catch (error) {
-        console.error('RSA 解密失败:', error);
-        throw error;
-    }
+    return decrypted;
+  } catch (error) {
+    console.error("RSA 解密失败:", error);
+    throw error;
+  }
 };
 
 // 结合 AES 和 RSA 的加密函数
@@ -72,47 +125,49 @@ export const decryptWithRSA = (encryptedData: string, privateKeyPem: string): st
 // 3. 使用 RSA 公钥加密 AES 密钥
 // 4. 返回加密后的数据和加密后的密钥
 export const encryptWithAESAndRSA = (
-    data: string,
-    rsaPublicKey: string
+  data: string,
+  rsaPublicKey: string
 ): { encryptedData: string; encryptedKey: string } => {
-    try {
-        // 生成随机 AES 密钥
-        const aesKey = generateAESKey();
+  try {
+    // 生成随机 AES 密钥
+    const aesKey = generateAESKey();
 
-        // 使用 AES 密钥加密数据
-        const encryptedData = encryptWithAES(data, aesKey);
+    console.log("aesKey:", aesKey);
 
-        // 使用 RSA 公钥加密 AES 密钥
-        const encryptedKey = encryptWithRSA(aesKey, rsaPublicKey);
+    // 使用 AES 密钥加密数据
+    const encryptedData = encryptWithAES(data, aesKey);
 
-        return {
-            encryptedData,
-            encryptedKey
-        };
-    } catch (error) {
-        console.error('AES+RSA 加密失败:', error);
-        throw error;
-    }
+    // 使用 RSA 公钥加密 AES 密钥
+    const encryptedKey = encryptWithRSA(aesKey, rsaPublicKey);
+
+    return {
+      encryptedData,
+      encryptedKey,
+    };
+  } catch (error) {
+    console.error("AES+RSA 加密失败:", error);
+    throw error;
+  }
 };
 
 // 结合 AES 和 RSA 的解密函数
 // 1. 使用 RSA 私钥解密 AES 密钥
 // 2. 使用解密后的 AES 密钥解密数据
 export const decryptWithAESAndRSA = (
-    encryptedData: string,
-    encryptedKey: string,
-    rsaPrivateKey: string
+  encryptedData: string,
+  encryptedKey: string,
+  rsaPrivateKey: string
 ): string => {
-    try {
-        // 使用 RSA 私钥解密 AES 密钥
-        const aesKey = decryptWithRSA(encryptedKey, rsaPrivateKey);
+  try {
+    // 使用 RSA 私钥解密 AES 密钥
+    const aesKey = decryptWithRSA(encryptedKey, rsaPrivateKey);
 
-        // 使用解密后的 AES 密钥解密数据
-        const decryptedData = decryptWithAES(encryptedData, aesKey);
+    // 使用解密后的 AES 密钥解密数据
+    const decryptedData = decryptWithAES(encryptedData, aesKey);
 
-        return decryptedData;
-    } catch (error) {
-        console.error('AES+RSA 解密失败:', error);
-        throw error;
-    }
+    return decryptedData;
+  } catch (error) {
+    console.error("AES+RSA 解密失败:", error);
+    throw error;
+  }
 };

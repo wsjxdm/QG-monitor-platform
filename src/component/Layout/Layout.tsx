@@ -18,6 +18,8 @@ import {
 } from "@ant-design/icons";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { fetchUserInfo } from "../../store/slice/userSlice";
+import { decryptWithAESAndRSA } from "../../utils/encrypt";
 
 const { Header, Sider, Content } = Layout;
 
@@ -28,6 +30,22 @@ const AppLayout = () => {
   const [secondLevelKey, setSecondLevelKey] = useState("all-projects");
   const [thirdLevelKey, setThirdLevelKey] = useState("overview");
   const [openKeys, setOpenKeys] = useState(["all-projects", "public-projects"]);
+  const dispatch = useDispatch();
+
+
+  // ==== 页面刷新时重新获取用户信息存入redux===
+  // ==== 页面刷新时重新获取用户信息存入redux===
+  useEffect(() => {
+    // const reGetInfo = async () => {
+    //   console.log("页面刷新时重新获取用户信息");
+
+    //   const userInfo = await fetchUserInfo(2)
+    //   console.log(userInfo);
+    // };
+    // reGetInfo();
+    dispatch(fetchUserInfo(2));
+  }, [dispatch]);
+
 
   //todo 获取项目信息并绑定路由
 
@@ -228,8 +246,6 @@ const AppLayout = () => {
     (secondLevelKey.startsWith("project-") ||
       secondLevelKey.startsWith("public-") ||
       !isNaN(Number(secondLevelKey)));
-
-  const dispatch = useDispatch();
 
   //=========组件初始化时配置全局socket==========
   useEffect(() => {
