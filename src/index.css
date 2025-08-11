@@ -1,0 +1,5 @@
+/* 设置页面最小宽度为900px, */
+html,
+body {
+  min-width: 900px !important; /* 确保优先级最高 */
+}

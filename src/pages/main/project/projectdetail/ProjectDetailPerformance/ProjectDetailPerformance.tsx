@@ -11,7 +11,10 @@ import {
   Row,
   Col,
   Tabs,
+  Card,
+  Spin,
 } from "antd";
+import { Column, Line } from "@ant-design/plots";
 import { ReloadOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 
@@ -69,6 +72,116 @@ interface MobilePerformance {
   operationFps?: string;
   duration?: number;
 }
+
+// 在 ProjectDetailPerformance.tsx 文件中添加以下组件
+
+// 前端页面加载时间柱状图组件
+const PageLoadTimeChart: React.FC<{
+  timeType: string;
+  projectId: string;
+  loading: boolean;
+  data: { page: string; value: number }[];
+}> = ({ timeType, projectId, loading, data }) => {
+  const config = {
+    data,
+    xField: "page",
+    yField: "value",
+    loading,
+    axis: {
+      y: {
+        title: "平均加载时间 (ms)",
+      },
+    },
+    label: {
+      text: (d: any) => `${d.value}ms`,
+      position: "top",
+    },
+    style: {
+      maxWidth: 50,
+    },
+  };
+
+  return (
+    <div style={{ height: 300 }}>
+      {loading ? <Spin /> : <Column autoFit {...config} />}
+    </div>
+  );
+};
+
+// 前端FP，FCP双折线图组件
+const FpDataChart: React.FC<{
+  timeType: string;
+  projectId: string;
+  loading: boolean;
+  data: { page: string; fp: number; fcp: number }[];
+}> = ({ timeType, projectId, loading, data }) => {
+  // 转换数据格式以适应双折线图
+  const transformedData = data.flatMap((item) => [
+    { page: item.page, type: "FP", value: item.fp },
+    { page: item.page, type: "FCP", value: item.fcp },
+  ]);
+
+  const config = {
+    data: transformedData,
+    xField: "page",
+    yField: "value",
+    seriesField: "type",
+    loading,
+    axis: {
+      y: {
+        title: "时间 (ms)",
+      },
+    },
+    legend: {
+      color: {
+        itemMarker: "circle",
+      },
+    },
+    style: {
+      lineWidth: 2,
+    },
+  };
+
+  return (
+    <div style={{ height: 300 }}>
+      {loading ? <Spin /> : <Line autoFit {...config} />}
+    </div>
+  );
+};
+
+// 三端请求平均用时柱状图组件
+const ApiRequestTimeChart: React.FC<{
+  timeType: string;
+  platform: "frontend" | "backend" | "mobile";
+  projectId: string;
+  loading: boolean;
+  data: { api: string; time: number }[];
+}> = ({ timeType, platform, projectId, loading, data }) => {
+  const config = {
+    data,
+    xField: "api",
+    yField: "time",
+    loading,
+    axis: {
+      y: {
+        title: "平均用时 (ms)",
+      },
+    },
+    label: {
+      text: (d: any) => `${d.time}ms`,
+      position: "top",
+    },
+    style: {
+      maxWidth: 50,
+    },
+  };
+
+  return (
+    <div style={{ height: 300 }}>
+      {loading ? <Spin /> : <Column autoFit {...config} />}
+    </div>
+  );
+};
 
 const ProjectDetailPerformance: React.FC = () => {
   const { projectId } = useParams();
@@ -331,6 +444,139 @@ const ProjectDetailPerformance: React.FC = () => {
     }
   };
 
+  // 页面加载时间状态
+  const [pageLoadData, setPageLoadData] = useState<
+    { page: string; value: number }[]
+  >([]);
+  const [pageLoadLoading, setPageLoadLoading] = useState(false);
+
+  // FP/FCP数据状态
+  const [fpData, setFpData] = useState<
+    { page: string; fp: number; fcp: number }[]
+  >([]);
+  const [fpLoading, setFpLoading] = useState(false);
+
+  // API请求时间状态
+  const [apiRequestData, setApiRequestData] = useState<
+    { api: string; time: number }[]
+  >([]);
+  const [apiRequestLoading, setApiRequestLoading] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<
+    "frontend" | "backend" | "mobile"
+  >("frontend");
+
+  // 获取页面加载时间数据
+  const fetchPageLoadData = async (timeType: string) => {
+    setPageLoadLoading(true);
+    try {
+      // 实际使用时替换为:
+      // const response = await axios.get("你的页面加载时间API地址", {
+      //   params: { timeType, projectId }
+      // });
+
+      // 模拟数据
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const mockData = [
+        { page: "首页", value: 1200 },
+        { page: "商品详情页", value: 1800 },
+        { page: "购物车", value: 900 },
+        { page: "订单页", value: 1500 },
+        { page: "个人中心", value: 1100 },
+      ];
+
+      setPageLoadData(mockData);
+    } catch (error) {
+      console.error("获取页面加载时间数据失败:", error);
+      setPageLoadData([]);
+    } finally {
+      setPageLoadLoading(false);
+    }
+  };
+
+  // 获取FP/FCP数据
+  const fetchFpData = async (timeType: string) => {
+    setFpLoading(true);
+    try {
+      // 实际使用时替换为:
+      // const response = await axios.get("你的FP/FCP数据API地址", {
+      //   params: { timeType, projectId }
+      // });
+
+      // 模拟数据
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const mockData = [
+        { page: "首页", fp: 800, fcp: 1200 },
+        { page: "商品详情页", fp: 1000, fcp: 1600 },
+        { page: "购物车", fp: 600, fcp: 900 },
+        { page: "订单页", fp: 900, fcp: 1300 },
+        { page: "个人中心", fp: 700, fcp: 1000 },
+      ];
+
+      setFpData(mockData);
+    } catch (error) {
+      console.error("获取FP/FCP数据失败:", error);
+      setFpData([]);
+    } finally {
+      setFpLoading(false);
+    }
+  };
+
+  // 获取API请求时间数据
+  const fetchApiRequestData = async (
+    timeType: string,
+    platform: "frontend" | "backend" | "mobile"
+  ) => {
+    setApiRequestLoading(true);
+    try {
+      // 实际使用时替换为:
+      // const response = await axios.get("你的API请求时间API地址", {
+      //   params: { timeType, platform, projectId }
+      // });
+
+      // 模拟数据
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      let mockData;
+      switch (platform) {
+        case "frontend":
+          mockData = [
+            { api: "/api/home", time: 400 },
+            { api: "/api/products", time: 600 },
+            { api: "/api/cart", time: 300 },
+            { api: "/api/user", time: 350 },
+          ];
+          break;
+        case "backend":
+          mockData = [
+            { api: "/user/profile", time: 150 },
+            { api: "/order/list", time: 250 },
+            { api: "/product/detail", time: 180 },
+            { api: "/payment/status", time: 200 },
+          ];
+          break;
+        case "mobile":
+          mockData = [
+            { api: "/api/mobile/login", time: 500 },
+            { api: "/api/mobile/data", time: 700 },
+            { api: "/api/mobile/upload", time: 800 },
+            { api: "/api/mobile/notify", time: 400 },
+          ];
+          break;
+        default:
+          mockData = [];
+      }
+
+      setApiRequestData(mockData);
+    } catch (error) {
+      console.error("获取API请求时间数据失败:", error);
+      setApiRequestData([]);
+    } finally {
+      setApiRequestLoading(false);
+    }
+  };
+
   useEffect(() => {
     //todo 可以先获取后端的，其他等切换的时候获取，也可以通过plateform:all来获取所有数据
 
@@ -338,6 +584,10 @@ const ProjectDetailPerformance: React.FC = () => {
     fetchBackendData({});
     fetchFrontendData({});
     fetchMobileData({});
+
+    fetchPageLoadData("7d");
+    fetchFpData("7d");
+    fetchApiRequestData("7d", "frontend");
   }, [projectId]);
 
   // 后端性能相关处理函数
@@ -855,6 +1105,80 @@ const ProjectDetailPerformance: React.FC = () => {
         }}
       >
         <Title level={4}>性能监控</Title>
+      </div>
+
+      <div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <Title level={4}>性能监控</Title>
+        </div>
+
+        {/* 新增的图表部分 */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card title="前端页面加载时间">
+              <PageLoadTimeChart
+                timeType="7d"
+                projectId={projectId || "1"}
+                loading={pageLoadLoading}
+                data={pageLoadData}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card title="前端FP，FCP数据">
+              <FpDataChart
+                timeType="7d"
+                projectId={projectId || "1"}
+                loading={fpLoading}
+                data={fpData}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card
+              title="各平台API请求平均用时"
+              extra={
+                <Space>
+                  <Select
+                    value={selectedPlatform}
+                    style={{ width: 120 }}
+                    onChange={(value) => {
+                      setSelectedPlatform(value);
+                      fetchApiRequestData("7d", value);
+                    }}
+                    options={[
+                      { value: "frontend", label: "前端" },
+                      { value: "backend", label: "后端" },
+                      { value: "mobile", label: "移动端" },
+                    ]}
+                    size="small"
+                  />
+                </Space>
+              }
+            >
+              <ApiRequestTimeChart
+                timeType="7d"
+                platform={selectedPlatform}
+                projectId={projectId || "1"}
+                loading={apiRequestLoading}
+                data={apiRequestData}
+              />
+            </Card>
+          </Col>
+        </Row>
       </div>
 
       <Tabs defaultActiveKey="1">

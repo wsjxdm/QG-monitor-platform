@@ -31,7 +31,7 @@ const { Text, Title } = Typography;
 
 //搜索项目
 interface searchProject {
-  id: string;
+  uuid: string;
   name: string;
   description: string;
   isPublic: boolean;
@@ -144,7 +144,7 @@ const ProjectHeader: React.FC = () => {
                   renderItem={(item) => (
                     <List.Item
                       className={styles.searchItem}
-                      onClick={() => handleProjectClick(item.id)}
+                      onClick={() => handleProjectClick(item.uuid)}
                     >
                       <List.Item.Meta
                         avatar={

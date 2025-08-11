@@ -1,10 +1,11 @@
 import apiClient from "../index";
 
 // 私有项目获取函数
-export const getPrivateProjects = async () => {
+export const getPrivateProjects = async (userId: string | number) => {
   try {
-    //todo 带上用户id
-    const response = await apiClient.get("/api/project/private");
+    const response = await apiClient.get("projects/getPersonalProject", {
+      params: { userId },
+    });
     console.log("Private projects response:", response);
     return response.data;
   } catch (error: any) {
@@ -15,7 +16,7 @@ export const getPrivateProjects = async () => {
 // 公开项目获取函数
 export const getPublicProjects = async () => {
   try {
-    const response = await apiClient.get("/api/project/public");
+    const response = await apiClient.get("/projects/getPublicProjectList");
     console.log("Public projects response:", response);
     return response.data;
   } catch (error: any) {

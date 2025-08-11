@@ -6,9 +6,15 @@ import {
   Avatar,
   Tooltip,
   Tag,
+  Spin,
   message,
   Table,
+  Select,
+  Row,
+  Col,
+  Card,
 } from "antd";
+import { Column, Line, DualAxes } from "@ant-design/plots";
 import { DownOutlined, UserOutlined } from "@ant-design/icons";
 import TableWithSelector from "../../../../../component/Table/TableWithSelector";
 import {
@@ -39,17 +45,236 @@ interface ErrorItem {
   delegatorId?: string | number | null;
   name?: string | null;
   avatarUrl?: string | null;
+  errorType?: string;
 }
 
 // 项目成员接口
 interface ProjectMember {
-  id: string | number;
+  userId: string | number;
   username: string;
   email?: string;
   avatar?: string;
   userRole: number;
   power?: number | string;
 }
+
+// 平台访问量
+const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [timeType, setTimeType] = useState("7d"); // 时间筛选移到组件内部
+
+  // 时间筛选选项
+  const timeOptions = [
+    { value: "1d", label: "近1天" },
+    { value: "7d", label: "近7天" },
+    { value: "30d", label: "近30天" },
+    { value: "90d", label: "近90天" },
+  ];
+
+  useEffect(() => {
+    fetchPlatformData();
+  }, [timeType, projectId]);
+
+  const fetchPlatformData = async () => {
+    setLoading(true);
+    try {
+      // 调用实际API获取平台数据
+      // const response = await getPlatformDataAPI({ timeType, projectId });
+      const response = {
+        data: [
+          { time: "2023-01-01", value: 100, category: "frontend" },
+          { time: "2023-01-02", value: 120, category: "backend" },
+          { time: "2023-01-03", value: 80, category: "mobile" },
+          { time: "2023-01-04", value: 150, category: "frontend" },
+          { time: "2023-01-05", value: 200, category: "backend" },
+          { time: "2023-01-06", value: 170, category: "mobile" },
+          { time: "2023-01-07", value: 90, category: "frontend" },
+          { time: "2023-01-07", value: 180, category: "backend" },
+          { time: "2023-01-07", value: 110, category: "mobile" },
+        ],
+      };
+      setData(response.data || []);
+    } catch (error) {
+      console.error("获取平台数据失败:", error);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const config = {
+    data,
+    xField: (d) => new Date(d.time),
+    yField: "value",
+    sizeField: "value",
+    shapeField: "trail",
+    legend: { size: false },
+    colorField: "category",
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Select
+          value={timeType}
+          style={{ width: 120 }}
+          onChange={setTimeType}
+          options={timeOptions}
+        />
+      </div>
+      <div style={{ height: 300 }}>
+        {loading ? <Spin /> : <Line autoFit {...config} />}
+      </div>
+    </div>
+  );
+};
+
+interface ErrorCountDataItem {
+  errorType: string;
+  count: number;
+}
+
+interface ErrorRatioDataItem {
+  errorType: string;
+  ratio: number;
+}
+
+interface TopErrorsChartProps {
+  projectId: string;
+}
+
+const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
+  const [errorCountData, setErrorCountData] = useState<ErrorCountDataItem[]>(
+    []
+  );
+  const [errorRatioData, setErrorRatioData] = useState<ErrorRatioDataItem[]>(
+    []
+  );
+  const [loading, setLoading] = useState(false);
+  const [platform, setPlatform] = useState<"frontend" | "backend" | "mobile">(
+    "frontend"
+  );
+
+  // 平台选项
+  const platformOptions = [
+    { value: "frontend", label: "前端" },
+    { value: "backend", label: "后端" },
+    { value: "mobile", label: "移动" },
+  ];
+
+  // 获取数据
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // 实际使用时替换为:
+      // const response = await axios.get("你的API地址", {
+      //   params: { projectId, platform }
+      // });
+
+      // 模拟数据
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // 模拟错误数量数据 (柱状图)
+      const mockErrorCountData: ErrorCountDataItem[] = [
+        { errorType: "TypeError", count: 120 },
+        { errorType: "ReferenceError", count: 95 },
+        { errorType: "NetworkError", count: 87 },
+        { errorType: "SyntaxError", count: 76 },
+        { errorType: "RangeError", count: 65 },
+        { errorType: "PromiseRejection", count: 54 },
+        { errorType: "SecurityError", count: 43 },
+        { errorType: "URIError", count: 32 },
+        { errorType: "EvalError", count: 21 },
+        { errorType: "InternalError", count: 15 },
+      ];
+
+      // 模拟错误占比数据 (折线图)
+      const mockErrorRatioData: ErrorRatioDataItem[] = [
+        { errorType: "TypeError", ratio: 0.25 },
+        { errorType: "ReferenceError", ratio: 0.19 },
+        { errorType: "NetworkError", ratio: 0.17 },
+        { errorType: "SyntaxError", ratio: 0.15 },
+        { errorType: "RangeError", ratio: 0.13 },
+        { errorType: "PromiseRejection", ratio: 0.11 },
+        { errorType: "SecurityError", ratio: 0.08 },
+        { errorType: "URIError", ratio: 0.06 },
+        { errorType: "EvalError", ratio: 0.04 },
+        { errorType: "InternalError", ratio: 0.03 },
+      ];
+
+      setErrorCountData(mockErrorCountData);
+      setErrorRatioData(mockErrorRatioData);
+    } catch (error) {
+      console.error("获取数据失败:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [platform, projectId]);
+
+  // 图表配置
+  const config = {
+    xField: "errorType",
+    legend: true,
+    children: [
+      {
+        data: errorCountData,
+        type: "interval",
+        yField: "count",
+        style: { maxWidth: 50 },
+        axis: { y: { position: "left" } },
+      },
+      {
+        data: errorRatioData,
+        type: "line",
+        yField: "ratio",
+        style: { lineWidth: 2 },
+        axis: {
+          y: {
+            position: "right",
+            labelFormatter: (val: number) => `${(val * 100).toFixed(0)}%`,
+          },
+        },
+        shapeField: "smooth",
+        scale: { color: { relations: [["ratio", "#fdae6b"]] } },
+      },
+    ],
+    loading: loading,
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Select
+          value={platform}
+          style={{ width: 120 }}
+          onChange={setPlatform}
+          options={platformOptions}
+        />
+      </div>
+
+      <div style={{ height: 300 }}>
+        {loading ? <Spin /> : <DualAxes autoFit {...config} />}
+      </div>
+    </div>
+  );
+};
 
 const ProjectDetailIssues: React.FC = () => {
   const { projectId } = useParams();
@@ -71,7 +296,7 @@ const ProjectDetailIssues: React.FC = () => {
     {
       key: "errorType",
       label: "错误类型",
-      type: "input" as const,
+      type: "input",
       placeholder: "请输入错误类型",
     },
     {
@@ -108,6 +333,7 @@ const ProjectDetailIssues: React.FC = () => {
     try {
       const response = await getProjectMembersAPI(projectId);
       setMembers(response);
+      console.log("项目成员:", response);
     } catch (error) {
       console.error("获取项目成员失败:", error);
     }
@@ -117,7 +343,8 @@ const ProjectDetailIssues: React.FC = () => {
   const handleAssignError = async (
     errorId: string | number,
     delegatorId: string | number,
-    plateform: string
+    platform: string,
+    errorType: string
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
@@ -126,7 +353,13 @@ const ProjectDetailIssues: React.FC = () => {
         return;
       }
 
-      await assignErrorAPI(errorId, delegatorId, plateform, currentUser.id);
+      await assignErrorAPI(
+        errorId,
+        delegatorId,
+        platform,
+        currentUser.id,
+        projectId
+      );
       message.success("指派成功");
 
       // 更新本地数据而不重新获取
@@ -151,10 +384,6 @@ const ProjectDetailIssues: React.FC = () => {
 
   // 渲染指派列
   const renderAssignColumn = (record: ErrorItem) => {
-    const assignedMember = members.find(
-      (member) => member.id == record.delegatorId
-    );
-
     // 只显示普通成员(userRole == 2)作为可指派选项
     const menuItems = members
       .filter((member) => member.userRole == 2)
@@ -170,7 +399,12 @@ const ProjectDetailIssues: React.FC = () => {
     const menuProps = {
       items: menuItems,
       onClick: ({ key }: { key: string }) =>
-        handleAssignError(record.id, key, record.platform),
+        handleAssignError(
+          key,
+          currentUser.id,
+          record.platform,
+          record.errorType
+        ),
     };
 
     return (
@@ -179,17 +413,9 @@ const ProjectDetailIssues: React.FC = () => {
         onClick={(e) => e.stopPropagation()}
       >
         {record?.delegatorId ? (
-          <Tooltip
-            title={`已指派给: ${assignedMember?.username || "未知用户"}`}
-          >
-            <Avatar
-              size="small"
-              src={assignedMember?.avatar}
-              icon={<UserOutlined />}
-            />
-            <span style={{ marginLeft: 8 }}>
-              {assignedMember?.username || "未知用户"}
-            </span>
+          <Tooltip title={`已指派给: ${record?.name || "未知用户"}`}>
+            <Avatar size="small" src={record?.avatar} icon={<UserOutlined />} />
+            <span style={{ marginLeft: 8 }}>{record?.name || "未知用户"}</span>
           </Tooltip>
         ) : (
           <span style={{ color: "#ff4d4f" }}>未指派</span>
@@ -258,7 +484,7 @@ const ProjectDetailIssues: React.FC = () => {
 
     {
       title: "指派",
-      key: "assign",
+      key: "name",
       fixed: "right" as const,
       width: 120,
       render: (_: any, record: ErrorItem) => renderAssignColumn(record),
@@ -305,7 +531,11 @@ const ProjectDetailIssues: React.FC = () => {
             .replace(/\//g, "-"),
         };
       });
-
+      console.log("获取错误数据", [
+        ...updataArry1,
+        ...updataArry2,
+        ...updataArry3,
+      ]);
       setData([...updataArry1, ...updataArry2, ...updataArry3]);
     } catch (error) {
       console.error("获取错误数据失败:", error);
@@ -360,27 +590,48 @@ const ProjectDetailIssues: React.FC = () => {
 
   return (
     <div>
-      <Title level={4}>错误列表</Title>
-      <TableWithSelector<ErrorItem>
-        filterConfig={filterConfig}
-        dataSource={data}
-        columns={columns}
-        loading={loading}
-        onFilterChange={handleFilterChange}
-        onRefresh={handleRefresh}
-        onRow={(record) => ({
-          onClick: () => {
-            goToErrorDetail(record.id as number, record.platform);
-          },
-        })}
-        rowKey="id"
-        pagination={{
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条数据`,
-        }}
-        scroll={{ x: "max-content" }}
-      />
+      <div>
+        <Title level={4}>错误分析</Title>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card title="错误趋势" bordered={false}>
+              <PlatformData projectId={projectId} />
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card title="平台错误分析" bordered={false}>
+              <TopErrorsChart projectId={projectId} />
+            </Card>
+          </Col>
+        </Row>
+      </div>
+      <div>
+        <Title level={4}>错误列表</Title>
+        <TableWithSelector<ErrorItem>
+          filterConfig={filterConfig}
+          dataSource={data}
+          columns={columns}
+          loading={loading}
+          onFilterChange={handleFilterChange}
+          onRefresh={handleRefresh}
+          onRow={(record) => ({
+            onClick: () => {
+              goToErrorDetail(record.id as number, record.platform);
+            },
+          })}
+          rowKey="id"
+          pagination={{
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `共 ${total} 条数据`,
+          }}
+          scroll={{ x: "max-content" }}
+        />
+      </div>
     </div>
   );
 };

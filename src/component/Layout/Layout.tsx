@@ -1,4 +1,4 @@
-import { Layout, Menu, theme, Dropdown, Button } from "antd";
+import { Layout, Menu, theme, Dropdown, Button, message } from "antd";
 import { useState, useEffect } from "react";
 import styles from "./Layout.module.css";
 import {
@@ -20,9 +20,16 @@ import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchUserInfo } from "../../store/slice/userSlice";
 import { decryptWithAESAndRSA } from "../../utils/encrypt";
+import {
+  getPrivateProjects,
+  getPublicProjects,
+} from "../../api/service/projectoverview";
 
 const { Header, Sider, Content } = Layout;
-
+//todo
+const user = {
+  id: 14,
+};
 const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -31,21 +38,25 @@ const AppLayout = () => {
   const [thirdLevelKey, setThirdLevelKey] = useState("overview");
   const [openKeys, setOpenKeys] = useState(["all-projects", "public-projects"]);
   const dispatch = useDispatch();
-
+  const [privateProjects, setPrivateProjects] = useState([]);
+  const [publicProjects, setPublicProjects] = useState([]);
 
   // ==== 页面刷新时重新获取用户信息存入redux===
   // ==== 页面刷新时重新获取用户信息存入redux===
   useEffect(() => {
-    // const reGetInfo = async () => {
-    //   console.log("页面刷新时重新获取用户信息");
-
-    //   const userInfo = await fetchUserInfo(2)
-    //   console.log(userInfo);
-    // };
-    // reGetInfo();
-    dispatch(fetchUserInfo(2));
+    const fetchData = async () => {
+      try {
+        //  dispatch(fetchUserInfo(2));
+        const privateProject = await getPrivateProjects(user.id);
+        const publicProject = await getPublicProjects();
+        setPrivateProjects(privateProject.reverse());
+        setPublicProjects(publicProject.reverse());
+      } catch (error) {
+        message.error("获取项目列表失败");
+      }
+    };
+    fetchData();
   }, [dispatch]);
-
 
   //todo 获取项目信息并绑定路由
 
@@ -109,10 +120,11 @@ const AppLayout = () => {
       label: "所有项目",
       icon: <UnorderedListOutlined />,
       //模拟数据
-      children: [
-        { key: 1, label: "项目A", icon: <ProjectOutlined /> },
-        { key: 2, label: "项目B", icon: <ProjectOutlined /> },
-      ],
+      children: privateProjects.map((project) => ({
+        key: `${project.uuid}`,
+        label: project.name,
+        icon: <ProjectOutlined />,
+      })),
       // 使用 onTitleClick 处理分组标题点击
       onTitleClick: () => {
         navigate("/main/project/all");
@@ -123,10 +135,11 @@ const AppLayout = () => {
       label: "公开项目",
       icon: <GlobalOutlined />,
       //模拟数据
-      children: [
-        { key: 3, label: "公开项目A", icon: <ProjectOutlined /> },
-        { key: 4, label: "公开项目B", icon: <ProjectOutlined /> },
-      ],
+      children: publicProjects.map((project) => ({
+        key: `${project.uuid}`,
+        label: project.name,
+        icon: <ProjectOutlined />,
+      })),
       // 使用 onTitleClick 处理分组标题点击
       onTitleClick: () => {
         navigate("/main/project/public");
@@ -213,8 +226,7 @@ const AppLayout = () => {
     const projectId = secondLevelKey;
     if (
       !["all-projects", "public-projects"].includes(projectId) &&
-      firstLevelKey === "project" &&
-      !isNaN(Number(projectId))
+      firstLevelKey === "project"
     ) {
       navigate(`/main/project/${projectId}/detail/${key}`);
     }
@@ -245,7 +257,7 @@ const AppLayout = () => {
     firstLevelKey === "project" &&
     (secondLevelKey.startsWith("project-") ||
       secondLevelKey.startsWith("public-") ||
-      !isNaN(Number(secondLevelKey)));
+      secondLevelKey.startsWith("pro-")); // 添加这一行来支持你的项目ID格式
 
   //=========组件初始化时配置全局socket==========
   useEffect(() => {

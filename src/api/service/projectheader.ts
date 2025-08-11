@@ -3,8 +3,8 @@ import apiClient from "../index";
 //搜索
 export const searchProjects = async (query: string) => {
   try {
-    const response = await apiClient.get("/api/project/search", {
-      params: { query },
+    const response = await apiClient.get("projects/selectProjectByName", {
+      params: { name: query },
     });
     console.log("Search projects response:", response);
     return response.data;
