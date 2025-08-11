@@ -1,6 +1,6 @@
 import apiClient from "../index";
 
-// 修复私有项目获取函数
+// 私有项目获取函数
 export const getPrivateProjects = async () => {
   try {
     //todo 带上用户id
@@ -12,7 +12,7 @@ export const getPrivateProjects = async () => {
   }
 };
 
-// 添加公开项目获取函数
+// 公开项目获取函数
 export const getPublicProjects = async () => {
   try {
     const response = await apiClient.get("/api/project/public");

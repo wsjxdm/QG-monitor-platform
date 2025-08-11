@@ -39,7 +39,7 @@ export const createProject = async (
   userId: string | number
 ) => {
   try {
-    const response = await apiClient.post("/api/project/create", {
+    const response = await apiClient.post("/projects", {
       name,
       description,
       isPublic,

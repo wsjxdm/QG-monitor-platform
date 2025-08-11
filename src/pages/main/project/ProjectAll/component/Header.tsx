@@ -38,8 +38,6 @@ interface searchProject {
 }
 const user = {
   id: 14,
-  userName: "test",
-  userRole: 0,
 };
 
 const ProjectHeader: React.FC = () => {
@@ -106,16 +104,16 @@ const ProjectHeader: React.FC = () => {
   // 处理创建项目
   const handleCreateProject = async (values: any) => {
     try {
-      const { projectId } = await createProject(
+      const { uuid } = await createProject(
         values.name,
         values.description,
         isPublic,
-        "1"
+        user.id
       );
       message.success("项目创建成功");
       setIsCreateModalVisible(false);
       createForm.resetFields();
-      navigate(`/main/project/${projectId}/detail/overview`, {
+      navigate(`/main/project/${uuid}/detail/overview`, {
         state: { isNew: true }, // 表示这是新创建的项目
       });
     } catch (error) {
