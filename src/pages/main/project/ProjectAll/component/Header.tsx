@@ -36,6 +36,11 @@ interface searchProject {
   description: string;
   isPublic: boolean;
 }
+const user = {
+  id: 14,
+  userName: "test",
+  userRole: 0,
+};
 
 const ProjectHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -87,8 +92,8 @@ const ProjectHeader: React.FC = () => {
   // 处理加入项目
   const handleJoinProject = async (values: any) => {
     try {
-      const response = await joinProject(values.invitedCode, "1");
-      message.success("成功加入项目");
+      const response = await joinProject(values.inviteCode, user.id);
+      // message.success("成功加入项目");
       setIsJoinModalVisible(false);
       joinForm.resetFields();
       // 跳转到项目总览页面（这里使用模拟项目ID）

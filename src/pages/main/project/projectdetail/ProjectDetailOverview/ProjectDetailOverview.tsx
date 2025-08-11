@@ -64,7 +64,6 @@ const { Title, Text } = Typography;
 const user = {
   id: 14,
   userName: "test",
-  userRole: 0,
 };
 
 interface projectData {
@@ -162,6 +161,7 @@ const ProjectDetailOverview: React.FC = () => {
   const [isInviteModalLoading, setIsInviteModalLoading] = useState(false);
 
   const [role, setRole] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [isTutorialModalLoading, setIsTutorialModalLoading] = useState(false);
   // 在 useState 声明区域添加
   const [markdown, setMarkdown] =
@@ -188,6 +188,7 @@ function App() {
     getUserResponsibility(projectId, user.id).then((res) => {
       if (res) {
         setRole(res.power);
+        setUserRole(res.userRole);
         if (res.power === 0) {
           message.warning("您无权进入该项目，请联系项目管理员");
           navigate("/main/project/all");
@@ -286,7 +287,7 @@ function App() {
   const leaveProject = async () => {
     console.log("退出项目:", projectId);
     try {
-      await exitProjectAPI(projectId, user.id);
+      await exitProjectAPI(projectId, userRole);
       navigate("/main/project/all");
     } catch (error) {}
   };
@@ -346,8 +347,10 @@ function App() {
   const handleMemberContextMenu = (member: any, e: React.MouseEvent) => {
     e.preventDefault();
     // 只有非普通成员才能操作其他成员
-    console.log("当前成员角色:", role);
-    if (role == 2) {
+    if (userRole === 2) {
+      message.warning("权限不足");
+    }
+    if (userRole !== 2) {
       setContextMenuMember(member);
     }
   };
@@ -358,7 +361,15 @@ function App() {
   };
 
   // 更新成员角色
-  const updateMemberRole = async (memberId: number, newRole: number) => {
+  const updateMemberRole = async (
+    memberId: number,
+    memberRole: number,
+    newRole: number
+  ) => {
+    if (memberRole < userRole) {
+      message.error("权限不足");
+      return;
+    }
     try {
       await changeUserLevelAPI(projectId, memberId, newRole);
       setGroupMembers((prevMembers) =>
@@ -375,11 +386,15 @@ function App() {
   };
 
   // 移除成员
-  const removeMember = async (memberId: number) => {
+  const removeMember = async (memberId: number, memberRole: number) => {
+    if (memberRole < userRole) {
+      message.error("权限不足");
+      return;
+    }
     try {
-      await kickUserAPI(projectId, memberId);
+      await exitProjectAPI(projectId, memberId);
       setGroupMembers((prevMembers) =>
-        prevMembers.filter((member) => member.id !== memberId)
+        prevMembers.filter((member) => member.userId !== memberId)
       );
       message.success("成员移除成功");
     } catch (error) {
@@ -834,7 +849,6 @@ function App() {
           )}
         </div>
       </Modal>
-      // 在教程弹窗后面添加邀请码弹窗
       {/* 邀请码弹窗 */}
       <Modal
         title="项目邀请码"
@@ -895,23 +909,42 @@ function App() {
               {
                 key: "role1",
                 label: "设为老板",
-                onClick: () => updateMemberRole(contextMenuMember.userId, 0),
+                onClick: () =>
+                  updateMemberRole(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole,
+                    0
+                  ),
               },
               {
                 key: "role2",
                 label: "设为管理员",
-                onClick: () => updateMemberRole(contextMenuMember.userId, 1),
+                onClick: () =>
+                  updateMemberRole(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole,
+                    1
+                  ),
               },
               {
                 key: "role3",
                 label: "设为普通成员",
-                onClick: () => updateMemberRole(contextMenuMember.userId, 2),
+                onClick: () =>
+                  updateMemberRole(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole,
+                    2
+                  ),
               },
               {
                 key: "remove",
                 label: "移除成员",
                 danger: true,
-                onClick: () => removeMember(contextMenuMember.userId),
+                onClick: () =>
+                  removeMember(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole
+                  ),
               },
             ],
           }}

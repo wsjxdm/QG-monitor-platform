@@ -122,7 +122,7 @@ export const kickUserAPI = async (
   }
 };
 
-//todo修改用户层级
+//修改用户层级
 export const changeUserLevelAPI = async (
   projectId: string,
   userId: string | number,
@@ -139,7 +139,7 @@ export const changeUserLevelAPI = async (
   } catch (error: any) {}
 };
 
-//todo获取邀请码
+//获取邀请码
 export const getInviteCodeAPI = async (projectId: string) => {
   try {
     const response = await apiClient.get(`/projects/getInviteCode`, {

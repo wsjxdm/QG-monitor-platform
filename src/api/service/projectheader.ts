@@ -18,8 +18,9 @@ export const joinProject = async (
   invitedCode: string,
   userId: string | number
 ) => {
+  console.log("Invited code:", invitedCode);
   try {
-    const response = await apiClient.post("/api/project/join", {
+    const response = await apiClient.post("/projects/joinProject", {
       invitedCode,
       userId,
     });
