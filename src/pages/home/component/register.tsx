@@ -22,7 +22,8 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg1
             JSON.stringify({
                 users: {
                     email: values.email,
-                    password: values.password
+                    password: values.password,
+                    phone: values.phone
                 },
                 code: values.code
             }),
@@ -117,6 +118,15 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg1
                     ]}
                 >
                     <Input.Password placeholder="请输入确认密码" />
+                </Form.Item>
+                <Form.Item
+                    name="phone"
+                    label="确认手机号"
+                    rules={[
+                        { required: true, message: "请输入手机号" },
+                    ]}
+                >
+                    <Input placeholder="手机号" />
                 </Form.Item>
                 <Form.Item
                     label="验证码"

@@ -4,7 +4,12 @@ import { Avatar, Typography } from 'antd';
 import MessageList from './MessageList';
 import styles from './MessageSystem.module.css';
 import moment from 'moment';
+import { useSelector } from 'react-redux';
 const MessageTask: React.FC = () => {
+
+  //从redux获取id
+  const currentUser = useSelector((state: any) => state.user);
+  const currentUserId = currentUser?.id;
   const renderAvatar = (item: any) => (
     <Avatar src={item.avatar} />
   );
@@ -28,7 +33,7 @@ const MessageTask: React.FC = () => {
     <MessageList
       title="指派任务"
       messageType="designate"
-      receiverId={3}
+      receiverId={currentUserId}
       messageTypeCode={1}
       renderAvatar={renderAvatar}
       renderTitle={renderTitle}

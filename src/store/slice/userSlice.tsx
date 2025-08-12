@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getUserInfoAPI } from '../../api/service/userService';
+import { updateUserInfoAPI } from '../../api/service/userService';
+import { updateUserAvatarAPI } from '../../api/service/userService';
 import { encryptWithAESAndRSA } from "../../utils/encrypt";
 import { decryptWithAESAndRSA } from "../../utils/encrypt";
 
@@ -49,6 +51,43 @@ export const fetchUserInfo = createAsyncThunk(
     }
 );
 
+//更新用户信息的thunk
+export const updateUserInfo = createAsyncThunk(
+    "user/updateUserInfo",
+    async (userData: any) => {
+        try {
+            const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
+                JSON.stringify(userData),
+                publicKey
+            );
+            // 发送更新用户信息请求
+            const response = await updateUserInfoAPI(encryptedData, encryptedKey);
+            const decryptedData = decryptWithAESAndRSA(response.data.encryptedData, response.data.encryptedKey, privateKey);
+            return decryptedData; // 假设更新成功返回的数据在 response.data 中
+        } catch (error: any) {
+            // 处理错误情况
+            throw error
+        }
+    }
+)
+
+
+export const updateUserAvatar = createAsyncThunk(
+    'user/updateUserAvatar',
+    async (avatar: string) => {
+        try {
+            // 创建用户数据对象
+            const userData = {
+                avatar: avatar,
+            };
+            // 获取用户信息
+            const response = await updateUserAPI(userData);
+
+            return response; // 假设更新成功返回的数据在 response.data 中
+        } catch (error: any) {
+        }
+    }
+)
 
 //加密token的公钥
 const publicKey = `-----BEGIN PUBLIC KEY-----
@@ -79,21 +118,8 @@ export const userSlice = createSlice({
                     }
                 ));
         },
-        // 更新用户名
-        setUserName: (state, action: PayloadAction<string>) => {
-            state.user.name = action.payload;
-        },
-        // 更新用户ID
-        setUserId: (state, action: PayloadAction<string>) => {
-            state.user.id = action.payload;
-        },
-        // 更新用户token
-        setUserToken: (state, action: PayloadAction<string>) => {
-            state.token = action.payload;
-        },
-        //更新用户头像
-        setUserAvatar: (state, action: PayloadAction<string>) => {
-            state.user.avater = action.payload;
+        setAvater: (state) => {
+            state.user.avatar = action.payload.avatar;
         },
         // 清除用户信息（登出时使用）
         clearUser: (state) => {
@@ -131,12 +157,24 @@ export const userSlice = createSlice({
                 // 处理获取用户信息失败的情况
                 console.error('获取用户信息失败:', action.payload);
                 // 可以根据需要添加错误处理逻辑
-            });
+            })
+            .addCase(updateUserInfo.fulfilled, (state, action) => {
+                state.user.name = action.payload.username;
+                state.user.email = action.payload.email;
+            })
+            .addCase(updateUserInfo.rejected, (state, action) => {
+                console.error('更新用户信息失败:', action.payload);
+            })
+            .addCase(updateUserInfo.pending, (state) => {
+                console.log('正在更新用户信息...');
+            })
+
+
     },
 });
 
 // 导出 actions
-export const { setUser, setUserName, setUserId, setUserToken, setUserAvatar, clearUser } = userSlice.actions;
+export const { setUser, clearUser, setAvater } = userSlice.actions;
 
 // 导出 reducer
 export default userSlice.reducer;
