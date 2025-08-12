@@ -64,3 +64,8 @@ export const getUserInfoAPI = async (id: number) => {
   //对返回的数据进行解密
   return response;
 };
+
+//修改用户信息
+export const updateUserInfoAPI = async (encryptedData: string, encryptedKey: string) => {
+  const response = await apiClient.put("/api/updateUserInfo", { encryptedData, encryptedKey });
+};
