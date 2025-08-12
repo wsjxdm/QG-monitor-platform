@@ -11,9 +11,13 @@ import {
   Row,
   Col,
   Tabs,
+  Card,
+  Spin,
 } from "antd";
+import { Column, Line } from "@ant-design/plots";
 import { ReloadOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { getPerformanceDataAPI } from "../../../../../api/service/performance";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -66,12 +70,93 @@ interface MobilePerformance {
   osVersion?: string;
   batteryLevel?: number;
   memoryUsage?: { usedMemory: string | number; totalMemory: string | number };
-  operationFps?: string;
+  operationFps?: string | number;
   duration?: number;
+  operationId?: string | number;
+  apiName?: string;
 }
+
+// 前端FP，FCP双折线图组件
+const FpDataChart: React.FC<{
+  timeType: string;
+  projectId: string;
+  loading: boolean;
+  data: { page: string; lcp: number; fcp: number; dom: number; load: number }[];
+}> = ({ timeType, projectId, loading, data }) => {
+  // 转换数据格式以适应双折线图
+  const transformedData = data.flatMap((item) => [
+    { page: item.page, type: "LCP", value: item.lcp },
+    { page: item.page, type: "FCP", value: item.fcp },
+    { page: item.page, type: "DOM", value: item.dom },
+    { page: item.page, type: "LOAD", value: item.load },
+  ]);
+
+  const config = {
+    data: transformedData,
+    xField: "page",
+    yField: "value",
+    seriesField: "type",
+    loading,
+    axis: {
+      y: {
+        title: "时间 (ms)",
+      },
+    },
+    legend: {
+      color: {
+        itemMarker: "circle",
+      },
+    },
+    style: {
+      lineWidth: 2,
+    },
+  };
+
+  return (
+    <div style={{ height: 300 }}>
+      {loading ? <Spin /> : <Line autoFit {...config} />}
+    </div>
+  );
+};
+
+// 三端请求平均用时柱状图组件
+const ApiRequestTimeChart: React.FC<{
+  timeType: string;
+  platform: "frontend" | "backend" | "mobile";
+  projectId: string;
+  loading: boolean;
+  data: { api: string; time: number }[];
+}> = ({ timeType, platform, projectId, loading, data }) => {
+  const config = {
+    data,
+    xField: "api",
+    yField: "time",
+    loading,
+    axis: {
+      y: {
+        title: "平均用时 (ms)",
+      },
+    },
+    label: {
+      text: (d: any) => `${d.time}ms`,
+      position: "top",
+    },
+    style: {
+      maxWidth: 50,
+    },
+  };
+
+  return (
+    <div style={{ height: 300 }}>
+      {loading ? <Spin /> : <Column autoFit {...config} />}
+    </div>
+  );
+};
 
 const ProjectDetailPerformance: React.FC = () => {
   const { projectId } = useParams();
+  const [fpTimeType, setFpTimeType] = useState("day");
+  const [apiTimeType, setApiTimeType] = useState("day");
 
   // 后端性能数据状态
   const [backendData, setBackendData] = useState<BackendPerformance[]>([]);
@@ -111,72 +196,72 @@ const ProjectDetailPerformance: React.FC = () => {
     setBackendLoading(true);
     try {
       // 这里应该调用实际的API获取后端性能数据
-      // const response = await getBackendPerformanceDataAPI({
-      //   platform: "backend",
-      //   projectId,
-      //   ...filterParams
-      // });
-
-      // 模拟后端数据
-      const mockData: BackendPerformance[] = Array.from(
-        { length: 5 },
-        (_, index) => ({
-          id: `backend-${index + 1}`,
-          timestamp: new Date(Date.now() - index * 60000).toISOString(),
-          module: index % 2 === 0 ? `Module-${index + 1}` : undefined,
-          projectId: projectId || 1,
-          environment:
-            index % 3 === 0
-              ? "production"
-              : index % 3 === 1
-              ? "development"
-              : "test",
-          api: `/api/v1/resource/${index + 1}`,
-          duration: Math.floor(Math.random() * 5000) + 100,
-          slow: index % 5 === 0,
-          environmentSnapshot: {
-            ip: `192.168.1.${index + 1}`,
-            protocol: index % 2 === 0 ? "HTTP/1.1" : "HTTP/2",
-            httpMethod:
-              index % 3 === 0 ? "GET" : index % 3 === 1 ? "POST" : "PUT",
-            browserName: index % 2 === 0 ? "Chrome" : "Firefox",
-            browserVersion: `${80 + index}.0.1`,
-            osName: index % 2 === 0 ? "Windows" : "MacOS",
-            osVersion: `10.1${index}`,
-            language: "zh-CN",
-            isAjax: index % 2 === 0,
-          },
-          sessionId: `session-${index + 1}`,
-        })
-      );
-
-      // 应用筛选条件
-      const filteredData = mockData.filter((item) => {
-        // 环境筛选
-        if (
-          filterParams.environment &&
-          item.environment !== filterParams.environment
-        ) {
-          return false;
-        }
-
-        // 搜索筛选
-        if (filterParams.search) {
-          const searchLower = filterParams.search.toLowerCase();
-          const matchesSearch =
-            (item.api && item.api.toLowerCase().includes(searchLower)) ||
-            (item.module &&
-              item.module.toString().toLowerCase().includes(searchLower));
-
-          if (!matchesSearch) {
-            return false;
-          }
-        }
-
-        return true;
+      const response = await getPerformanceDataAPI({
+        platform: "backend",
+        projectId,
+        ...filterParams,
       });
 
-      setBackendData(filteredData);
+      // 模拟后端数据
+      // const mockData: BackendPerformance[] = Array.from(
+      //   { length: 5 },
+      //   (_, index) => ({
+      //     id: `backend-${index + 1}`,
+      //     timestamp: new Date(Date.now() - index * 60000).toISOString(),
+      //     module: index % 2 === 0 ? `Module-${index + 1}` : undefined,
+      //     projectId: projectId || 1,
+      //     environment:
+      //       index % 3 === 0
+      //         ? "production"
+      //         : index % 3 === 1
+      //         ? "development"
+      //         : "test",
+      //     api: `/api/v1/resource/${index + 1}`,
+      //     duration: Math.floor(Math.random() * 5000) + 100,
+      //     slow: index % 5 === 0,
+      //     environmentSnapshot: {
+      //       ip: `192.168.1.${index + 1}`,
+      //       protocol: index % 2 === 0 ? "HTTP/1.1" : "HTTP/2",
+      //       httpMethod:
+      //         index % 3 === 0 ? "GET" : index % 3 === 1 ? "POST" : "PUT",
+      //       browserName: index % 2 === 0 ? "Chrome" : "Firefox",
+      //       browserVersion: `${80 + index}.0.1`,
+      //       osName: index % 2 === 0 ? "Windows" : "MacOS",
+      //       osVersion: `10.1${index}`,
+      //       language: "zh-CN",
+      //       isAjax: index % 2 === 0,
+      //     },
+      //     sessionId: `session-${index + 1}`,
+      //   })
+      // );
+
+      // 应用筛选条件
+      // const filteredData = mockData.filter((item) => {
+      //   // 环境筛选
+      //   if (
+      //     filterParams.environment &&
+      //     item.environment !== filterParams.environment
+      //   ) {
+      //     return false;
+      //   }
+
+      //   // 搜索筛选
+      //   if (filterParams.search) {
+      //     const searchLower = filterParams.search.toLowerCase();
+      //     const matchesSearch =
+      //       (item.api && item.api.toLowerCase().includes(searchLower)) ||
+      //       (item.module &&
+      //         item.module.toString().toLowerCase().includes(searchLower));
+
+      //     if (!matchesSearch) {
+      //       return false;
+      //     }
+      //   }
+
+      //   return true;
+      // });
+
+      setBackendData(response);
     } catch (error) {
       console.error("获取后端性能数据失败:", error);
     } finally {
@@ -189,72 +274,72 @@ const ProjectDetailPerformance: React.FC = () => {
     setFrontendLoading(true);
     try {
       // 这里应该调用实际的API获取前端性能数据
-      // const response = await getFrontendPerformanceDataAPI({
-      //   platform: "frontend",
-      //   projectId,
-      //   ...filterParams
-      // });
-
-      // 模拟前端数据
-      const mockData: FrontendPerformance[] = Array.from(
-        { length: 5 },
-        (_, index) => ({
-          id: `frontend-${index + 1}`,
-          timestamp: new Date(Date.now() - index * 60000).toISOString(),
-          projectId: projectId || 1,
-          sessionId: `session-${index + 1}`,
-          userAgent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          metrics: {
-            vitals: {
-              lcp: index * 100,
-              fcp: index * 50,
-            },
-            navigation: {
-              domReady: index * 30,
-              loadComplete: index * 70,
-            },
-          },
-          captureType:
-            index % 4 === 0
-              ? "pageLoad"
-              : index % 4 === 1
-              ? "apiCall"
-              : index % 4 === 2
-              ? "userAction"
-              : "custom",
-          duration: Math.floor(Math.random() * 5000) + 100,
-        })
-      );
-
-      // 应用筛选条件
-      const filteredData = mockData.filter((item) => {
-        // 捕获类型筛选
-        if (
-          filterParams.captureType &&
-          item.captureType !== filterParams.captureType
-        ) {
-          return false;
-        }
-
-        // 搜索筛选
-        if (filterParams.search) {
-          const searchLower = filterParams.search.toLowerCase();
-          const matchesSearch =
-            (item.captureType &&
-              item.captureType.toLowerCase().includes(searchLower)) ||
-            (item.userAgent &&
-              item.userAgent.toLowerCase().includes(searchLower));
-
-          if (!matchesSearch) {
-            return false;
-          }
-        }
-
-        return true;
+      const response = await getPerformanceDataAPI({
+        platform: "frontend",
+        projectId,
+        ...filterParams,
       });
 
-      setFrontendData(filteredData);
+      // 模拟前端数据
+      // const mockData: FrontendPerformance[] = Array.from(
+      //   { length: 5 },
+      //   (_, index) => ({
+      //     id: `frontend-${index + 1}`,
+      //     timestamp: new Date(Date.now() - index * 60000).toISOString(),
+      //     projectId: projectId || 1,
+      //     sessionId: `session-${index + 1}`,
+      //     userAgent:
+      //       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      //     metrics: {
+      //       vitals: {
+      //         lcp: index * 100,
+      //         fcp: index * 50,
+      //       },
+      //       navigation: {
+      //         domReady: index * 30,
+      //         loadComplete: index * 70,
+      //       },
+      //     },
+      //     captureType:
+      //       index % 4 === 0
+      //         ? "pageLoad"
+      //         : index % 4 === 1
+      //         ? "apiCall"
+      //         : index % 4 === 2
+      //         ? "userAction"
+      //         : "custom",
+      //     duration: Math.floor(Math.random() * 5000) + 100,
+      //   })
+      // );
+
+      // // 应用筛选条件
+      // const filteredData = mockData.filter((item) => {
+      //   // 捕获类型筛选
+      //   if (
+      //     filterParams.captureType &&
+      //     item.captureType !== filterParams.captureType
+      //   ) {
+      //     return false;
+      //   }
+
+      //   // 搜索筛选
+      //   if (filterParams.search) {
+      //     const searchLower = filterParams.search.toLowerCase();
+      //     const matchesSearch =
+      //       (item.captureType &&
+      //         item.captureType.toLowerCase().includes(searchLower)) ||
+      //       (item.userAgent &&
+      //         item.userAgent.toLowerCase().includes(searchLower));
+
+      //     if (!matchesSearch) {
+      //       return false;
+      //     }
+      //   }
+
+      //   return true;
+      // });
+
+      setFrontendData(response);
     } catch (error) {
       console.error("获取前端性能数据失败:", error);
     } finally {
@@ -267,67 +352,214 @@ const ProjectDetailPerformance: React.FC = () => {
     setMobileLoading(true);
     try {
       // 这里应该调用实际的API获取移动端性能数据
-      // const response = await getMobilePerformanceDataAPI({
-      //   platform: "mobile",
-      //   projectId,
-      //   ...filterParams
-      // });
-
-      // 模拟移动端数据
-      const mockData: MobilePerformance[] = Array.from(
-        { length: 5 },
-        (_, index) => ({
-          id: `mobile-${index + 1}`,
-          timestamp: new Date(Date.now() - index * 60000).toISOString(),
-          projectId: projectId || 1,
-          deviceModule: index % 2 === 0 ? `Device-${index + 1}` : undefined,
-          osVersion: index % 2 === 0 ? `OS-${index + 1}.0` : undefined,
-          batteryLevel:
-            index % 2 === 0 ? Math.floor(Math.random() * 100) : undefined,
-          memoryUsage: {
-            usedMemory: `${Math.floor(Math.random() * 4096)}MB`,
-            totalMemory: `${Math.floor(Math.random() * 4096)}MB`,
-          },
-          operationFps:
-            index % 3 === 0
-              ? `${Math.floor(Math.random() * 60)} FPS`
-              : undefined,
-          duration: Math.floor(Math.random() * 5000) + 100,
-        })
-      );
-
-      // 应用筛选条件
-      const filteredData = mockData.filter((item) => {
-        // 设备型号筛选
-        if (
-          filterParams.deviceModule &&
-          item.deviceModule !== filterParams.deviceModule
-        ) {
-          return false;
-        }
-
-        // 搜索筛选
-        if (filterParams.search) {
-          const searchLower = filterParams.search.toLowerCase();
-          const matchesSearch =
-            (item.deviceModule &&
-              item.deviceModule.toLowerCase().includes(searchLower)) ||
-            (item.osVersion &&
-              item.osVersion.toLowerCase().includes(searchLower));
-
-          if (!matchesSearch) {
-            return false;
-          }
-        }
-
-        return true;
+      const response = await getPerformanceDataAPI({
+        platform: "mobile",
+        projectId,
+        ...filterParams,
       });
 
-      setMobileData(filteredData);
+      // 模拟移动端数据
+      // const mockData: MobilePerformance[] = Array.from(
+      //   { length: 5 },
+      //   (_, index) => ({
+      //     id: `mobile-${index + 1}`,
+      //     timestamp: new Date(Date.now() - index * 60000).toISOString(),
+      //     projectId: projectId || 1,
+      //     deviceModule: index % 2 === 0 ? `Device-${index + 1}` : undefined,
+      //     osVersion: index % 2 === 0 ? `OS-${index + 1}.0` : undefined,
+      //     batteryLevel:
+      //       index % 2 === 0 ? Math.floor(Math.random() * 100) : undefined,
+      //     memoryUsage: {
+      //       usedMemory: `${Math.floor(Math.random() * 4096)}MB`,
+      //       totalMemory: `${Math.floor(Math.random() * 4096)}MB`,
+      //     },
+      //     operationFps:
+      //       index % 3 === 0
+      //         ? `${Math.floor(Math.random() * 60)} FPS`
+      //         : undefined,
+      //     duration: Math.floor(Math.random() * 5000) + 100,
+      //     operationId: index % 2 === 0 ? `op-${index + 1}` : undefined,
+      //     apiName: index % 3 === 0 ? `api-${index + 1}` : undefined,
+      //   })
+      // );
+
+      // // 应用筛选条件
+      // const filteredData = mockData.filter((item) => {
+      //   // 设备型号筛选
+      //   if (
+      //     filterParams.deviceModule &&
+      //     item.deviceModule !== filterParams.deviceModule
+      //   ) {
+      //     return false;
+      //   }
+
+      //   // 搜索筛选
+      //   if (filterParams.search) {
+      //     const searchLower = filterParams.search.toLowerCase();
+      //     const matchesSearch =
+      //       (item.deviceModule &&
+      //         item.deviceModule.toLowerCase().includes(searchLower)) ||
+      //       (item.osVersion &&
+      //         item.osVersion.toLowerCase().includes(searchLower));
+
+      //     if (!matchesSearch) {
+      //       return false;
+      //     }
+      //   }
+
+      //   return true;
+      // });
+
+      setMobileData(response);
     } catch (error) {
       console.error("获取移动端性能数据失败:", error);
     } finally {
       setMobileLoading(false);
+    }
+  };
+
+  // 页面加载时间状态
+  const [pageLoadData, setPageLoadData] = useState<
+    { page: string; value: number }[]
+  >([]);
+  const [pageLoadLoading, setPageLoadLoading] = useState(false);
+
+  // FP/FCP数据状态
+  const [fpData, setFpData] = useState<
+    { page: string; fp: number; fcp: number }[]
+  >([]);
+  const [fpLoading, setFpLoading] = useState(false);
+
+  // API请求时间状态
+  const [apiRequestData, setApiRequestData] = useState<
+    { api: string; time: number }[]
+  >([]);
+  const [apiRequestLoading, setApiRequestLoading] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<
+    "frontend" | "backend" | "mobile"
+  >("frontend");
+
+  // 获取FP/FCP数据
+  const fetchFpData = async (timeType: string) => {
+    setFpLoading(true);
+    try {
+      // 实际使用时替换为:
+      // const response = await axios.get("你的FP/FCP数据API地址", {
+      //   params: { timeType, projectId }
+      // });
+
+      // 模拟数据
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      let mockData;
+      switch (timeType) {
+        case "day":
+          mockData = [
+            { page: "首页", lcp: 800, fcp: 1000, dom: 900, load: 1100 },
+            { page: "商品详情页", lcp: 900, fcp: 1200, dom: 1000, load: 1300 },
+            { page: "购物车", lcp: 500, fcp: 700, dom: 600, load: 800 },
+          ];
+          break;
+        case "week":
+          mockData = [
+            { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
+            { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
+            { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
+            { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
+            { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
+          ];
+          break;
+        case "month":
+          mockData = [
+            { page: "首页", lcp: 1500, fcp: 1800, dom: 1600, load: 1900 },
+            { page: "商品详情页", lcp: 1300, fcp: 1900, dom: 1700, load: 2100 },
+            { page: "购物车", lcp: 800, fcp: 1100, dom: 900, load: 1200 },
+            { page: "订单页", lcp: 1100, fcp: 1500, dom: 1300, load: 1700 },
+            { page: "个人中心", lcp: 900, fcp: 1200, dom: 1000, load: 1400 },
+            { page: "搜索页", lcp: 700, fcp: 900, dom: 800, load: 1000 },
+          ];
+          break;
+        default:
+          mockData = [
+            { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
+            { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
+            { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
+            { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
+            { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
+          ];
+      }
+
+      setFpData(mockData);
+    } catch (error) {
+      console.error("获取FP/FCP数据失败:", error);
+      setFpData([]);
+    } finally {
+      setFpLoading(false);
+    }
+  };
+
+  // 更新筛选器的onChange处理函数，确保同时更新时间和平台
+  const handleApiTimeChange = (value: string) => {
+    setApiTimeType(value);
+    fetchApiRequestData(value, selectedPlatform); // 同时获取数据
+  };
+
+  const handlePlatformChange = (value: "frontend" | "backend" | "mobile") => {
+    setSelectedPlatform(value);
+    fetchApiRequestData(apiTimeType, value); // 同时获取数据
+  };
+
+  // 获取API请求时间数据
+  const fetchApiRequestData = async (
+    timeType: string,
+    platform: "frontend" | "backend" | "mobile"
+  ) => {
+    setApiRequestLoading(true);
+    try {
+      // 实际使用时替换为:
+      // const response = await axios.get("你的API请求时间API地址", {
+      //   params: { timeType, platform, projectId }
+      // });
+
+      // 模拟数据
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      let mockData;
+      switch (platform) {
+        case "frontend":
+          mockData = [
+            { api: "/api/home", time: 400 },
+            { api: "/api/products", time: 600 },
+            { api: "/api/cart", time: 300 },
+            { api: "/api/user", time: 350 },
+          ];
+          break;
+        case "backend":
+          mockData = [
+            { api: "/user/profile", time: 150 },
+            { api: "/order/list", time: 250 },
+            { api: "/product/detail", time: 180 },
+            { api: "/payment/status", time: 200 },
+          ];
+          break;
+        case "mobile":
+          mockData = [
+            { api: "/api/mobile/login", time: 500 },
+            { api: "/api/mobile/data", time: 700 },
+            { api: "/api/mobile/upload", time: 800 },
+            { api: "/api/mobile/notify", time: 400 },
+          ];
+          break;
+        default:
+          mockData = [];
+      }
+
+      setApiRequestData(mockData);
+    } catch (error) {
+      console.error("获取API请求时间数据失败:", error);
+      setApiRequestData([]);
+    } finally {
+      setApiRequestLoading(false);
     }
   };
 
@@ -338,6 +570,9 @@ const ProjectDetailPerformance: React.FC = () => {
     fetchBackendData({});
     fetchFrontendData({});
     fetchMobileData({});
+
+    fetchFpData("day");
+    fetchApiRequestData("day", "frontend");
   }, [projectId]);
 
   // 后端性能相关处理函数
@@ -811,6 +1046,19 @@ const ProjectDetailPerformance: React.FC = () => {
                 <Text>{record.operationFps}</Text>
               </Col>
             )}
+            {/* 新增字段显示 */}
+            {record.operationId !== undefined && (
+              <Col span={8}>
+                <Text strong>操作ID: </Text>
+                <Text>{record.operationId}</Text>
+              </Col>
+            )}
+            {record.apiName !== undefined && (
+              <Col span={8}>
+                <Text strong>API名称: </Text>
+                <Text>{record.apiName}</Text>
+              </Col>
+            )}
           </Row>
         </Space>
       </div>
@@ -855,6 +1103,81 @@ const ProjectDetailPerformance: React.FC = () => {
         }}
       >
         <Title level={4}>性能监控</Title>
+      </div>
+
+      <div>
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card
+              title="前端FCP,LCP,DOM.LOAD数据"
+              extra={
+                <Select
+                  value={fpTimeType}
+                  style={{ width: 120 }}
+                  onChange={(value) => {
+                    setFpTimeType(value);
+                    fetchFpData(value); // 需要修改fetchFpData以接受timeType参数
+                  }}
+                  options={[
+                    { value: "day", label: "近1天" },
+                    { value: "week", label: "近7天" },
+                    { value: "month", label: "近30天" },
+                  ]}
+                  size="small"
+                />
+              }
+            >
+              <FpDataChart
+                timeType={fpTimeType}
+                projectId={projectId || "1"}
+                loading={fpLoading}
+                data={fpData}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card
+              title="各端API请求平均用时"
+              extra={
+                <Space>
+                  <Select
+                    value={selectedPlatform}
+                    style={{ width: 120 }}
+                    onChange={handlePlatformChange}
+                    options={[
+                      { value: "frontend", label: "前端" },
+                      { value: "backend", label: "后端" },
+                      { value: "mobile", label: "移动端" },
+                    ]}
+                    size="small"
+                  />
+                  <Select
+                    value={apiTimeType}
+                    style={{ width: 120 }}
+                    onChange={handleApiTimeChange}
+                    options={[
+                      { value: "day", label: "近1天" },
+                      { value: "week", label: "近7天" },
+                      { value: "month", label: "近30天" },
+                    ]}
+                    size="small"
+                  />
+                </Space>
+              }
+            >
+              <ApiRequestTimeChart
+                timeType={apiTimeType}
+                platform={selectedPlatform}
+                projectId={projectId || "1"}
+                loading={apiRequestLoading}
+                data={apiRequestData}
+              />
+            </Card>
+          </Col>
+        </Row>
       </div>
 
       <Tabs defaultActiveKey="1">

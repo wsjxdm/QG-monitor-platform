@@ -31,11 +31,14 @@ const { Text, Title } = Typography;
 
 //搜索项目
 interface searchProject {
-  id: string;
+  uuid: string;
   name: string;
   description: string;
   isPublic: boolean;
 }
+const user = {
+  id: 14,
+};
 
 const ProjectHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -87,8 +90,8 @@ const ProjectHeader: React.FC = () => {
   // 处理加入项目
   const handleJoinProject = async (values: any) => {
     try {
-      const response = await joinProject(values.invitedCode, "1");
-      message.success("成功加入项目");
+      const response = await joinProject(values.inviteCode, user.id);
+      // message.success("成功加入项目");
       setIsJoinModalVisible(false);
       joinForm.resetFields();
       // 跳转到项目总览页面（这里使用模拟项目ID）
@@ -101,16 +104,16 @@ const ProjectHeader: React.FC = () => {
   // 处理创建项目
   const handleCreateProject = async (values: any) => {
     try {
-      const { projectId } = await createProject(
+      const { uuid } = await createProject(
         values.name,
         values.description,
         isPublic,
-        "1"
+        user.id
       );
       message.success("项目创建成功");
       setIsCreateModalVisible(false);
       createForm.resetFields();
-      navigate(`/main/project/${projectId}/detail/overview`, {
+      navigate(`/main/project/${uuid}/detail/overview`, {
         state: { isNew: true }, // 表示这是新创建的项目
       });
     } catch (error) {
@@ -141,7 +144,7 @@ const ProjectHeader: React.FC = () => {
                   renderItem={(item) => (
                     <List.Item
                       className={styles.searchItem}
-                      onClick={() => handleProjectClick(item.id)}
+                      onClick={() => handleProjectClick(item.uuid)}
                     >
                       <List.Item.Meta
                         avatar={

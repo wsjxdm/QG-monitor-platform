@@ -5,7 +5,7 @@ import apiClient from "../index";
 export const getErrorDataAPI = async (params: Record<string, any>) => {
   console.log("获取错误数据参数:", params);
   try {
-    const response = await apiClient.get(`errors/selectByCondition`, {
+    const response = await apiClient.get(`/errors/selectByCondition`, {
       params,
     });
     console.log("获取错误数据响应:", response);
@@ -19,10 +19,9 @@ export const getErrorDataAPI = async (params: Record<string, any>) => {
 // 获取项目普通成员
 export const getProjectMembersAPI = async (projectId: string | undefined) => {
   try {
-    const response = await apiClient.get("/api/error/getProjectMember", {
+    const response = await apiClient.get("/roles/getMemberList", {
       params: { projectId },
     });
-    console.log("Project members response:", response);
     return response.data;
   } catch (error) {
     console.error("获取项目成员失败:", error);
@@ -34,14 +33,18 @@ export const getProjectMembersAPI = async (projectId: string | undefined) => {
 export const assignErrorAPI = async (
   errorId: string | number,
   delegatorId: string | number,
-  responsibleId: string | number
+  platform: string,
+  responsibleId: string | number,
+  projectId: string | number
 ) => {
-  console.log("指派错误参数:", errorId, delegatorId, responsibleId);
+  console.log("指派错误参数:", delegatorId, platform, responsibleId);
   try {
-    const response = await apiClient.put("/api/projects/alertIssueNumber", {
-      errorId,
+    const response = await apiClient.post("responsibilities", {
+      errorId: Number(errorId),
+      platform,
       delegatorId,
-      responsibleId,
+      responsibleId: Number(responsibleId),
+      projectId,
     });
     console.log("指派错误响应:", response);
     return response.data;

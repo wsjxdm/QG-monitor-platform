@@ -31,12 +31,12 @@ const ProjectPublic: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [PublicProjects, setPublicProjects] = useState<
     {
-      id: string;
+      uuid: string;
       name: string;
       description: string;
       isPublic: boolean;
       invitedCode: string;
-      createTime: string | number | Date;
+      createdTime: string | number;
       errorCount: number;
       performanceScore: number;
     }[]
@@ -46,20 +46,11 @@ const ProjectPublic: React.FC = () => {
     navigate(`/main/project/${projectId}/detail/overview`);
   };
 
-  // 复制邀请码
-  const copyInviteCode = (code: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    message.success("邀请码已复制到剪贴板");
-    setTimeout(() => setCopiedCode(null), 2000);
-  };
-
   // 获取公开项目列表
   useEffect(() => {
     getPublicProjects().then((res: any) => {
       console.log("获取公开项目列表", res);
-      setPublicProjects(res);
+      setPublicProjects(res.reverse());
     });
   }, []);
 
@@ -71,14 +62,14 @@ const ProjectPublic: React.FC = () => {
       <ProjectHeader />
 
       {/* 项目网格列表 */}
-      {PublicProjects.length > 0 ? (
+      {PublicProjects?.length > 0 ? (
         <div style={{ marginTop: "20px" }}>
           <Row gutter={[16, 16]}>
             {PublicProjects.map((project) => (
-              <Col xs={24} sm={12} md={8} lg={6} xl={6} key={project.id}>
+              <Col xs={24} sm={12} md={8} lg={6} xl={6} key={project.uuid}>
                 <Card
                   hoverable
-                  onClick={() => handleProjectClick(project.id)}
+                  onClick={() => handleProjectClick(project.uuid)}
                   style={{
                     height: "100%",
                     display: "flex",
@@ -103,26 +94,6 @@ const ProjectPublic: React.FC = () => {
                       </Space>
                     </div>
 
-                    {/* 邀请码 */}
-                    <div style={{ marginBottom: "12px" }}>
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        邀请码: {project.invitedCode.substring(0, 10)}...
-                        <Button
-                          type="text"
-                          icon={<CopyOutlined />}
-                          size="small"
-                          onClick={(e) =>
-                            copyInviteCode(project.invitedCode, e)
-                          }
-                          style={{ marginLeft: "4px" }}
-                        >
-                          {copiedCode === project.invitedCode
-                            ? "已复制"
-                            : "复制"}
-                        </Button>
-                      </Text>
-                    </div>
-
                     {/* 项目简介 */}
                     <div style={{ marginBottom: "12px", flex: 1 }}>
                       <Text type="secondary" style={{ fontSize: "13px" }}>
@@ -133,7 +104,7 @@ const ProjectPublic: React.FC = () => {
                     {/* 创建时间 */}
                     <div style={{ marginBottom: "12px" }}>
                       <Text type="secondary" style={{ fontSize: "12px" }}>
-                        <CalendarOutlined /> {project.createTime}
+                        <CalendarOutlined /> {project.createdTime}
                       </Text>
                     </div>
                   </div>

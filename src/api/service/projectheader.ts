@@ -3,8 +3,8 @@ import apiClient from "../index";
 //搜索
 export const searchProjects = async (query: string) => {
   try {
-    const response = await apiClient.get("/api/project/search", {
-      params: { query },
+    const response = await apiClient.get("projects/selectProjectByName", {
+      params: { name: query },
     });
     console.log("Search projects response:", response);
     return response.data;
@@ -18,8 +18,9 @@ export const joinProject = async (
   invitedCode: string,
   userId: string | number
 ) => {
+  console.log("Invited code:", invitedCode);
   try {
-    const response = await apiClient.post("/api/project/join", {
+    const response = await apiClient.post("/projects/joinProject", {
       invitedCode,
       userId,
     });
@@ -38,7 +39,7 @@ export const createProject = async (
   userId: string | number
 ) => {
   try {
-    const response = await apiClient.post("/api/project/create", {
+    const response = await apiClient.post("/projects", {
       name,
       description,
       isPublic,
