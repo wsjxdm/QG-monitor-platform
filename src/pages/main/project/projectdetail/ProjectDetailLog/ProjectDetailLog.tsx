@@ -54,7 +54,6 @@ const ProjectDetailLog: React.FC = () => {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      // 这里应该调用实际的API获取日志数据
       const response = await getLogDataAPI(projectId);
 
       // 模拟数据

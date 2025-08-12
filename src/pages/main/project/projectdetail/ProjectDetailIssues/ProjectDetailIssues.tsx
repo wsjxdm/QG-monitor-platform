@@ -21,6 +21,8 @@ import {
   getErrorDataAPI,
   assignErrorAPI,
   getProjectMembersAPI,
+  getPlatformDataAPI,
+  getPlatformTenAPI,
 } from "../../../../../api/service/issue";
 
 const { Title } = Typography;
@@ -43,7 +45,7 @@ interface ErrorItem {
   isHandled?: boolean;
   moduleName?: string;
   delegatorId?: string | number | null;
-  name?: string | null;
+  username?: string | null;
   avatarUrl?: string | null;
   errorType?: string;
 }
@@ -59,11 +61,10 @@ interface ProjectMember {
 }
 
 // 平台访问量
-// 平台访问量
 const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [timeType, setTimeType] = useState("7d"); // 时间筛选移到组件内部
+  const [timeType, setTimeType] = useState("day"); // 时间筛选移到组件内部
 
   // 时间筛选选项
   const timeOptions = [
@@ -104,29 +105,14 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
 
       const startTimeStr = formatTime(startTime);
       const endTimeStr = formatTime(endTime);
-      console.log("开始时间:", startTimeStr, "结束时间:", endTimeStr);
       // 调用实际API获取平台数据，传递startTime和endTime参数
-      // const response = await getPlatformDataAPI({
-      //   startTime: startTimeStr,
-      //   endTime: endTimeStr,
-      //   projectId
-      // });
+      const response = await getPlatformDataAPI(
+        projectId,
+        startTimeStr,
+        endTimeStr
+      );
 
-      // 模拟数据
-      const response = {
-        data: [
-          { time: "2023-01-01", value: 100, category: "frontend" },
-          { time: "2023-01-02", value: 120, category: "backend" },
-          { time: "2023-01-03", value: 80, category: "mobile" },
-          { time: "2023-01-04", value: 150, category: "frontend" },
-          { time: "2023-01-05", value: 200, category: "backend" },
-          { time: "2023-01-06", value: 170, category: "mobile" },
-          { time: "2023-01-07", value: 90, category: "frontend" },
-          { time: "2023-01-07", value: 180, category: "backend" },
-          { time: "2023-01-07", value: 110, category: "mobile" },
-        ],
-      };
-      setData(response.data || []);
+      setData(response || []);
     } catch (error) {
       console.error("获取平台数据失败:", error);
       setData([]);
@@ -205,13 +191,8 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 实际使用时替换为:
-      // const response = await axios.get("你的API地址", {
-      //   params: { projectId, platform }
-      // });
-
-      // 模拟数据
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const response = await getPlatformTenAPI(projectId);
+      console.log(response);
 
       // 模拟错误数量数据 (柱状图)
       const mockErrorCountData: ErrorCountDataItem[] = [
@@ -241,8 +222,8 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
         { errorType: "InternalError", ratio: 0.03 },
       ];
 
-      setErrorCountData(mockErrorCountData);
-      setErrorRatioData(mockErrorRatioData);
+      setErrorCountData(response[0]);
+      setErrorRatioData(response[1]);
     } catch (error) {
       console.error("获取数据失败:", error);
     } finally {
@@ -402,7 +383,8 @@ const ProjectDetailIssues: React.FC = () => {
                 ...item,
                 delegatorId: delegatorId,
                 username:
-                  members.find((m) => m.id == delegatorId)?.username || null,
+                  members.find((m) => m.userId == responsibleId)?.username ||
+                  null,
               }
             : item
         )
@@ -417,6 +399,11 @@ const ProjectDetailIssues: React.FC = () => {
   // 渲染指派列
   const renderAssignColumn = (record: ErrorItem) => {
     // 只显示普通成员(userRole == 2)作为可指派选项
+    console.log(
+      "%c [ ]-273",
+      "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+      members
+    );
     const menuItems = members
       .filter((member) => member.userRole == 2)
       .map((member) => ({
@@ -441,9 +428,11 @@ const ProjectDetailIssues: React.FC = () => {
         onClick={(e) => e.stopPropagation()}
       >
         {record?.delegatorId ? (
-          <Tooltip title={`已指派给: ${record?.name || "未知用户"}`}>
+          <Tooltip title={`已指派给: ${record.username || "未知用户"}`}>
             <Avatar size="small" src={record?.avatar} icon={<UserOutlined />} />
-            <span style={{ marginLeft: 8 }}>{record?.name || "未知用户"}</span>
+            <span style={{ marginLeft: 8 }}>
+              {record.username || "未知用户"}
+            </span>
           </Tooltip>
         ) : (
           <span style={{ color: "#ff4d4f" }}>未指派</span>
@@ -495,8 +484,8 @@ const ProjectDetailIssues: React.FC = () => {
     },
     {
       title: "指派人",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "username",
+      key: "username",
       width: 100,
       minWidth: 100,
       render: (name: string) => <span>{name}</span>,
@@ -512,7 +501,7 @@ const ProjectDetailIssues: React.FC = () => {
 
     {
       title: "指派",
-      key: "name",
+      key: "username",
       fixed: "right" as const,
       width: 120,
       render: (_: any, record: ErrorItem) => renderAssignColumn(record),
@@ -534,11 +523,13 @@ const ProjectDetailIssues: React.FC = () => {
         return {
           ...item,
           platform: "backend",
+          username: item.name,
         };
       });
       const updataArry2 = arry2.map((item: any) => {
         return {
           ...item,
+          username: item.name,
           platform: "frontend",
         };
       });
@@ -546,6 +537,7 @@ const ProjectDetailIssues: React.FC = () => {
         return {
           ...item,
           platform: "mobile",
+          username: item.name,
           timestamp: new Date(item.timestamp)
             .toLocaleString("zh-CN", {
               year: "numeric",
