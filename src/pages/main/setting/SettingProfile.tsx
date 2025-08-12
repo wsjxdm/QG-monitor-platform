@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import styles from "./SettingProfile.module.css";
 import {
   UserOutlined,
@@ -22,11 +22,15 @@ import {
   Col,
   Upload,
 } from "antd";
-import { deleteUserAPI, updateUserAPI } from "../../../api/service/userService";
+import { deleteUserAPI } from "../../../api/service/userService";
+import { useDispatch } from "react-redux";
+import { updateUserInfo } from "../../../store/slice/userSlice";
+import { updateUserAvatarAPI } from "../../../api/service/userService";
+import { setAvater } from "../../../store/slice/userSlice";
 
 const { Title, Text } = Typography;
 
-// 模拟数据，用户的信息
+// 模拟数据，用户的信息-->记得改成使用redux获取
 const staticUserData = {
   avatar: "",
   username: "张三",
@@ -39,6 +43,9 @@ const SettingProfile: React.FC = () => {
   const [form] = Form.useForm();
   const [userData, setUserData] = useState(staticUserData);
   const [avatarUrl, setAvatarUrl] = useState<string>(staticUserData.avatar);
+  const [formData, setFormData] = useState(null)
+  const dispatch = useDispatch();
+
 
   // 开始编辑
   const handleEdit = () => {
@@ -49,12 +56,27 @@ const SettingProfile: React.FC = () => {
   // 保存修改
   const handleSave = async () => {
     try {
-      const values = await form.validateFields();
-      // await updateUserAPI(values);
-      setUserData({
-        ...values,
-        avatar: avatarUrl,
-      });
+      // const values = await form.validateFields();
+      // // await updateUserAPI(values);
+      // dispatch(updateUserInfo({
+      //   user: {
+      //     id: 12,
+      //     username: values.name,
+      //     email: values.email,
+      //   },
+      // }));
+
+      if (formData) {
+        const response = await updateUserAvatarAPI(formData);
+        if (response.code === 200) {
+          dispatch(setAvater(response.data));
+          message.success("修改头像成功");
+        }
+        else {
+          message.error("修改头像失败");
+        }
+      }
+
       setIsEditing(false);
       message.success("信息更新成功");
     } catch (error) {
@@ -82,6 +104,10 @@ const SettingProfile: React.FC = () => {
     if (info.file.status === "done") {
       // 这里应该上传到服务器并获取返回的URL
       // 目前使用本地预览
+      const formData = new FormData();
+      formData.append('avatar', info.file.originFileObj);
+      formData.append('userId', 12);
+      setFormData(formData);
       if (info.file.originFileObj) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -121,7 +147,7 @@ const SettingProfile: React.FC = () => {
                 {/* 用户名 */}
                 <Form.Item
                   label="用户名"
-                  name="username"
+                  name="name"
                   rules={[{ required: true, message: "请输入用户名" }]}
                   className={styles.formItem}
                 >

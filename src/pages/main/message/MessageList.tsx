@@ -17,7 +17,7 @@ const { Title, Text } = Typography;
 interface MessageItem {
     id: number;
     projectName: string;
-    errorMessage: string;
+    errorType: string;
     timestamp: number;
     isRead: boolean;
     avatar?: string; // 可选的头像字段
@@ -183,7 +183,7 @@ const MessageList: React.FC<MessageListProps> = ({
                                             className={styles['error-message']}
                                             style={{ fontWeight: item.isRead ? 'normal' : 'bold' }}
                                         >
-                                            {item.errorMessage}
+                                            {item.errorType}
                                         </Text>
                                         <div className={styles['additional-info']}>
                                             <Text type="secondary" className={styles['additional-time']}>

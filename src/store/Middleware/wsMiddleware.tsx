@@ -6,11 +6,14 @@ import {
 } from "../slice/websocketSlice";
 import { message, notification } from "antd";
 import "@ant-design/v5-patch-for-react-19";
+import { useSelector } from "react-redux";
 
 export const wsMiddleware: Middleware<{}> = (store) => {
   let socket: WebSocket | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null; // 重连定时器
-
+  //从redux获取id
+  const currentUser = useSelector((state: any) => state.user);
+  const currentUserId = currentUser?.id;
   // 建立连接
   const connect = () => {
     const wsUrl = `ws://192.168.1.161:8080/ws`; // 后端WebSocket地址
@@ -39,22 +42,28 @@ export const wsMiddleware: Middleware<{}> = (store) => {
     socket.onmessage = (event: MessageEvent) => {
       try {
         const msg = JSON.parse(event.data); // 假设后端消息格式：{ type: 'xxx', data: {} }
-        if (!msg.type) throw new Error("消息缺少type字段");
-        // 如果消息类型是 notification，则显示全局通知
-        if (msg.type === "notifications") {
-          notification.info({
-            message: `指派通知`,
-            description: "您有新的消息",
-          });
+
+        //这个12到时候也得从redux获取
+        console.log(msg);
+
+        if (msg.data.data[0].receiverId === currentUserId) {
+          if (!msg.type) throw new Error("消息缺少type字段");
+          // 如果消息类型是 notification，则显示全局通知
+          if (msg.type === "notifications") {
+            notification.info({
+              message: `指派通知`,
+              description: "您有新的消息",
+            });
+          }
+          if (msg.type === "designate") {
+            notification.info({
+              message: `通知牛马`,
+              description: "您有新任务了哦~马上干活！",
+            });
+          }
+          store.dispatch(messageReceived(msg.data)); // 分发消息到Redux
+          console.log("接收到消息:", msg.data);
         }
-        if (msg.type === "designate") {
-          notification.info({
-            message: `通知牛马`,
-            description: "您有新任务了哦~马上干活！",
-          });
-        }
-        store.dispatch(messageReceived(msg.data)); // 分发消息到Redux
-        console.log("接收到消息:", msg.data);
       } catch (err: any) {
         console.error("解析消息失败:", err);
         store.dispatch(setError(`消息格式错误: ${err.message}`));
