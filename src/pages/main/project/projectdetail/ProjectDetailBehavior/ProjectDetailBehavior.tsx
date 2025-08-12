@@ -96,16 +96,56 @@ const PageData: React.FC<{ timeType: string; projectId: string }> = ({
 }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [localTimeType, setLocalTimeType] = useState(timeType); // 使用本地状态管理时间类型
+
+  // 时间筛选选项
+  const timeOptions = [
+    { value: "1d", label: "近1天" },
+    { value: "7d", label: "近7天" },
+    { value: "30d", label: "近30天" },
+  ];
 
   useEffect(() => {
     fetchPageData();
-  }, [timeType, projectId]);
+  }, [localTimeType, projectId]); // 使用本地时间类型
 
   const fetchPageData = async () => {
     setLoading(true);
     try {
-      // 调用实际API获取页面数据
-      // const response = await getPageDataAPI({ timeType, projectId });
+      // 计算时间范围
+      const endTime = new Date();
+      const startTime = new Date();
+
+      switch (localTimeType) {
+        case "1d":
+          startTime.setDate(startTime.getDate() - 1);
+          break;
+        case "7d":
+          startTime.setDate(startTime.getDate() - 7);
+          break;
+        case "30d":
+          startTime.setDate(startTime.getDate() - 30);
+          break;
+        default:
+          startTime.setDate(startTime.getDate() - 7);
+      }
+
+      // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
+      const formatTime = (date: Date) => {
+        return date.toISOString().replace("T", " ").substring(0, 19);
+      };
+
+      const startTimeStr = formatTime(startTime);
+      const endTimeStr = formatTime(endTime);
+
+      // 调用实际API获取页面数据，传递时间参数
+      // const response = await getPageDataAPI({
+      //   startTime: startTimeStr,
+      //   endTime: endTimeStr,
+      //   projectId
+      // });
+
+      // 模拟数据 - 实际使用时替换为上面的API调用
       const response = {
         data: [
           { label: "首页", pt: 50, enterCount: 100 },
@@ -161,8 +201,26 @@ const PageData: React.FC<{ timeType: string; projectId: string }> = ({
   };
 
   return (
-    <div style={{ height: 300 }}>
-      {loading ? <Spin /> : <DualAxes autoFit {...config} />}
+    <div>
+      {/* 独立的时间筛选器 */}
+      <div
+        style={{
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Select
+          value={localTimeType}
+          style={{ width: 120 }}
+          onChange={setLocalTimeType} // 更新本地时间类型
+          options={timeOptions}
+        />
+      </div>
+
+      <div style={{ height: 300 }}>
+        {loading ? <Spin /> : <DualAxes autoFit {...config} />}
+      </div>
     </div>
   );
 };
@@ -272,10 +330,9 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
 
   // 时间筛选选项
   const timeOptions = [
-    { value: "1d", label: "近1天" },
-    { value: "7d", label: "近7天" },
-    { value: "30d", label: "近30天" },
-    { value: "90d", label: "近90天" },
+    { value: "day", label: "近1天" },
+    { value: "week", label: "近7天" },
+    { value: "month", label: "近30天" },
   ];
 
   useEffect(() => {
@@ -289,36 +346,36 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
       // const response = await getPlatformDataAPI({ timeType, projectId });
       const response = {
         data: [
-          { time: "2023-01-01", value: 0.6 },
-          { time: "2023-01-02", value: 0.7 },
-          { time: "2023-01-03", value: 0.8 },
-          { time: "2023-01-04", value: 0.5 },
-          { time: "2023-01-05", value: 0.9 },
-          { time: "2023-01-06", value: 0.4 },
-          { time: "2023-01-07", value: 0.6 },
-          { time: "2023-01-08", value: 0.7 },
-          { time: "2023-01-09", value: 0.8 },
-          { time: "2023-01-10", value: 0.5 },
-          { time: "2023-01-11", value: 0.9 },
-          { time: "2023-01-12", value: 0.4 },
-          { time: "2023-01-13", value: 0.6 },
-          { time: "2023-01-14", value: 0.7 },
-          { time: "2023-01-15", value: 0.8 },
-          { time: "2023-01-16", value: 0.5 },
-          { time: "2023-01-17", value: 0.9 },
-          { time: "2023-01-18", value: 0.4 },
-          { time: "2023-01-19", value: 0.6 },
-          { time: "2023-01-20", value: 0.7 },
-          { time: "2023-01-21", value: 0.8 },
-          { time: "2023-01-22", value: 0.5 },
-          { time: "2023-01-23", value: 0.9 },
-          { time: "2023-01-24", value: 0.4 },
-          { time: "2023-01-25", value: 0.6 },
-          { time: "2023-01-26", value: 0.7 },
-          { time: "2023-01-27", value: 0.8 },
-          { time: "2023-01-28", value: 0.5 },
-          { time: "2023-01-29", value: 0.9 },
-          { time: "2023-01-30", value: 0.4 },
+          { time: "2023-01-01", value: 600 },
+          { time: "2023-01-02", value: 700 },
+          { time: "2023-01-03", value: 800 },
+          { time: "2023-01-04", value: 500 },
+          { time: "2023-01-05", value: 900 },
+          { time: "2023-01-06", value: 400 },
+          { time: "2023-01-07", value: 600 },
+          { time: "2023-01-08", value: 700 },
+          { time: "2023-01-09", value: 800 },
+          { time: "2023-01-10", value: 500 },
+          { time: "2023-01-11", value: 900 },
+          { time: "2023-01-12", value: 400 },
+          { time: "2023-01-13", value: 600 },
+          { time: "2023-01-14", value: 700 },
+          { time: "2023-01-15", value: 800 },
+          { time: "2023-01-16", value: 500 },
+          { time: "2023-01-17", value: 900 },
+          { time: "2023-01-18", value: 400 },
+          { time: "2023-01-19", value: 600 },
+          { time: "2023-01-20", value: 700 },
+          { time: "2023-01-21", value: 800 },
+          { time: "2023-01-22", value: 500 },
+          { time: "2023-01-23", value: 900 },
+          { time: "2023-01-24", value: 400 },
+          { time: "2023-01-25", value: 600 },
+          { time: "2023-01-26", value: 700 },
+          { time: "2023-01-27", value: 800 },
+          { time: "2023-01-28", value: 500 },
+          { time: "2023-01-29", value: 900 },
+          { time: "2023-01-30", value: 400 },
         ],
       };
       setData(response.data || []);
@@ -334,15 +391,6 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
     data,
     xField: "time",
     yField: "value",
-    label: {
-      text: (d: any) => `${(d.value * 100).toFixed(1)}%`,
-      textBaseline: "bottom",
-    },
-    axis: {
-      y: {
-        labelFormatter: ".0%",
-      },
-    },
     style: {
       // 圆角样式
       radiusTopLeft: 10,
@@ -358,6 +406,7 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
           marginBottom: 20,
           display: "flex",
           justifyContent: "flex-end",
+          maxWidth: "150px",
         }}
       >
         <Select

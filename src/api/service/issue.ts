@@ -43,7 +43,7 @@ export const assignErrorAPI = async (
       errorId: Number(errorId),
       platform,
       delegatorId,
-      responsibleId,
+      responsibleId: Number(responsibleId),
       projectId,
     });
     console.log("指派错误响应:", response);

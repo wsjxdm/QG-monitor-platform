@@ -28,7 +28,7 @@ const { Title } = Typography;
 //todo 用户的权限判断
 const currentUser = {
   role: 1,
-  id: 1,
+  id: 14,
 };
 
 // 错误展示
@@ -59,6 +59,7 @@ interface ProjectMember {
 }
 
 // 平台访问量
+// 平台访问量
 const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,10 +67,9 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
 
   // 时间筛选选项
   const timeOptions = [
-    { value: "1d", label: "近1天" },
-    { value: "7d", label: "近7天" },
-    { value: "30d", label: "近30天" },
-    { value: "90d", label: "近90天" },
+    { value: "day", label: "近1天" },
+    { value: "week", label: "近7天" },
+    { value: "month", label: "近30天" },
   ];
 
   useEffect(() => {
@@ -79,8 +79,40 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
   const fetchPlatformData = async () => {
     setLoading(true);
     try {
-      // 调用实际API获取平台数据
-      // const response = await getPlatformDataAPI({ timeType, projectId });
+      // 计算时间范围
+      const endTime = new Date();
+      const startTime = new Date();
+
+      switch (timeType) {
+        case "day":
+          startTime.setDate(startTime.getDate() - 1);
+          break;
+        case "week":
+          startTime.setDate(startTime.getDate() - 7);
+          break;
+        case "month":
+          startTime.setDate(startTime.getDate() - 30);
+          break;
+        default:
+          startTime.setDate(startTime.getDate() - 7);
+      }
+
+      // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
+      const formatTime = (date: Date) => {
+        return date.toISOString().replace("T", " ").substring(0, 19);
+      };
+
+      const startTimeStr = formatTime(startTime);
+      const endTimeStr = formatTime(endTime);
+      console.log("开始时间:", startTimeStr, "结束时间:", endTimeStr);
+      // 调用实际API获取平台数据，传递startTime和endTime参数
+      // const response = await getPlatformDataAPI({
+      //   startTime: startTimeStr,
+      //   endTime: endTimeStr,
+      //   projectId
+      // });
+
+      // 模拟数据
       const response = {
         data: [
           { time: "2023-01-01", value: 100, category: "frontend" },
@@ -342,9 +374,9 @@ const ProjectDetailIssues: React.FC = () => {
   // 处理指派错误
   const handleAssignError = async (
     errorId: string | number,
+    responsibleId: string | number,
     delegatorId: string | number,
-    platform: string,
-    errorType: string
+    platform: string
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
@@ -357,7 +389,7 @@ const ProjectDetailIssues: React.FC = () => {
         errorId,
         delegatorId,
         platform,
-        currentUser.id,
+        responsibleId,
         projectId
       );
       message.success("指派成功");
@@ -388,7 +420,7 @@ const ProjectDetailIssues: React.FC = () => {
     const menuItems = members
       .filter((member) => member.userRole == 2)
       .map((member) => ({
-        key: member.id,
+        key: member.userId,
         label: (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Avatar size="small" src={member.avatar} icon={<UserOutlined />} />
@@ -398,13 +430,9 @@ const ProjectDetailIssues: React.FC = () => {
       }));
     const menuProps = {
       items: menuItems,
-      onClick: ({ key }: { key: string }) =>
-        handleAssignError(
-          key,
-          currentUser.id,
-          record.platform,
-          record.errorType
-        ),
+      onClick: ({ key }: { key: string }) => {
+        handleAssignError(record.id, key, currentUser.id, record.platform);
+      },
     };
 
     return (
