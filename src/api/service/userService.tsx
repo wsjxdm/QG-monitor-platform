@@ -4,42 +4,48 @@ import apiClient from "../index";
 export const login = async (encryptedData: string, encryptedKey: string) => {
   const body = {
     encryptedData,
-    encryptedKey
+    encryptedKey,
   };
   const response = await apiClient.post("/users/password", body);
   return response;
 };
 
-
 //找回密码
-export const findPassword = async (encryptedData: string, encryptedKey: string) => {
+export const findPassword = async (
+  encryptedData: string,
+  encryptedKey: string
+) => {
   const body = {
     encryptedData,
-    encryptedKey
-  }
+    encryptedKey,
+  };
   const response = await apiClient.put(`/users/findPassword`, body);
   return response;
 };
 
 //注册路由
 export const registerAPI = async (
-  encryptedData: string, encryptedKey: string
+  encryptedData: string,
+  encryptedKey: string
 ) => {
   const body = {
     encryptedData,
-    encryptedKey
-  }
+    encryptedKey,
+  };
   const response = await apiClient.post("/users/register", body);
   return response;
 };
 
 //获取验证码
-export const getCodeAPI = async (encryptedData: string, encryptedKey: string) => {
+export const getCodeAPI = async (
+  encryptedData: string,
+  encryptedKey: string
+) => {
   const response = await apiClient.get("/users/sendCodeByEmail", {
     params: {
       encryptedData,
-      encryptedKey
-    }
+      encryptedKey,
+    },
   });
   return response;
 };
@@ -56,7 +62,6 @@ export const deleteUserAPI = async () => {
   //判断是否成功,在这里进行退出登录等操作
   return response.data;
 };
-
 
 //刷新的时候获取用户信息
 export const getUserInfoAPI = async (id: number) => {

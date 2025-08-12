@@ -8,27 +8,26 @@ import { message } from "antd";
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
-  baseURL: 'http://192.168.1.108:8080',
+  // baseURL: "http://192.168.1.156:8080",
+  baseURL: "http://192.168.1.161:8080",
   timeout: 100000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
-
 
 // 请求拦截器
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 在发送请求之前带上token
     //这里应该使用对token进行加密
-    const token = JSON.parse(localStorage.getItem("user")).token;
-    const key = JSON.parse(localStorage.getItem("user")).key;
+    // const token = JSON.parse(localStorage.getItem("user")).token;
+    // const key = JSON.parse(localStorage.getItem("user")).key;
 
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      config.headers.RSAKey = `${key}`
-    }
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`;
+    //   config.headers.RSAKey = `${key}`;
+    // }
     return config;
   },
   (error) => {

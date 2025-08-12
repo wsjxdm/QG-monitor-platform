@@ -26,17 +26,19 @@ import { getPrivateProjects } from "../../../../api/service/projectoverview";
 
 const { Title, Text } = Typography;
 
+//todo
+const user = { id: 14 };
 const ProjectAll: React.FC = () => {
   const navigate = useNavigate();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [PrivateProjects, setPrivateProjects] = useState<
     {
-      id: string;
+      uuid: string;
       name: string;
       description: string;
       isPublic: boolean;
       invitedCode: string;
-      createTime: string | number | Date;
+      createdTime: string | number | Date;
       errorCount: number;
       performanceScore: number;
     }[]
@@ -46,20 +48,11 @@ const ProjectAll: React.FC = () => {
     navigate(`/main/project/${projectId}/detail/overview`);
   };
 
-  // 复制邀请码
-  const copyInviteCode = (code: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    message.success("邀请码已复制到剪贴板");
-    setTimeout(() => setCopiedCode(null), 2000);
-  };
-
   //接口获取私有项目列表
   useEffect(() => {
-    getPrivateProjects().then((res: any) => {
+    getPrivateProjects(user.id).then((res: any) => {
       console.log("获取私有项目列表", res);
-      setPrivateProjects(res);
+      setPrivateProjects(res.reverse());
     });
   }, []);
 
@@ -75,10 +68,10 @@ const ProjectAll: React.FC = () => {
         <div style={{ marginTop: "20px" }}>
           <Row gutter={[16, 16]}>
             {PrivateProjects.map((project) => (
-              <Col xs={24} sm={12} md={8} lg={6} xl={6} key={project.id}>
+              <Col xs={24} sm={12} md={8} lg={6} xl={6} key={project.uuid}>
                 <Card
                   hoverable
-                  onClick={() => handleProjectClick(project.id)}
+                  onClick={() => handleProjectClick(project.uuid)}
                   style={{
                     height: "100%",
                     display: "flex",
@@ -112,26 +105,6 @@ const ProjectAll: React.FC = () => {
                       </Space>
                     </div>
 
-                    {/* 邀请码 */}
-                    <div style={{ marginBottom: "12px" }}>
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        邀请码: {project.invitedCode.substring(0, 10)}...
-                        <Button
-                          type="text"
-                          icon={<CopyOutlined />}
-                          size="small"
-                          onClick={(e) =>
-                            copyInviteCode(project.invitedCode, e)
-                          }
-                          style={{ marginLeft: "4px" }}
-                        >
-                          {copiedCode === project.invitedCode
-                            ? "已复制"
-                            : "复制"}
-                        </Button>
-                      </Text>
-                    </div>
-
                     {/* 项目简介 */}
                     <div style={{ marginBottom: "12px", flex: 1 }}>
                       <Text type="secondary" style={{ fontSize: "13px" }}>
@@ -142,7 +115,7 @@ const ProjectAll: React.FC = () => {
                     {/* 创建时间 */}
                     <div style={{ marginBottom: "12px" }}>
                       <Text type="secondary" style={{ fontSize: "12px" }}>
-                        <CalendarOutlined /> {project.createTime}
+                        <CalendarOutlined /> {project.createdTime}
                       </Text>
                     </div>
                   </div>

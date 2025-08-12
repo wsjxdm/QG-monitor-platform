@@ -22,6 +22,7 @@ import {
   Menu,
   Avatar,
   Badge,
+  Switch,
 } from "antd";
 import {
   EditOutlined,
@@ -52,12 +53,18 @@ import {
   kickUserAPI,
   changeUserLevelAPI,
   getTutorialMarkdown,
+  getUserResponsibility,
+  getInviteCodeAPI,
 } from "../../../../../api/service/projectoverview";
+import project from "../../../../../mock/project";
 
 const { Title, Text } = Typography;
 
 //todo 用户权限，以及不可见的话要跳转
-const currentUserRole: number = 2; // 当前用户角色
+const user = {
+  id: 14,
+  userName: "test",
+};
 
 interface projectData {
   id: string | number;
@@ -75,6 +82,7 @@ interface ProjectMember {
   userName: string;
   userRole: number;
   avatar?: string;
+  userId: string | number;
 }
 
 const Chart = React.memo(
@@ -148,6 +156,12 @@ const ProjectDetailOverview: React.FC = () => {
   const [isTutorialModalVisible, setIsTutorialModalVisible] = useState(
     isNew ? true : false
   );
+  const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [isInviteModalLoading, setIsInviteModalLoading] = useState(false);
+
+  const [role, setRole] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [isTutorialModalLoading, setIsTutorialModalLoading] = useState(false);
   // 在 useState 声明区域添加
   const [markdown, setMarkdown] =
@@ -170,19 +184,28 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log(
-      "%c [ ]-273",
-      "color: #f00; font-weight: bold;background: #fff;width: 100%;"
-    );
-    //获取项目资料
-    getProjectInfo(projectId, currentUserRole).then((res) => {
+    //获取当前成员的权限
+    getUserResponsibility(projectId, user.id).then((res) => {
       if (res) {
+        setRole(res.power);
+        setUserRole(res.userRole);
+        if (res.power === 0) {
+          message.warning("您无权进入该项目，请联系项目管理员");
+          navigate("/main/project/all");
+        }
+      }
+    });
+    //获取项目资料
+    getProjectInfo(projectId).then((res) => {
+      if (res) {
+        console.log("项目资料:", res);
         setProjectData(res);
       }
     });
     //获取项目成员列表
     getProjectMembers(projectId).then((res) => {
       if (res) {
+        console.log("项目成员列表:", res);
         setGroupMembers(res);
       }
     });
@@ -190,8 +213,10 @@ function App() {
 
   // 开始编辑字段
   const startEdit = (field: string, value: string) => {
-    // 权限为3的用户不能编辑
-    if (currentUserRole === 3) {
+    console.log(field, value);
+    // 权限不为2的用户不能编辑
+    console.log(role);
+    if (role !== 2) {
       message.warning("您没有权限进行此操作");
       return;
     }
@@ -200,18 +225,33 @@ function App() {
   };
 
   // 保存编辑
+  // 保存编辑
   const saveEdit = async () => {
     if (editingField) {
-      await updateProjectInfo(projectId, {
-        ...projectData,
-        [editingField]: editValue,
-      });
-      setProjectData({
-        ...projectData,
-        [editingField]: editValue,
-      });
-      setEditingField(null);
-      message.success("信息更新成功");
+      try {
+        // 处理布尔值字段
+        let finalValue = editValue;
+        if (editingField === "isPublic") {
+          finalValue = editValue === "true";
+        }
+
+        const updateData = {
+          ...projectData,
+          uuid: projectId,
+          [editingField]: finalValue,
+        };
+
+        await updateProjectInfo(updateData);
+
+        setProjectData({
+          ...projectData,
+          [editingField]: finalValue,
+        });
+        setEditingField(null);
+        message.success("信息更新成功");
+      } catch (error) {
+        message.error("信息更新失败");
+      }
     }
   };
 
@@ -247,12 +287,11 @@ function App() {
   const leaveProject = async () => {
     console.log("退出项目:", projectId);
     try {
-      await exitProjectAPI(projectId, 1);
+      await exitProjectAPI(projectId, userRole);
       navigate("/main/project/all");
     } catch (error) {}
   };
 
-  // 显示教程弹窗
   // 显示教程弹窗
   const showTutorialModal = async () => {
     setIsTutorialModalVisible(true);
@@ -271,6 +310,34 @@ function App() {
     }
   };
 
+  // 修改 showInviteModal 函数
+  const showInviteModal = async () => {
+    setIsInviteModalVisible(true);
+    setIsInviteModalLoading(true);
+    try {
+      // 调用后台接口获取邀请码
+      // 这里需要替换为实际的 API 调用
+      const inviteCodeResponse = await getInviteCodeAPI(projectId);
+      setInviteCode(inviteCodeResponse);
+      setIsInviteModalLoading(false);
+    } catch (error) {
+      message.error("获取邀请码失败，请稍后重试");
+      setIsInviteModalLoading(false);
+      setIsInviteModalVisible(false);
+    }
+  };
+
+  // 添加隐藏邀请码弹窗的函数
+  const hideInviteModal = () => {
+    setIsInviteModalVisible(false);
+    setInviteCode(""); // 清空邀请码
+  };
+
+  // 添加复制邀请码到剪贴板的函数
+  const copyInviteCodeToClipboard = () => {
+    navigator.clipboard.writeText(inviteCode);
+    message.success("邀请码已复制到剪贴板");
+  };
   // 隐藏教程弹窗
   const hideTutorialModal = () => {
     setIsTutorialModalVisible(false);
@@ -280,7 +347,10 @@ function App() {
   const handleMemberContextMenu = (member: any, e: React.MouseEvent) => {
     e.preventDefault();
     // 只有非普通成员才能操作其他成员
-    if (currentUserRole !== 3) {
+    if (userRole === 2) {
+      message.warning("权限不足");
+    }
+    if (userRole !== 2) {
       setContextMenuMember(member);
     }
   };
@@ -291,14 +361,23 @@ function App() {
   };
 
   // 更新成员角色
-  const updateMemberRole = async (memberId: number, newRole: number) => {
+  const updateMemberRole = async (
+    memberId: number,
+    memberRole: number,
+    newRole: number
+  ) => {
+    if (memberRole < userRole) {
+      message.error("权限不足");
+      return;
+    }
     try {
       await changeUserLevelAPI(projectId, memberId, newRole);
       setGroupMembers((prevMembers) =>
         prevMembers.map((member) =>
-          member.id === memberId ? { ...member, userRole: newRole } : member
+          member.userId === memberId ? { ...member, userRole: newRole } : member
         )
       );
+      console.log("更新后的成员列表:", groupMembers);
       message.success("成员角色更新成功");
     } catch (error) {
       message.error("成员角色更新失败");
@@ -307,11 +386,15 @@ function App() {
   };
 
   // 移除成员
-  const removeMember = async (memberId: number) => {
+  const removeMember = async (memberId: number, memberRole: number) => {
+    if (memberRole < userRole) {
+      message.error("权限不足");
+      return;
+    }
     try {
-      await kickUserAPI(projectId, memberId);
+      await exitProjectAPI(projectId, memberId);
       setGroupMembers((prevMembers) =>
-        prevMembers.filter((member) => member.id !== memberId)
+        prevMembers.filter((member) => member.userId !== memberId)
       );
       message.success("成员移除成功");
     } catch (error) {
@@ -323,7 +406,7 @@ function App() {
   // 渲染成员网格
   const renderMemberGrid = (members: any[], title: string, role: number) => {
     if (members.length === 0) return null;
-
+    console.log("成员网格:", members);
     return (
       <div key={role} style={{ marginBottom: "20px" }}>
         <Title level={5} style={{ marginBottom: "10px" }}>
@@ -337,7 +420,7 @@ function App() {
                   textAlign: "center",
                   padding: "10px",
                   borderRadius: "4px",
-                  cursor: currentUserRole !== 3 ? "pointer" : "default",
+                  cursor: role !== 2 ? "pointer" : "default",
                   position: "relative",
                 }}
                 onContextMenu={(e) => handleMemberContextMenu(member, e)}
@@ -350,7 +433,7 @@ function App() {
                   />
                 </Badge>
                 <div style={{ marginTop: "10px" }}>
-                  <Text strong>{member.userName}</Text>
+                  <Text strong>{member.username}</Text>
                 </div>
               </div>
             </Col>
@@ -361,9 +444,9 @@ function App() {
   };
 
   // 按角色分组成员
-  const owners = groupMembers.filter((member) => member.userRole === 1);
-  const admins = groupMembers.filter((member) => member.userRole === 2);
-  const members = groupMembers.filter((member) => member.userRole === 3);
+  const owners = groupMembers.filter((member) => member.userRole === 0);
+  const admins = groupMembers.filter((member) => member.userRole === 1);
+  const members = groupMembers.filter((member) => member.userRole === 2);
 
   // 渲染可编辑字段
   const renderEditableField = (
@@ -396,7 +479,13 @@ function App() {
             onClick={saveEdit}
             size="small"
           />
-          <Button icon={<CloseOutlined />} onClick={cancelEdit} size="small" />
+          {role == 2 && (
+            <Button
+              icon={<CloseOutlined />}
+              onClick={cancelEdit}
+              size="small"
+            />
+          )}
         </Space>
       ) : (
         <div className={styles.infoValue}>
@@ -406,15 +495,17 @@ function App() {
           >
             {value}
           </Text>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              startEdit(field, value);
-            }}
-            size="small"
-          />
+          {role == 2 && (
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                startEdit(field, value);
+              }}
+              size="small"
+            />
+          )}
         </div>
       )}
     </div>
@@ -478,6 +569,52 @@ function App() {
     </div>
   );
 
+  // 渲染可编辑的公开/私密状态字段
+  const renderEditableSwitchField = (
+    field: string,
+    label: string,
+    value: boolean
+  ) => (
+    <div className={styles.infoItem}>
+      <Text className={styles.infoLabel}>{label}</Text>
+      {editingField === field ? (
+        <Space>
+          <Switch
+            checked={editValue === "true"}
+            onChange={(checked) => setEditValue(checked.toString())}
+            checkedChildren="公开"
+            unCheckedChildren="私有"
+          />
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            onClick={saveEdit}
+            size="small"
+          />
+          <Button icon={<CloseOutlined />} onClick={cancelEdit} size="small" />
+        </Space>
+      ) : (
+        <div className={styles.infoValue}>
+          <Text
+            className={styles.editableValue}
+            onClick={() => startEdit(field, value.toString())}
+          >
+            {value ? "公开项目" : "私有项目"}
+          </Text>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              startEdit(field, value.toString());
+            }}
+            size="small"
+          />
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.content}>
@@ -506,10 +643,27 @@ function App() {
               projectData.description,
               "textarea"
             )}
+            {renderEditableSwitchField(
+              "isPublic",
+              "项目权限",
+              projectData.isPublic
+            )}
             <div className={styles.infoItem}>
               <Text className={styles.infoLabel}>创建时间</Text>
               <div className={styles.infoValue}>
-                <Text>{projectData.createdTime}</Text>
+                <Text>
+                  {new Date(projectData.createdTime)
+                    .toLocaleString("zh-CN", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false,
+                    })
+                    .replace(/\//g, "-")}
+                </Text>
               </div>
             </div>
             {projectData.invitedCode &&
@@ -540,7 +694,7 @@ function App() {
                 gap: "12px",
               }}
             >
-              {currentUserRole !== 3 && (
+              {role === 2 && (
                 <Popconfirm
                   title="删除项目"
                   description={
@@ -620,6 +774,20 @@ function App() {
 
         {/* 右侧信息栏 */}
         <div className={styles.rightColumn}>
+          {/* 生成邀请码链接 */}
+          <div className={styles.section}>
+            <Title level={4} className={styles.sectionTitle}>
+              邀请好友当牛马
+            </Title>
+            <Button
+              type="link"
+              icon={<BookOutlined />}
+              onClick={showInviteModal}
+              style={{ padding: 0 }}
+            >
+              生成邀请码
+            </Button>
+          </div>
           {/* 教程链接，点击后弹窗展示教程 */}
           <div className={styles.section}>
             <Title level={4} className={styles.sectionTitle}>
@@ -636,7 +804,6 @@ function App() {
           </div>
         </div>
       </div>
-
       {/* 教程弹窗 */}
       <Modal
         title="项目接入教程"
@@ -682,6 +849,56 @@ function App() {
           )}
         </div>
       </Modal>
+      {/* 邀请码弹窗 */}
+      <Modal
+        title="项目邀请码"
+        open={isInviteModalVisible}
+        onCancel={hideInviteModal}
+        footer={[
+          <Button key="close" onClick={hideInviteModal}>
+            关闭
+          </Button>,
+        ]}
+        width={400}
+      >
+        <div>
+          {isInviteModalLoading ? (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              <Spin tip="生成邀请码中..." />
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              <Text>请将以下邀请码发送给您要邀请的用户：</Text>
+              <div
+                style={{
+                  margin: "20px 0",
+                  padding: "15px",
+                  background: "#f5f5f5",
+                  borderRadius: "4px",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  letterSpacing: "2px",
+                }}
+              >
+                {inviteCode}
+              </div>
+              <Button
+                type="primary"
+                icon={<CopyOutlined />}
+                onClick={copyInviteCodeToClipboard}
+                style={{ marginTop: "10px" }}
+              >
+                复制邀请码
+              </Button>
+              <div
+                style={{ marginTop: "15px", fontSize: "12px", color: "#999" }}
+              >
+                注意：此邀请码为一次性使用，十分钟内有效
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
       {/* 成员操作右键菜单 */}
       {contextMenuMember && (
         <Dropdown
@@ -692,23 +909,42 @@ function App() {
               {
                 key: "role1",
                 label: "设为老板",
-                onClick: () => updateMemberRole(contextMenuMember.id, 1),
+                onClick: () =>
+                  updateMemberRole(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole,
+                    0
+                  ),
               },
               {
                 key: "role2",
                 label: "设为管理员",
-                onClick: () => updateMemberRole(contextMenuMember.id, 2),
+                onClick: () =>
+                  updateMemberRole(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole,
+                    1
+                  ),
               },
               {
                 key: "role3",
                 label: "设为普通成员",
-                onClick: () => updateMemberRole(contextMenuMember.id, 3),
+                onClick: () =>
+                  updateMemberRole(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole,
+                    2
+                  ),
               },
               {
                 key: "remove",
                 label: "移除成员",
                 danger: true,
-                onClick: () => removeMember(contextMenuMember.id),
+                onClick: () =>
+                  removeMember(
+                    contextMenuMember.userId,
+                    contextMenuMember.userRole
+                  ),
               },
             ],
           }}
