@@ -61,10 +61,7 @@ import project from "../../../../../mock/project";
 const { Title, Text } = Typography;
 
 //todo 用户权限，以及不可见的话要跳转
-const user = {
-  id: 14,
-  userName: "test",
-};
+const user = JSON.parse(localStorage.getItem("user"));
 
 interface projectData {
   id: string | number;

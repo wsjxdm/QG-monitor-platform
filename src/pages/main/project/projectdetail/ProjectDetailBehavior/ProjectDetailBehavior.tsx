@@ -385,18 +385,21 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
     fetchPlatformData();
   }, [timeType, projectId]);
 
-  let hasData = 0;
+  const [hasData, setHasData] = useState(false);
 
   const fetchPlatformData = async () => {
     setLoading(true);
     try {
       const response = await getPlatformDataAPI(projectId, timeType);
-      let sum = 0;
       for (const item of response) {
-        sum += item.value || 0;
-      }
-      if (sum > 0) {
-        hasData = 1;
+        if (item > 0) {
+          setHasData(true);
+          console.log(
+            "%c [ ]-111",
+            "color: #f00; font-weight: bold;background: #fff;width: 100%;"
+          );
+          break;
+        }
       }
       const res = processTimeData(response, timeType);
 

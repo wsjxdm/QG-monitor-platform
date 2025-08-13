@@ -82,47 +82,47 @@ interface MobilePerformance {
 }
 
 // fcp、domReady、loadComplete
-const FpDataChart: React.FC<{
-  timeType: string;
-  projectId: string;
-  loading: boolean;
-  data: { page: string; lcp: number; fcp: number; dom: number; load: number }[];
-}> = ({ timeType, projectId, loading, data }) => {
-  // 转换数据格式以适应双折线图
-  const transformedData = data.flatMap((item) => [
-    { page: item.page, type: "LCP", value: item.lcp },
-    { page: item.page, type: "FCP", value: item.fcp },
-    { page: item.page, type: "DOM", value: item.dom },
-    { page: item.page, type: "LOAD", value: item.load },
-  ]);
+// const FpDataChart: React.FC<{
+//   timeType: string;
+//   projectId: string;
+//   loading: boolean;
+//   data: { page: string; lcp: number; fcp: number; dom: number; load: number }[];
+// }> = ({ timeType, projectId, loading, data }) => {
+//   // 转换数据格式以适应双折线图
+//   const transformedData = data.flatMap((item) => [
+//     { page: item.page, type: "LCP", value: item.lcp },
+//     { page: item.page, type: "FCP", value: item.fcp },
+//     { page: item.page, type: "DOM", value: item.dom },
+//     { page: item.page, type: "LOAD", value: item.load },
+//   ]);
 
-  const config = {
-    data: transformedData,
-    xField: "page",
-    yField: "value",
-    seriesField: "type",
-    loading,
-    axis: {
-      y: {
-        title: "时间 (ms)",
-      },
-    },
-    legend: {
-      color: {
-        itemMarker: "circle",
-      },
-    },
-    style: {
-      lineWidth: 2,
-    },
-  };
+//   const config = {
+//     data: transformedData,
+//     xField: "page",
+//     yField: "value",
+//     seriesField: "type",
+//     loading,
+//     axis: {
+//       y: {
+//         title: "时间 (ms)",
+//       },
+//     },
+//     legend: {
+//       color: {
+//         itemMarker: "circle",
+//       },
+//     },
+//     style: {
+//       lineWidth: 2,
+//     },
+//   };
 
-  return (
-    <div style={{ height: 300 }}>
-      {loading ? <Spin /> : <Line autoFit {...config} />}
-    </div>
-  );
-};
+//   return (
+//     <div style={{ height: 300 }}>
+//       {loading ? <Spin /> : <Line autoFit {...config} />}
+//     </div>
+//   );
+// };
 
 // 三端请求平均用时柱状图组件
 const ApiRequestTimeChart: React.FC<{
@@ -138,8 +138,22 @@ const ApiRequestTimeChart: React.FC<{
     yField: "time",
     loading,
     axis: {
-      y: {
-        title: "平均用时 (ms)",
+      x: {
+        // 直接在这里截断显示（如果传进来不是 string，请先处理）
+        labelFormatter: (val: any) => {
+          if (val == null) return val;
+          const s = String(val);
+          return s.length > 5 ? s.slice(0, 5) + "…" : s;
+        },
+        labelFontSize: 12,
+        // 如果标签重叠，尝试旋转（可选）
+        transform: [
+          {
+            type: "rotate",
+            optionalAngles: [0, -45],
+            recoverWhenFailed: true,
+          },
+        ],
       },
     },
     label: {
@@ -261,16 +275,16 @@ const ProjectDetailPerformance: React.FC = () => {
   };
 
   // 页面加载时间状态
-  const [pageLoadData, setPageLoadData] = useState<
-    { page: string; value: number }[]
-  >([]);
-  const [pageLoadLoading, setPageLoadLoading] = useState(false);
+  // const [pageLoadData, setPageLoadData] = useState<
+  //   { page: string; value: number }[]
+  // >([]);
+  // const [pageLoadLoading, setPageLoadLoading] = useState(false);
 
   // FP/FCP数据状态
-  const [fpData, setFpData] = useState<
-    { page: string; fp: number; fcp: number }[]
-  >([]);
-  const [fpLoading, setFpLoading] = useState(false);
+  // const [fpData, setFpData] = useState<
+  //   { page: string; fp: number; fcp: number }[]
+  // >([]);
+  // const [fpLoading, setFpLoading] = useState(false);
 
   // API请求时间状态
   const [apiRequestData, setApiRequestData] = useState<
@@ -282,81 +296,81 @@ const ProjectDetailPerformance: React.FC = () => {
   >("frontend");
 
   // 获取FP/FCP数据
-  const fetchFpData = async (timeType: string) => {
-    setFpLoading(true);
-    try {
-      const endTime = new Date();
-      const startTime = new Date();
+  // const fetchFpData = async (timeType: string) => {
+  //   setFpLoading(true);
+  //   try {
+  //     const endTime = new Date();
+  //     const startTime = new Date();
 
-      switch (timeType) {
-        case "day":
-          startTime.setDate(startTime.getDate() - 1);
-          break;
-        case "week":
-          startTime.setDate(startTime.getDate() - 7);
-          break;
-        case "month":
-          startTime.setDate(startTime.getDate() - 30);
-          break;
-        default:
-          startTime.setDate(startTime.getDate() - 7);
-      }
+  //     switch (timeType) {
+  //       case "day":
+  //         startTime.setDate(startTime.getDate() - 1);
+  //         break;
+  //       case "week":
+  //         startTime.setDate(startTime.getDate() - 7);
+  //         break;
+  //       case "month":
+  //         startTime.setDate(startTime.getDate() - 30);
+  //         break;
+  //       default:
+  //         startTime.setDate(startTime.getDate() - 7);
+  //     }
 
-      // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
-      const formatTime = (date: Date) => {
-        return date.toISOString().replace("T", " ").substring(0, 19);
-      };
+  //     // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
+  //     const formatTime = (date: Date) => {
+  //       return date.toISOString().replace("T", " ").substring(0, 19);
+  //     };
 
-      const startTimeStr = formatTime(startTime);
-      const endTimeStr = formatTime(endTime);
-      const response = await getFpDataAPI(projectId, startTimeStr, endTimeStr);
+  //     const startTimeStr = formatTime(startTime);
+  //     const endTimeStr = formatTime(endTime);
+  //     const response = await getFpDataAPI(projectId, startTimeStr, endTimeStr);
 
-      // let mockData;
-      // switch (timeType) {
-      //   case "day":
-      //     mockData = [
-      //       { page: "首页", lcp: 800, fcp: 1000, dom: 900, load: 1100 },
-      //       { page: "商品详情页", lcp: 900, fcp: 1200, dom: 1000, load: 1300 },
-      //       { page: "购物车", lcp: 500, fcp: 700, dom: 600, load: 800 },
-      //     ];
-      //     break;
-      //   case "week":
-      //     mockData = [
-      //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
-      //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
-      //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
-      //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
-      //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
-      //     ];
-      //     break;
-      //   case "month":
-      //     mockData = [
-      //       { page: "首页", lcp: 1500, fcp: 1800, dom: 1600, load: 1900 },
-      //       { page: "商品详情页", lcp: 1300, fcp: 1900, dom: 1700, load: 2100 },
-      //       { page: "购物车", lcp: 800, fcp: 1100, dom: 900, load: 1200 },
-      //       { page: "订单页", lcp: 1100, fcp: 1500, dom: 1300, load: 1700 },
-      //       { page: "个人中心", lcp: 900, fcp: 1200, dom: 1000, load: 1400 },
-      //       { page: "搜索页", lcp: 700, fcp: 900, dom: 800, load: 1000 },
-      //     ];
-      //     break;
-      //   default:
-      //     mockData = [
-      //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
-      //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
-      //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
-      //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
-      //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
-      //     ];
-      // }
+  //     // let mockData;
+  //     // switch (timeType) {
+  //     //   case "day":
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 800, fcp: 1000, dom: 900, load: 1100 },
+  //     //       { page: "商品详情页", lcp: 900, fcp: 1200, dom: 1000, load: 1300 },
+  //     //       { page: "购物车", lcp: 500, fcp: 700, dom: 600, load: 800 },
+  //     //     ];
+  //     //     break;
+  //     //   case "week":
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
+  //     //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
+  //     //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
+  //     //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
+  //     //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
+  //     //     ];
+  //     //     break;
+  //     //   case "month":
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 1500, fcp: 1800, dom: 1600, load: 1900 },
+  //     //       { page: "商品详情页", lcp: 1300, fcp: 1900, dom: 1700, load: 2100 },
+  //     //       { page: "购物车", lcp: 800, fcp: 1100, dom: 900, load: 1200 },
+  //     //       { page: "订单页", lcp: 1100, fcp: 1500, dom: 1300, load: 1700 },
+  //     //       { page: "个人中心", lcp: 900, fcp: 1200, dom: 1000, load: 1400 },
+  //     //       { page: "搜索页", lcp: 700, fcp: 900, dom: 800, load: 1000 },
+  //     //     ];
+  //     //     break;
+  //     //   default:
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
+  //     //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
+  //     //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
+  //     //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
+  //     //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
+  //     //     ];
+  //     // }
 
-      setFpData(response);
-    } catch (error) {
-      console.error("获取FP/FCP数据失败:", error);
-      setFpData([]);
-    } finally {
-      setFpLoading(false);
-    }
-  };
+  //     setFpData(response);
+  //   } catch (error) {
+  //     console.error("获取FP/FCP数据失败:", error);
+  //     setFpData([]);
+  //   } finally {
+  //     setFpLoading(false);
+  //   }
+  // };
 
   // 更新筛选器的onChange处理函数，确保同时更新时间和平台
   const handleApiTimeChange = (value: string) => {
@@ -386,35 +400,6 @@ const ProjectDetailPerformance: React.FC = () => {
         api: key,
         time: value,
       }));
-      // let mockData;
-      // switch (platform) {
-      //   case "frontend":
-      //     mockData = [
-      //       { api: "/api/home", time: 400 },
-      //       { api: "/api/products", time: 600 },
-      //       { api: "/api/cart", time: 300 },
-      //       { api: "/api/user", time: 350 },
-      //     ];
-      //     break;
-      //   case "backend":
-      //     mockData = [
-      //       { api: "/user/profile", time: 150 },
-      //       { api: "/order/list", time: 250 },
-      //       { api: "/product/detail", time: 180 },
-      //       { api: "/payment/status", time: 200 },
-      //     ];
-      //     break;
-      //   case "mobile":
-      //     mockData = [
-      //       { api: "/api/mobile/login", time: 500 },
-      //       { api: "/api/mobile/data", time: 700 },
-      //       { api: "/api/mobile/upload", time: 800 },
-      //       { api: "/api/mobile/notify", time: 400 },
-      //     ];
-      //     break;
-      //   default:
-      //     mockData = [];
-      // }
 
       console.log(
         "%c [ ]-273",
@@ -439,7 +424,7 @@ const ProjectDetailPerformance: React.FC = () => {
     fetchFrontendData({});
     fetchMobileData({});
 
-    fetchFpData("day");
+    // fetchFpData("day");
     fetchApiRequestData("day", "frontend");
   }, [projectId]);
 

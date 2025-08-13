@@ -25,14 +25,16 @@ import {
   getPlatformDataAPI,
   getPlatformTenAPI,
 } from "../../../../../api/service/issue";
+import { getUserResponsibility } from "../../../../../api/service/projectoverview";
 
 const { Title } = Typography;
 
 //todo 用户的权限判断
-const currentUser = {
-  role: 1,
-  id: 14,
-};
+const currentUser = JSON.parse(localStorage.getItem("user"));
+// const currentUser = {
+//   role: 1,
+//   id: 14,
+// };
 
 // 错误展示
 interface ErrorItem {
@@ -76,6 +78,14 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
 
   useEffect(() => {
     fetchPlatformData();
+    const fetchRole = async () => {
+      const role = await getUserResponsibility(projectId, currentUser.id);
+      return role.userRole;
+    };
+    fetchRole().then((role) => {
+      currentUser.role = role;
+      console.log("当前用户角色:", currentUser);
+    });
   }, [timeType, projectId]);
 
   const fetchPlatformData = async () => {

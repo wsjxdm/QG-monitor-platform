@@ -39,10 +39,8 @@ import {
 import ChatDrawer from "../chat/ChatDrawer";
 
 const { Header, Sider, Content } = Layout;
-//todo
-const user = {
-  id: 14,
-};
+//从local storage获取用户信息
+const user = JSON.parse(localStorage.getItem("user"));
 const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -62,7 +60,7 @@ const AppLayout = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        //  dispatch(fetchUserInfo(2));
+        dispatch(fetchUserInfo(user.id));
         const privateProject = await getPrivateProjects(user.id);
         const publicProject = await getPublicProjects();
         setPrivateProjects(privateProject.reverse());
