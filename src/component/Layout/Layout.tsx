@@ -1,4 +1,12 @@
-import { Layout, Menu, theme, Dropdown, Button, message } from "antd";
+import {
+  Layout,
+  Menu,
+  theme,
+  Dropdown,
+  Button,
+  message,
+  FloatButton,
+} from "antd";
 import { useState, useEffect } from "react";
 import styles from "./Layout.module.css";
 import {
@@ -15,8 +23,12 @@ import {
   BellOutlined,
   FileTextOutlined,
   CheckCircleOutlined,
+  AlertOutlined,
+  RobotOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from "@ant-design/icons";
-import { useLocation, useNavigate, Outlet } from "react-router-dom";
+import { useLocation, useNavigate, Outlet, useMatches } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchUserInfo } from "../../store/slice/userSlice";
 import { decryptWithAESAndRSA } from "../../utils/encrypt";
@@ -24,12 +36,11 @@ import {
   getPrivateProjects,
   getPublicProjects,
 } from "../../api/service/projectoverview";
+import ChatDrawer from "../chat/ChatDrawer";
 
 const { Header, Sider, Content } = Layout;
-//todo
-const user = {
-  id: 14,
-};
+//从local storage获取用户信息
+const user = JSON.parse(localStorage.getItem("user"));
 const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -40,13 +51,16 @@ const AppLayout = () => {
   const dispatch = useDispatch();
   const [privateProjects, setPrivateProjects] = useState([]);
   const [publicProjects, setPublicProjects] = useState([]);
+  const [chatVisible, setChatVisible] = useState(false);
+  const [showChatButton, setShowChatButton] = useState(false);
+  const matches = useMatches();
 
   // ==== 页面刷新时重新获取用户信息存入redux===
   // ==== 页面刷新时重新获取用户信息存入redux===
   useEffect(() => {
     const fetchData = async () => {
       try {
-        //  dispatch(fetchUserInfo(2));
+        dispatch(fetchUserInfo(user.id));
         const privateProject = await getPrivateProjects(user.id);
         const publicProject = await getPublicProjects();
         setPrivateProjects(privateProject.reverse());
@@ -57,6 +71,14 @@ const AppLayout = () => {
     };
     fetchData();
   }, [dispatch]);
+
+  useEffect(() => {
+    // 检查路由层级，如果路径包含项目详情相关路径则显示聊天按钮
+    const isProjectDetailPage = matches.some((match) =>
+      match.pathname.includes("/detail/")
+    );
+    setShowChatButton(isProjectDetailPage);
+  }, [matches]);
 
   //todo 获取项目信息并绑定路由
 
@@ -156,6 +178,7 @@ const AppLayout = () => {
   // 第二层导航 - 设置相关
   const settingSecondLevelItems = [
     { key: "profile", icon: <UserOutlined />, label: "个人信息" },
+    { key: "work", icon: <AlertOutlined />, label: "工作" },
   ];
 
   // 第三层导航 - 项目详情相关
@@ -212,6 +235,8 @@ const AppLayout = () => {
       navigate("/main/message/task"); // 显示任务消息
     } else if (key === "profile") {
       navigate("/main/setting/profile"); // 显示个人信息
+    } else if (key === "work") {
+      navigate("/main/setting/work"); // 显示工作设置
     } else {
       // 处理项目点击，导航到项目详情总览页
       navigate(`/main/project/${key}/detail/overview`);
@@ -325,6 +350,19 @@ const AppLayout = () => {
           </div>
         </Content>
       </Layout>
+      {/* 聊天抽屉 */}
+      <ChatDrawer visible={chatVisible} onClose={() => setChatVisible(false)} />
+
+      {/* 悬浮聊天按钮 */}
+      {showChatButton && (
+        <FloatButton
+          icon={<RobotOutlined />}
+          type="primary"
+          style={{ right: 24 }}
+          onClick={() => setChatVisible(true)}
+          tooltip="AI 助手"
+        />
+      )}
     </Layout>
   );
 };

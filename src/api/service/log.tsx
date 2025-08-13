@@ -1,11 +1,13 @@
 import apiClient from "..";
 
 // 获取日志数据
-export const getLogDataAPI = async (params: Record<string, any>) => {
-  console.log("获取日志数据参数:", params);
+export const getLogDataAPI = async (projectId: string | number) => {
+  console.log("获取日志数据参数:", projectId);
   try {
     const response = await apiClient.get(`logs/selectByCondition`, {
-      params,
+      params: {
+        projectId,
+      },
     });
     console.log("获取日志数据响应:", response);
     return response.data;

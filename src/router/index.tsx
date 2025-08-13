@@ -12,6 +12,7 @@ import ProjectDetailBehavior from "../pages/main/project/projectdetail/ProjectDe
 import MessageSystem from "../pages/main/message/MessageSystem";
 import MessageTask from "../pages/main/message/MessageTask";
 import SettingProfile from "../pages/main/setting/SettingProfile";
+import Work from "../pages/main/setting/Work";
 
 import App from "../App";
 import AppLayout from "../component/Layout/Layout";
@@ -95,6 +96,10 @@ export const router = createBrowserRouter([
               {
                 path: "profile",
                 element: <SettingProfile />,
+              },
+              {
+                path: "work",
+                element: <Work />,
               },
             ],
           },
