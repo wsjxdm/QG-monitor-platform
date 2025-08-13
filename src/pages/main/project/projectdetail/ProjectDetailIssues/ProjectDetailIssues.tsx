@@ -13,6 +13,7 @@ import {
   Row,
   Col,
   Card,
+  Empty,
 } from "antd";
 import { Column, Line, DualAxes } from "@ant-design/plots";
 import { DownOutlined, UserOutlined } from "@ant-design/icons";
@@ -148,7 +149,13 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
         />
       </div>
       <div style={{ height: 300 }}>
-        {loading ? <Spin /> : <Line autoFit {...config} />}
+        {loading ? (
+          <Spin />
+        ) : data.length > 0 ? (
+          <Line autoFit {...config} />
+        ) : (
+          <Empty />
+        )}
       </div>
     </div>
   );
@@ -265,6 +272,8 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
     loading: loading,
   };
 
+  const hasData = errorCountData.length > 0 || errorRatioData.length > 0;
+
   return (
     <div>
       <div
@@ -283,7 +292,13 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
       </div>
 
       <div style={{ height: 300 }}>
-        {loading ? <Spin /> : <DualAxes autoFit {...config} />}
+        {loading ? (
+          <Spin />
+        ) : hasData ? (
+          <DualAxes autoFit {...config} />
+        ) : (
+          <Empty />
+        )}
       </div>
     </div>
   );

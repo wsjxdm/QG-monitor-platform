@@ -13,6 +13,7 @@ import {
   Tabs,
   Card,
   Spin,
+  Empty,
 } from "antd";
 import { Column, Line } from "@ant-design/plots";
 import { ReloadOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
@@ -152,7 +153,13 @@ const ApiRequestTimeChart: React.FC<{
 
   return (
     <div style={{ height: 300 }}>
-      {loading ? <Spin /> : <Column autoFit {...config} />}
+      {loading ? (
+        <Spin />
+      ) : data.length > 0 ? (
+        <Column autoFit {...config} />
+      ) : (
+        <Empty />
+      )}
     </div>
   );
 };

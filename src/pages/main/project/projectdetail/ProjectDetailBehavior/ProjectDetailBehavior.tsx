@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Column } from "@ant-design/plots";
 import { DualAxes } from "@ant-design/plots";
-import { Select, Row, Col, Card, Typography, Spin } from "antd";
+import { Select, Row, Col, Card, Typography, Spin, Empty } from "antd";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -126,7 +126,13 @@ const BuryPointDetail: React.FC<{ timeType: string; projectId: string }> = ({
 
   return (
     <div style={{ height: 300 }}>
-      {loading ? <Spin /> : <Column autoFit {...config} />}
+      {loading ? (
+        <Spin />
+      ) : data.length > 0 ? (
+        <Column autoFit {...config} />
+      ) : (
+        <Empty />
+      )}
     </div>
   );
 };
@@ -262,7 +268,13 @@ const PageData: React.FC<{ timeType: string; projectId: string }> = ({
       </div>
 
       <div style={{ height: 300 }}>
-        {loading ? <Spin /> : <DualAxes autoFit {...config} />}
+        {loading ? (
+          <Spin />
+        ) : data.length > 0 ? (
+          <DualAxes autoFit {...config} />
+        ) : (
+          <Empty />
+        )}
       </div>
     </div>
   );
@@ -345,7 +357,13 @@ const FormData: React.FC<{ timeType: string; projectId: string }> = ({
 
   return (
     <div style={{ height: 300 }}>
-      {loading ? <Spin /> : <DualAxes autoFit {...config} />}
+      {loading ? (
+        <Spin />
+      ) : data.length > 0 ? (
+        <DualAxes autoFit {...config} />
+      ) : (
+        <Empty />
+      )}
     </div>
   );
 };
@@ -367,10 +385,19 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
     fetchPlatformData();
   }, [timeType, projectId]);
 
+  let hasData = 0;
+
   const fetchPlatformData = async () => {
     setLoading(true);
     try {
       const response = await getPlatformDataAPI(projectId, timeType);
+      let sum = 0;
+      for (const item of response) {
+        sum += item.value || 0;
+      }
+      if (sum > 0) {
+        hasData = 1;
+      }
       const res = processTimeData(response, timeType);
 
       setData(res);
@@ -441,7 +468,13 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
         />
       </div>
       <div style={{ height: 300 }}>
-        {loading ? <Spin /> : <Column autoFit {...config} />}
+        {loading ? (
+          <Spin />
+        ) : hasData ? (
+          <Column autoFit {...config} />
+        ) : (
+          <Empty />
+        )}
       </div>
     </div>
   );
