@@ -45,9 +45,8 @@ const SettingProfile: React.FC = () => {
 
   useEffect(() => {
     setUserData(userInfo);
-    console.log('从redux获取到的数据', userInfo);
-    console.log("设置的数据", userInfo); // 直接使用userInfo
   }, [userInfo]);
+
 
   // 开始编辑
   const handleEdit = () => {
@@ -58,15 +57,15 @@ const SettingProfile: React.FC = () => {
   // 保存修改
   const handleSave = async () => {
     try {
-      // const values = await form.validateFields();
-      // // await updateUserAPI(values);
-      // dispatch(updateUserInfo({
-      //   user: {
-      //     id: 12,
-      //     username: values.name,
-      //     email: values.email,
-      //   },
-      // }));
+      const values = await form.validateFields();
+      // await updateUserAPI(values);
+      dispatch(updateUserInfo({
+        user: {
+          id: userInfo.id,
+          username: values.name,
+          email: values.email,
+        },
+      }));
 
       if (formData) {
         const response = await updateUserAvatarAPI(formData);

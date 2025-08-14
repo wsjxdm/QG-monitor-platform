@@ -63,7 +63,9 @@ export const updateUserInfo = createAsyncThunk(
             // 发送更新用户信息请求
             const response = await updateUserInfoAPI(encryptedData, encryptedKey);
             const decryptedData = decryptWithAESAndRSA(response.data.encryptedData, response.data.encryptedKey, privateKey);
-            return decryptedData; // 假设更新成功返回的数据在 response.data 中
+            console.log("更新后返回的数据", decryptedData);
+
+            return JSON.parse(decryptedData); // 假设更新成功返回的数据在 response.data 中
         } catch (error: any) {
             // 处理错误情况
             throw error
@@ -164,6 +166,8 @@ export const userSlice = createSlice({
             })
             .addCase(updateUserInfo.fulfilled, (state, action) => {
                 state.user.name = action.payload.username;
+                console.log("更新", action.payload.username);
+
                 state.user.email = action.payload.email;
             })
             .addCase(updateUserInfo.rejected, (state, action) => {
