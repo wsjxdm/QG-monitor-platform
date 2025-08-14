@@ -15,7 +15,7 @@ const { Title, Text } = Typography;
 
 
 interface MessageItem {
-    id: number;
+    errorId: number;
     projectName: string;
     errorType: string;
     timestamp: number;
@@ -84,22 +84,29 @@ const MessageList: React.FC<MessageListProps> = ({
     );
 
     //点击了标记已读
-    const handleClick = (id: number) => {
-        setMessages(prevMessages =>
-            prevMessages.map(msg =>
-                msg.id === id ? { ...msg, isRead: true } : msg
-            )
-        );
+    const handleClick = (errorId: number, platform: string, projectId: number, errorType: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (e.target.textContent !== "删除消息") {
+            setMessages(prevMessages =>
+                prevMessages.map(msg =>
+                    msg.errorId === errorId ? { ...msg, isRead: true } : msg
+                )
+            );
 
-        const updateStatus = async () => {
-            try {
-                await updateStatusAPI(id);
-            } catch (error) {
-                console.error('更新消息状态失败:', error);
-            }
-        };
-        updateStatus();
-        // navigator(`main/project/${}/detail/error/${d}`);
+            const updateStatus = async () => {
+                try {
+                    await updateStatusAPI(errorId);
+                } catch (error) {
+                    console.error('更新消息状态失败:', error);
+                }
+            };
+            updateStatus();
+            console.log("1", errorType, platform);
+
+            navigator(`/main/project/${projectId}/detail/error/${errorId}`, {
+                state: { platform, errorType }
+            });
+        }
     };
 
     //清空所有消息
@@ -118,10 +125,11 @@ const MessageList: React.FC<MessageListProps> = ({
     }
 
     //删除单条消息
-    const handleClearSingle = async (id: number) => {
-        const response = await deleteByIdAPI(id);
+    const handleClearSingle = async (errorId: number, e: React.MouseEvent) => {
+        e.stopPropagation(); // 阻止事件冒泡
+        const response = await deleteByIdAPI(errorId);
         if (response.code === 200) {
-            setMessages(messages.filter((message) => message.id !== id));
+            setMessages(messages.filter((message) => message.errorId !== errorId));
         } else {
             console.error("删除消息失败");
         }
@@ -159,7 +167,7 @@ const MessageList: React.FC<MessageListProps> = ({
                     renderItem={(item) => (
                         <List.Item
                             className={`${styles['list-item']} ${item.isRead ? styles['read'] : styles['unread']}`}
-                            onClick={() => handleClick(item.id)}
+                            onClick={(e) => handleClick(item.errorId, item.errorType, item.projectId, item.platform, e)}
 
                         >
                             <List.Item.Meta
@@ -195,7 +203,7 @@ const MessageList: React.FC<MessageListProps> = ({
                                             </Text>
                                             <Popconfirm
                                                 title="确定要删除这条消息吗？"
-                                                onConfirm={() => handleClearSingle(item.id)}
+                                                onConfirm={(e) => handleClearSingle(item.errorId, e)}
                                                 okText="确定"
                                                 cancelText="取消"
                                             >
