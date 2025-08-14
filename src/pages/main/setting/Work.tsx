@@ -9,9 +9,7 @@ const { Title } = Typography;
 const { Panel } = Collapse;
 
 //todo
-const user = {
-  id: 14,
-};
+const user = JSON.parse(localStorage.getItem("user"));
 
 // 项目信息接口
 interface ProjectItem {
@@ -144,7 +142,8 @@ const Work: React.FC = () => {
         timestamp: item.timestamp || item.timeStamp,
         errorType: item.errorType || item.type,
         message: item.message || item.errorMessage,
-        idHandle: item.idHandle || item.idHandle || false,
+        // 修复 isHandle 字段的处理
+        isHandle: item.isHandle !== undefined ? item.isHandle : false,
       }));
 
       console.log("最终处理后的错误数据:", processedData);
@@ -161,18 +160,7 @@ const Work: React.FC = () => {
     }
   };
 
-  // 跳转到错误详情页
-  const goToErrorDetail = (
-    projectId: string | number,
-    errorId: number | string,
-    platform: string
-  ) => {
-    navigate(`/main/project/${projectId}/detail/error/${errorId}`, {
-      state: { platform },
-    });
-  };
-
-  // 表格列配置
+  // 修改表格列配置中的 isHandle 渲染
   const getColumns = (projectId: string | number) => [
     {
       title: "ID",
@@ -181,10 +169,21 @@ const Work: React.FC = () => {
       width: 100,
     },
     {
+      title: "是否解决",
+      dataIndex: "isHandle",
+      key: "isHandle",
+      width: "120px",
+      render: (isHandle: boolean) => (
+        <span style={{ color: isHandle ? "green" : "red" }}>
+          {isHandle ? "已解决" : "未解决"}
+        </span>
+      ),
+    },
+    {
       title: "平台",
       dataIndex: "platform",
       key: "platform",
-      width: 100,
+      width: 100, // 修复宽度值
     },
     {
       title: "类型",
@@ -211,18 +210,18 @@ const Work: React.FC = () => {
       ellipsis: true,
       width: 250,
     },
-    {
-      title: "是否解决",
-      dataIndex: "idHandle",
-      key: "idHandle",
-      width: 100,
-      render: (idHandle: boolean) => (
-        <span style={{ color: idHandle ? "green" : "red" }}>
-          {idHandle ? "已解决" : "未解决"}
-        </span>
-      ),
-    },
   ];
+
+  // 跳转到错误详情页
+  const goToErrorDetail = (
+    projectId: string | number,
+    errorId: number | string,
+    platform: string
+  ) => {
+    navigate(`/main/project/${projectId}/detail/error/${errorId}`, {
+      state: { platform },
+    });
+  };
 
   // 处理面板展开
   const handlePanelChange = (keys: string | string[]) => {

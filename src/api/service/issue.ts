@@ -1,4 +1,3 @@
-// 这个文件中的接口对应着监控的类别中的具体项目
 import apiClient from "../index";
 
 //获取错误
@@ -80,6 +79,119 @@ export const getPlatformTenAPI = async (projectId: string | number) => {
     return response.data;
   } catch (error) {
     console.error("获取平台数据失败:", error);
+    throw error;
+  }
+};
+
+//非法访问
+export const getIllegalAccessAPI = async (
+  projectId: string | number,
+  startTime: string,
+  endTime: string
+) => {
+  try {
+    const response = await apiClient.get("/graph/getIpInterceptionCount", {
+      params: { projectId, startTime, endTime },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取非法访问数据失败:", error);
+    throw error;
+  }
+};
+
+//根据错误id和plateform来获取错误详情
+export const getErrorDetailAPI = async (
+  errorId: string | number,
+  platform: string
+) => {
+  try {
+    const response = await apiClient.get("/errors/selectErrorDetail", {
+      params: { errorId, platform },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取错误详情失败:", error);
+    throw error;
+  }
+};
+
+//设置阈值
+export const setIssueThresholdAPI = async (
+  projectId: string | number,
+  errorType: string | number,
+  platform: string,
+  threshold: number
+) => {
+  try {
+    const response = await apiClient.put("alertRules/updateThreshold", {
+      projectId,
+      errorType,
+      platform,
+      threshold,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("设置错误阈值失败:", error);
+    throw error;
+  }
+};
+
+//获取阈值
+export const getIssueThresholdAPI = async (
+  projectId: string | number,
+  errorType: string | number,
+  platform: string
+) => {
+  try {
+    const response = await apiClient.get(
+      "/alertRules/selectByTypeEnvProjectId",
+      {
+        params: { projectId, errorType, platform },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("获取错误阈值失败:", error);
+    throw error;
+  }
+};
+
+//标记解决
+export const markIssueResolvedAPI = async (
+  platform: string,
+  projectId: string | number,
+  errorType: string | number
+) => {
+  try {
+    const response = await apiClient.put("errors/markResolved", {
+      projectId,
+      platform,
+      errorType,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("标记错误为已解决失败:", error);
+    throw error;
+  }
+};
+
+//查询处理情况以及处理人
+export const getIssueStatusAPI = async (
+  projectId: string | number,
+  errorType: string | number,
+  platform: string
+) => {
+  try {
+    const response = await apiClient.get(
+      "/responsibilities/selectHandleStatus",
+      {
+        params: { projectId, errorType, platform },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("获取错误处理情况失败:", error);
     throw error;
   }
 };

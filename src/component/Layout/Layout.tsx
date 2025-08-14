@@ -7,7 +7,7 @@ import {
   message,
   FloatButton,
 } from "antd";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./Layout.module.css";
 import {
   DownOutlined,
@@ -43,6 +43,8 @@ const { Header, Sider, Content } = Layout;
 const user = JSON.parse(localStorage.getItem("user"));
 const AppLayout = () => {
   const location = useLocation();
+  //用来将outlet外层的div滚动回顶部
+  const contentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [firstLevelKey, setFirstLevelKey] = useState("project");
   const [secondLevelKey, setSecondLevelKey] = useState("all-projects");
@@ -83,6 +85,13 @@ const AppLayout = () => {
 
   //todo 获取项目信息并绑定路由
 
+  useEffect(() => {
+    // 每次路由变化时重置内容区域的滚动位置
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [location.pathname]);
+
   // 根据当前路径更新导航状态
   useEffect(() => {
     const path = location.pathname;
@@ -112,7 +121,33 @@ const AppLayout = () => {
       const pathParts = path.split("/");
       const projectIndex = pathParts.indexOf("project");
       if (projectIndex !== -1 && pathParts[projectIndex + 1]) {
-        setSecondLevelKey(pathParts[projectIndex + 1]);
+        const projectId = pathParts[projectIndex + 1];
+
+        // 查找项目属于私有还是公共，设置正确的key
+        const isPrivateProject = privateProjects.some(
+          (project) => project.uuid == projectId
+        );
+        const isPublicProject = publicProjects.some(
+          (project) => project.uuid == projectId
+        );
+
+        // 如果在两个列表中都存在，优先使用sessionStorage中记录的来源
+        if (isPrivateProject && isPublicProject) {
+          const projectSource = sessionStorage.getItem(
+            `project-source-${projectId}`
+          );
+          if (projectSource === "public") {
+            setSecondLevelKey(`public-${projectId}`);
+          } else {
+            // 默认或来源为private时选择私有项目
+            setSecondLevelKey(`private-${projectId}`);
+          }
+        } else if (isPrivateProject) {
+          setSecondLevelKey(`private-${projectId}`);
+        } else if (isPublicProject) {
+          setSecondLevelKey(`public-${projectId}`);
+        }
+
         // 同时设置第三层导航
         const detailIndex = pathParts.indexOf("detail");
         if (detailIndex !== -1 && pathParts[detailIndex + 1]) {
@@ -127,7 +162,7 @@ const AppLayout = () => {
         setSecondLevelKey(pathParts[projectIndex + 1]);
       }
     }
-  }, [location]);
+  }, [location, privateProjects, publicProjects]);
 
   // 第一层导航
   const firstLevelItems = [
@@ -142,9 +177,8 @@ const AppLayout = () => {
       key: "all-projects",
       label: "所有项目",
       icon: <UnorderedListOutlined />,
-      //模拟数据
       children: privateProjects.map((project) => ({
-        key: `${project.uuid}`,
+        key: `private-${project.uuid}`,
         label: project.name,
         icon: <ProjectOutlined />,
       })),
@@ -159,7 +193,7 @@ const AppLayout = () => {
       icon: <GlobalOutlined />,
       //模拟数据
       children: publicProjects.map((project) => ({
-        key: `${project.uuid}`,
+        key: `public-${project.uuid}`,
         label: project.name,
         icon: <ProjectOutlined />,
       })),
@@ -239,21 +273,38 @@ const AppLayout = () => {
     } else if (key === "work") {
       navigate("/main/setting/work"); // 显示工作设置
     } else {
-      // 处理项目点击，导航到项目详情总览页
-      navigate(`/main/project/${key}/detail/overview`);
+      // 处理项目点击，需要去除前缀并记录来源
+      let projectId = key;
+      if (key.startsWith("private-")) {
+        projectId = key.substring(8); // 去除 "private-" 前缀
+        // 记录项目来源
+        sessionStorage.setItem(`project-source-${projectId}`, "private");
+        navigate(`/main/project/${projectId}/detail/overview`);
+      } else if (key.startsWith("public-")) {
+        projectId = key.substring(7); // 去除 "public-" 前缀
+        // 记录项目来源
+        sessionStorage.setItem(`project-source-${projectId}`, "public");
+        navigate(`/main/project/${projectId}/detail/overview`);
+      }
     }
   };
 
   // 处理第三层导航切换
   const handleThirdLevelChange = (key: string) => {
     setThirdLevelKey(key);
-
     // 获取当前项目ID（从第二层选中的项目）
-    const projectId = secondLevelKey;
+    let projectId = secondLevelKey;
     if (
       !["all-projects", "public-projects"].includes(projectId) &&
       firstLevelKey === "project"
     ) {
+      // 移除前缀获取真实的项目ID
+      if (projectId.startsWith("private-")) {
+        projectId = projectId.substring(8); // 去除 "private-" 前缀
+      } else if (projectId.startsWith("public-")) {
+        projectId = projectId.substring(7); // 去除 "public-" 前缀
+      }
+
       navigate(`/main/project/${projectId}/detail/${key}`);
     }
   };
@@ -281,9 +332,10 @@ const AppLayout = () => {
   const showThirdLevel =
     !["all-projects", "public-projects"].includes(secondLevelKey) &&
     firstLevelKey === "project" &&
-    (secondLevelKey.startsWith("project-") ||
+    (secondLevelKey.startsWith("private-") ||
       secondLevelKey.startsWith("public-") ||
-      secondLevelKey.startsWith("pro-")); // 添加这一行来支持你的项目ID格式
+      secondLevelKey.startsWith("project-") ||
+      secondLevelKey.startsWith("pro-"));
 
   //=========组件初始化时配置全局socket==========
   useEffect(() => {
@@ -340,11 +392,13 @@ const AppLayout = () => {
         )}
 
         {/* 内容区域 */}
-        <Content className={styles.content}>
+        <Content className={styles.content} ref={contentRef}>
           <div
             style={{
               padding: 20,
               background: colorBgContainer,
+              width: "100%",
+              height: "100%",
             }}
           >
             <Outlet />
