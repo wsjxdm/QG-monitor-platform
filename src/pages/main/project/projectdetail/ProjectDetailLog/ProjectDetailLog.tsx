@@ -205,41 +205,6 @@ const ProjectDetailLog: React.FC = () => {
     try {
       const response = await getLogDataAPI(projectId);
 
-      // 模拟数据
-      // const mockLogs: LogItem[] = Array.from({ length: 10 }, (_, index) => ({
-      //   id: index + 1,
-      //   timestamp: new Date(Date.now() - index * 60000).toISOString(),
-      //   api: `/api/v1/resource/${index + 1}`,
-      //   module: `Module-${index + 1}`,
-      //   projectId: projectId || 1,
-      //   environment: index % 2 === 0 ? "production" : "development",
-      //   type: index % 3 === 0 ? "error" : index % 3 === 1 ? "warning" : "info",
-      //   stack: `Error: Something went wrong\n    at Function.process (${
-      //     index + 1
-      //   })\n    at Module.main (main.js)`,
-      //   environmentSnapshot: {
-      //     ip: `192.168.1.${index + 1}`,
-      //     protocol: index % 2 === 0 ? "HTTP/1.1" : "HTTP/2",
-      //     httpMethod:
-      //       index % 3 === 0 ? "GET" : index % 3 === 1 ? "POST" : "PUT",
-      //     browserName: index % 2 === 0 ? "Chrome" : "Firefox",
-      //     browserVersion: `${80 + index}.0.1`,
-      //     osName: index % 2 === 0 ? "Windows" : "MacOS",
-      //     osVersion: `10.1${index}`,
-      //     language: "zh-CN",
-      //     isAjax: index % 2 === 0,
-      //   },
-      //   event: JSON.stringify(
-      //     {
-      //       userId: `user-${index + 1}`,
-      //       action: "click",
-      //       target: `button-${index + 1}`,
-      //     },
-      //     null,
-      //     2
-      //   ),
-      // }));
-
       setLogs(response);
     } catch (error) {
       console.error("获取日志失败:", error);

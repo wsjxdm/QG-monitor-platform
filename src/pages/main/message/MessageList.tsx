@@ -9,7 +9,7 @@ import { updateStatusAPI } from '../../../api/service/messageService';
 import { useSelector } from 'react-redux';
 import { deleteAllAPI } from '../../../api/service/messageService';
 import { deleteByIdAPI } from '../../../api/service/messageService';
-
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
@@ -50,12 +50,15 @@ const MessageList: React.FC<MessageListProps> = ({
     const notification = useSelector(
         (state: any) => state.ws.messageByType[messageType] || {}
     );
+    const navigator = useNavigate();
 
     useEffect(() => {
         const fetchMessages = async () => {
             try {
                 const data = await getMessagesAPI(receiverId, messageTypeCode);
                 setMessages(data);
+                console.log(data);
+
             } catch (error) {
                 console.error("获取消息失败:", error);
             }
@@ -96,6 +99,7 @@ const MessageList: React.FC<MessageListProps> = ({
             }
         };
         updateStatus();
+        // navigator(`main/project/${}/detail/error/${d}`);
     };
 
     //清空所有消息

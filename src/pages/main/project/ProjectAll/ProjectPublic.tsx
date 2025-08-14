@@ -49,8 +49,21 @@ const ProjectPublic: React.FC = () => {
   // 获取公开项目列表
   useEffect(() => {
     getPublicProjects().then((res: any) => {
-      console.log("获取公开项目列表", res);
-      setPublicProjects(res.reverse());
+      const res1 = res.map((item: any) => ({
+        ...item,
+        createdTime: new Date(item.createdTime)
+          .toLocaleString("zh-CN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          })
+          .replace(/\//g, "-"),
+      }));
+      setPublicProjects(res1.reverse());
     });
   }, []);
 
@@ -110,7 +123,7 @@ const ProjectPublic: React.FC = () => {
                   </div>
 
                   {/* 图表占位区域 */}
-                  <div>
+                  {/* <div>
                     <Divider style={{ margin: "12px 0" }} />
                     <div
                       style={{
@@ -129,7 +142,7 @@ const ProjectPublic: React.FC = () => {
                         <Text type="secondary">项目数据图表</Text>
                       </Space>
                     </div>
-                  </div>
+                  </div> */}
                 </Card>
               </Col>
             ))}

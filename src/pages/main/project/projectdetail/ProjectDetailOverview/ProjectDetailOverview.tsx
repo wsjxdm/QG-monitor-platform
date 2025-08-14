@@ -161,22 +161,7 @@ const ProjectDetailOverview: React.FC = () => {
   const [userRole, setUserRole] = useState(null);
   const [isTutorialModalLoading, setIsTutorialModalLoading] = useState(false);
   // 在 useState 声明区域添加
-  const [markdown, setMarkdown] =
-    useState(`# Hello, world!\n\nThis is a simple paragraph with some **bold** text.
-
-| Syntax      | Description |
-| ----------- | ----------- |
-| Header      | Title       |
-| Paragraph   | Text        |
-
-\`\`\`js
-import React from "react";
-
-function App() {
-  return <h1>Hello, React!</h1>;
-}
-\`\`\`
-`);
+  const [markdown, setMarkdown] = useState();
   const [contextMenuMember, setContextMenuMember] = useState<any>(null);
   const navigate = useNavigate();
 
@@ -289,7 +274,7 @@ function App() {
     try {
       await exitProjectAPI(projectId, userRole);
       navigate("/main/project/all");
-    } catch (error) {}
+    } catch (error) { }
   };
 
   // 显示教程弹窗
@@ -301,7 +286,7 @@ function App() {
       const markdownContent = await getTutorialMarkdown();
       console.log("获取到的教程:", markdownContent);
       // 设置获取到的内容
-      setMarkdown(markdownContent);
+      setMarkdown(markdownContent[0].content);
       setIsTutorialModalLoading(false);
     } catch (error) {
       message.error("获取文件失败，请稍后重试");

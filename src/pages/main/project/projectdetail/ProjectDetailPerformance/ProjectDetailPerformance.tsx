@@ -1346,7 +1346,7 @@ const ProjectDetailPerformance: React.FC = () => {
             }}
           >
             <Row gutter={16} align="middle">
-              <Col>
+              {/* <Col>
                 <Space>
                   <Text>设备:</Text>
                   <Select
@@ -1364,7 +1364,7 @@ const ProjectDetailPerformance: React.FC = () => {
                     <Option value="Device-3">Device-3</Option>
                   </Select>
                 </Space>
-              </Col>
+              </Col> */}
 
               <Col flex="auto">
                 <Space>

@@ -1,4 +1,4 @@
-import React, { use, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import styles from "./SettingProfile.module.css";
 import {
   UserOutlined,
@@ -27,24 +27,25 @@ import { useDispatch } from "react-redux";
 import { updateUserInfo } from "../../../store/slice/userSlice";
 import { updateUserAvatarAPI } from "../../../api/service/userService";
 import { setAvater } from "../../../store/slice/userSlice";
+import { useSelector } from "react-redux";
 
 const { Title, Text } = Typography;
 
-// 模拟数据，用户的信息-->记得改成使用redux获取
-const staticUserData = {
-  avatar: "",
-  username: "张三",
-  email: "zhangsan@example.com",
-  created_time: "2023-01-15 10:30:00",
-};
+
 
 const SettingProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
-  const [userData, setUserData] = useState(staticUserData);
-  const [avatarUrl, setAvatarUrl] = useState<string>(staticUserData.avatar);
+  const userInfo = useSelector((state) => state.user.user);
+  const [userData, setUserData] = useState(userInfo);
+  const [avatarUrl, setAvatarUrl] = useState<string>(userData.avatar);
   const [formData, setFormData] = useState(null)
   const dispatch = useDispatch();
+
+
+  useEffect(() => {
+    setUserData(userInfo);
+  }, [userInfo]);
 
 
   // 开始编辑
@@ -56,15 +57,15 @@ const SettingProfile: React.FC = () => {
   // 保存修改
   const handleSave = async () => {
     try {
-      // const values = await form.validateFields();
-      // // await updateUserAPI(values);
-      // dispatch(updateUserInfo({
-      //   user: {
-      //     id: 12,
-      //     username: values.name,
-      //     email: values.email,
-      //   },
-      // }));
+      const values = await form.validateFields();
+      // await updateUserAPI(values);
+      dispatch(updateUserInfo({
+        user: {
+          id: userInfo.id,
+          username: values.name,
+          email: values.email,
+        },
+      }));
 
       if (formData) {
         const response = await updateUserAvatarAPI(formData);
@@ -157,7 +158,7 @@ const SettingProfile: React.FC = () => {
                       placeholder="请输入用户名"
                     />
                   ) : (
-                    <Text className={styles.infoText}>{userData.username}</Text>
+                    <Text className={styles.infoText}>{userData.name}</Text>
                   )}
                 </Form.Item>
 
@@ -185,7 +186,7 @@ const SettingProfile: React.FC = () => {
                   className={styles.formItem}
                 >
                   <Text className={styles.infoText}>
-                    <CalendarOutlined /> {userData.created_time}
+                    <CalendarOutlined /> {userData.createdAt}
                   </Text>
                 </Form.Item>
               </Form>

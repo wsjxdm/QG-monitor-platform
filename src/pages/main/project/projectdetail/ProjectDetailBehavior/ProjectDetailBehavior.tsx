@@ -390,10 +390,6 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
       for (const item of response) {
         if (item > 0) {
           setHasData(true);
-          console.log(
-            "%c [ ]-111",
-            "color: #f00; font-weight: bold;background: #fff;width: 100%;"
-          );
           break;
         }
       }
@@ -414,26 +410,29 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
     xField: "time",
     yField: "value",
     style: {
-      minWidth: "50px",
+      maxWidth: 50,
     },
-
+    // 添加滚动条支持
+    // scrollbar: {
+    //   x: {
+    //     ratio: 0.3, // 显示30%的数据范围
+    //   },
+    // },
+    // 调整轴标签避免重叠
     axis: {
       x: {
-        // 直接在这里截断显示（如果传进来不是 string，请先处理）
-        labelFormatter: (val: any) => {
-          if (val == null) return val;
-          const s = String(val);
-          return s.length > 5 ? s.slice(0, 5) + "…" : s;
-        },
-        labelFontSize: 12,
-        // 如果标签重叠，尝试旋转（可选）
-        transform: [
-          {
-            type: "rotate",
-            optionalAngles: [0, -45],
-            recoverWhenFailed: true,
+        label: {
+          autoHide: true, // 自动隐藏重叠标签
+          autoRotate: true, // 自动旋转标签
+          formatter: (text: string) => {
+            // 根据时间类型优化显示
+            if (timeType === "day") {
+              return text.split(" ")[1]?.substring(0, 5) || text; // 只显示小时:分钟
+            }
+            return text.substring(5); // 去掉年份，只显示月日
           },
-        ],
+        },
+        title: false,
       },
     },
     loading: loading,

@@ -130,7 +130,7 @@ const ProjectItemDetail: React.FC = () => {
 
         //获取阈值
         const res = await getIssueThresholdAPI(projectId, errorType, platform);
-        setCurrentThreshold(res.threshold);
+        setCurrentThreshold(res?.threshold);
 
         setErrorData(response);
       } catch (error) {
@@ -197,12 +197,14 @@ const ProjectItemDetail: React.FC = () => {
 
       <Popconfirm
         title="确认标记为已解决?"
-        description="确认后该问题将被标记为已解决状态"
+        description={`确认后该问题将被标记为${
+          isResolved ? "未" : "已"
+        }解决状态`}
         onConfirm={handleMarkAsResolved}
         okText="确认"
         cancelText="取消"
       >
-        <Button type="primary" icon={<CheckOutlined />} disabled={isResolved}>
+        <Button type="primary" icon={<CheckOutlined />}>
           {isResolved ? "已解决" : "标记为已解决"}
         </Button>
       </Popconfirm>

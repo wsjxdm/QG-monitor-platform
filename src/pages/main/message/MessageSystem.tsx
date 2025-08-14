@@ -6,7 +6,9 @@ import { useSelector } from 'react-redux';
 const MessageSystem: React.FC = () => {
   //从redux获取id
   const currentUser = useSelector((state: any) => state.user);
-  const currentUserId = currentUser?.id;
+  console.log("currentUser", currentUser);
+
+  const currentUserId = currentUser.user.id;
   return (
     <MessageList
       title="系统消息"

@@ -137,7 +137,7 @@ export const changeUserLevelAPI = async (
     });
     console.log("Change user level response:", response);
     return response.data;
-  } catch (error: any) {}
+  } catch (error: any) { }
 };
 
 //获取邀请码
@@ -156,7 +156,7 @@ export const getInviteCodeAPI = async (projectId: string) => {
 //todo获取教程md文件
 export const getTutorialMarkdown = async () => {
   try {
-    const response = await apiClient.get("/api/project/tutorial");
+    const response = await apiClient.get("/markdownContents/select");
     console.log("Tutorial markdown response:", response);
     return response.data;
   } catch (error: any) {

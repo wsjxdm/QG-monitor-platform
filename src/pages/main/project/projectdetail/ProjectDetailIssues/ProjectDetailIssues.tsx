@@ -477,19 +477,19 @@ const ProjectDetailIssues: React.FC = () => {
         { label: "移动", value: "mobile" },
       ],
     },
-    {
-      key: "moduleId",
-      label: "模块名称",
-      type: "select" as const,
-      options: [
-        //todo 这里的模块名称需要从后端获取
-        { label: "模块1", value: 1 },
-        { label: "模块2", value: 2 },
-        { label: "模块3", value: 3 },
-        { label: "模块4", value: 4 },
-        { label: "模块5", value: 5 },
-      ],
-    },
+    // {
+    //   key: "moduleId",
+    //   label: "模块名称",
+    //   type: "select" as const,
+    //   options: [
+    //     //todo 这里的模块名称需要从后端获取
+    //     { label: "模块1", value: 1 },
+    //     { label: "模块2", value: 2 },
+    //     { label: "模块3", value: 3 },
+    //     { label: "模块4", value: 4 },
+    //     { label: "模块5", value: 5 },
+    //   ],
+    // },
   ];
 
   useEffect(() => {

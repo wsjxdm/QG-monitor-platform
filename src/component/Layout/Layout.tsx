@@ -61,6 +61,8 @@ const AppLayout = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log(user.id);
+
         dispatch(fetchUserInfo(user.id));
         const privateProject = await getPrivateProjects(user.id);
         const publicProject = await getPublicProjects();
