@@ -51,3 +51,19 @@ export const getAverageTimeDataAPI = async (
     throw error;
   }
 };
+
+//获取移动运行性能
+export const getMobilePerformanceDataAPI = async (
+  projectId: string | number,
+  timeType: string
+) => {
+  try {
+    const response = await apiClient.get("graph/MobileOperationalPerformance", {
+      params: { projectId, timeType },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取移动运行性能数据失败:", error);
+    throw error;
+  }
+};
