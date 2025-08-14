@@ -42,11 +42,10 @@ const AppLayout = () => {
   const [publicProjects, setPublicProjects] = useState([]);
 
   // ==== 页面刷新时重新获取用户信息存入redux===
-  // ==== 页面刷新时重新获取用户信息存入redux===
   useEffect(() => {
     const fetchData = async () => {
       try {
-        //  dispatch(fetchUserInfo(2));
+        dispatch(fetchUserInfo(2));
         const privateProject = await getPrivateProjects(user.id);
         const publicProject = await getPublicProjects();
         setPrivateProjects(privateProject.reverse());

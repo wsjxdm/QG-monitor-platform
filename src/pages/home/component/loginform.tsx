@@ -48,7 +48,7 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
 
         if (response.code === 200) {
             console.log("登录成功");
-            // navigate("/main");
+            navigate("/main");
             // //对后台返回的数据进行解密
             const decryptedData = decryptWithAESAndRSA(
                 response.data.encryptedData,

@@ -103,9 +103,9 @@ export const userSlice = createSlice({
         setUser: (state, action: PayloadAction<UserInfo>) => {
             state.user.id = action.payload.user.id;
             state.token = action.payload.token;
-            state.user.name = action.payload.user.name;
-            state.user.avater = action.payload.user.avater;
-            state.user.createdAt = action.payload.user.createdAt;
+            state.user.name = action.payload.user.username;
+            state.user.avater = action.payload.user.avatar;
+            state.user.createdAt = action.payload.user.createdTime;
 
             const { encryptedData, encryptedKey } = encryptWithAESAndRSA(state.token, publicKey);
             localStorage.setItem(
@@ -138,11 +138,15 @@ export const userSlice = createSlice({
             .addCase(fetchUserInfo.fulfilled, (state, action: PayloadAction<UserInfo>) => {
                 // 成功获取用户信息后更新 state
                 state.user.id = action.payload.id;
-                state.user.name = action.payload.name;
+                state.user.name = action.payload.username;
+                console.log("name", state.user.name);
+
                 state.token = action.payload.token;
-                state.user.avater = action.payload.avater;
+                state.user.avater = action.payload.avatar;
+                console.log("avater", state.user.avater);
+
                 state.user.email = action.payload.email;
-                state.user.createdAt = action.payload.createdAt;
+                state.user.createdAt = action.payload.createdTime;
 
                 // 同时更新 localStorage
                 localStorage.setItem(
