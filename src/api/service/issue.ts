@@ -159,16 +159,19 @@ export const getIssueThresholdAPI = async (
 
 //标记解决
 export const markIssueResolvedAPI = async (
-  platform: string,
   projectId: string | number,
+  platform: string,
   errorType: string | number
 ) => {
   try {
-    const response = await apiClient.put("errors/markResolved", {
-      projectId,
-      platform,
-      errorType,
-    });
+    const response = await apiClient.put(
+      "/responsibilities/updateHandleStatus",
+      {
+        projectId,
+        platform,
+        errorType,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("标记错误为已解决失败:", error);
