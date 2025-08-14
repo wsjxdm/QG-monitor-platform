@@ -6,12 +6,14 @@ import {
 } from "../slice/websocketSlice";
 import { message, notification } from "antd";
 import "@ant-design/v5-patch-for-react-19";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 
 export const wsMiddleware: Middleware<{}> = (store) => {
   let socket: WebSocket | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null; // 重连定时器
   //从redux获取id
+  // const currentUser = useSelector((state: any) => state.user);
+  // const currentUserId = currentUser?.id;
   // 建立连接
   const connect = () => {
     const wsUrl = `ws://192.168.1.161:8080/ws`; // 后端WebSocket地址
@@ -43,7 +45,7 @@ export const wsMiddleware: Middleware<{}> = (store) => {
 
         //这个12到时候也得从redux获取
         console.log(msg);
-        const currentUserId = store.getState().user.user.id;
+        const currentUserId = store.getState().user?.id;
 
         if (msg.data.data[0].receiverId === currentUserId) {
           if (!msg.type) throw new Error("消息缺少type字段");

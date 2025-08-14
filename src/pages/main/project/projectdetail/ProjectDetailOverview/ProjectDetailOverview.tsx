@@ -61,10 +61,7 @@ import project from "../../../../../mock/project";
 const { Title, Text } = Typography;
 
 //todo 用户权限，以及不可见的话要跳转
-const user = {
-  id: 14,
-  userName: "test",
-};
+const user = JSON.parse(localStorage.getItem("user"));
 
 interface projectData {
   id: string | number;
@@ -622,6 +619,14 @@ const ProjectDetailOverview: React.FC = () => {
             </div>
 
             {renderEditableField("name", "项目名称", projectData.name)}
+            <div className={styles.infoItem}>
+              <Text className={styles.infoLabel} strong>
+                项目ID
+              </Text>
+              <div className={styles.infoValue}>
+                <Text>{projectData.uuid}</Text>
+              </div>
+            </div>
             {renderEditableField(
               "description",
               "项目简介",
@@ -651,27 +656,18 @@ const ProjectDetailOverview: React.FC = () => {
                 </Text>
               </div>
             </div>
-            {projectData.invitedCode &&
-              renderCopyableEditableField(
-                "invitedCode",
-                "邀请码",
-                projectData.invitedCode,
-                "邀请码"
-              )}
-            {projectData.groupCode &&
-              renderCopyableEditableField(
-                "groupCode",
-                "微信群号",
-                projectData.groupCode,
-                "微信群号"
-              )}
-            {projectData.webhook &&
-              renderCopyableEditableField(
-                "webhook",
-                "企业微信群机器人URL",
-                projectData.webhook,
-                "Webhook地址"
-              )}
+            {renderCopyableEditableField(
+              "groupCode",
+              "微信群号",
+              projectData?.groupCode || "暂无",
+              "微信群号"
+            )}
+            {renderCopyableEditableField(
+              "webhook",
+              "企业微信群机器人URL",
+              projectData?.webhook || "暂无",
+              "Webhook地址"
+            )}
 
             <div
               style={{

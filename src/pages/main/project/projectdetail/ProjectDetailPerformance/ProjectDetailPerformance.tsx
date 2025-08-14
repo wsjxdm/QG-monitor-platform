@@ -13,11 +13,16 @@ import {
   Tabs,
   Card,
   Spin,
+  Empty,
 } from "antd";
 import { Column, Line } from "@ant-design/plots";
 import { ReloadOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { getPerformanceDataAPI } from "../../../../../api/service/performance";
+import {
+  getPerformanceDataAPI,
+  getFpDataAPI,
+  getAverageTimeDataAPI,
+} from "../../../../../api/service/performance";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -76,48 +81,48 @@ interface MobilePerformance {
   apiName?: string;
 }
 
-// 前端FP，FCP双折线图组件
-const FpDataChart: React.FC<{
-  timeType: string;
-  projectId: string;
-  loading: boolean;
-  data: { page: string; lcp: number; fcp: number; dom: number; load: number }[];
-}> = ({ timeType, projectId, loading, data }) => {
-  // 转换数据格式以适应双折线图
-  const transformedData = data.flatMap((item) => [
-    { page: item.page, type: "LCP", value: item.lcp },
-    { page: item.page, type: "FCP", value: item.fcp },
-    { page: item.page, type: "DOM", value: item.dom },
-    { page: item.page, type: "LOAD", value: item.load },
-  ]);
+// fcp、domReady、loadComplete
+// const FpDataChart: React.FC<{
+//   timeType: string;
+//   projectId: string;
+//   loading: boolean;
+//   data: { page: string; lcp: number; fcp: number; dom: number; load: number }[];
+// }> = ({ timeType, projectId, loading, data }) => {
+//   // 转换数据格式以适应双折线图
+//   const transformedData = data.flatMap((item) => [
+//     { page: item.page, type: "LCP", value: item.lcp },
+//     { page: item.page, type: "FCP", value: item.fcp },
+//     { page: item.page, type: "DOM", value: item.dom },
+//     { page: item.page, type: "LOAD", value: item.load },
+//   ]);
 
-  const config = {
-    data: transformedData,
-    xField: "page",
-    yField: "value",
-    seriesField: "type",
-    loading,
-    axis: {
-      y: {
-        title: "时间 (ms)",
-      },
-    },
-    legend: {
-      color: {
-        itemMarker: "circle",
-      },
-    },
-    style: {
-      lineWidth: 2,
-    },
-  };
+//   const config = {
+//     data: transformedData,
+//     xField: "page",
+//     yField: "value",
+//     seriesField: "type",
+//     loading,
+//     axis: {
+//       y: {
+//         title: "时间 (ms)",
+//       },
+//     },
+//     legend: {
+//       color: {
+//         itemMarker: "circle",
+//       },
+//     },
+//     style: {
+//       lineWidth: 2,
+//     },
+//   };
 
-  return (
-    <div style={{ height: 300 }}>
-      {loading ? <Spin /> : <Line autoFit {...config} />}
-    </div>
-  );
-};
+//   return (
+//     <div style={{ height: 300 }}>
+//       {loading ? <Spin /> : <Line autoFit {...config} />}
+//     </div>
+//   );
+// };
 
 // 三端请求平均用时柱状图组件
 const ApiRequestTimeChart: React.FC<{
@@ -133,8 +138,22 @@ const ApiRequestTimeChart: React.FC<{
     yField: "time",
     loading,
     axis: {
-      y: {
-        title: "平均用时 (ms)",
+      x: {
+        // 直接在这里截断显示（如果传进来不是 string，请先处理）
+        labelFormatter: (val: any) => {
+          if (val == null) return val;
+          const s = String(val);
+          return s.length > 5 ? s.slice(0, 5) + "…" : s;
+        },
+        labelFontSize: 12,
+        // 如果标签重叠，尝试旋转（可选）
+        transform: [
+          {
+            type: "rotate",
+            optionalAngles: [0, -45],
+            recoverWhenFailed: true,
+          },
+        ],
       },
     },
     label: {
@@ -148,7 +167,13 @@ const ApiRequestTimeChart: React.FC<{
 
   return (
     <div style={{ height: 300 }}>
-      {loading ? <Spin /> : <Column autoFit {...config} />}
+      {loading ? (
+        <Spin />
+      ) : data.length > 0 ? (
+        <Column autoFit {...config} />
+      ) : (
+        <Empty />
+      )}
     </div>
   );
 };
@@ -165,8 +190,7 @@ const ProjectDetailPerformance: React.FC = () => {
     React.Key[]
   >([]);
   const [backendFilters, setBackendFilters] = useState({
-    environment: "",
-    search: "",
+    moduleName: "",
   });
 
   // 前端性能数据状态
@@ -188,7 +212,7 @@ const ProjectDetailPerformance: React.FC = () => {
   >([]);
   const [mobileFilters, setMobileFilters] = useState({
     deviceModule: "",
-    search: "",
+    osVersion: "",
   });
 
   // 获取后端性能数据
@@ -202,66 +226,7 @@ const ProjectDetailPerformance: React.FC = () => {
         ...filterParams,
       });
 
-      // 模拟后端数据
-      // const mockData: BackendPerformance[] = Array.from(
-      //   { length: 5 },
-      //   (_, index) => ({
-      //     id: `backend-${index + 1}`,
-      //     timestamp: new Date(Date.now() - index * 60000).toISOString(),
-      //     module: index % 2 === 0 ? `Module-${index + 1}` : undefined,
-      //     projectId: projectId || 1,
-      //     environment:
-      //       index % 3 === 0
-      //         ? "production"
-      //         : index % 3 === 1
-      //         ? "development"
-      //         : "test",
-      //     api: `/api/v1/resource/${index + 1}`,
-      //     duration: Math.floor(Math.random() * 5000) + 100,
-      //     slow: index % 5 === 0,
-      //     environmentSnapshot: {
-      //       ip: `192.168.1.${index + 1}`,
-      //       protocol: index % 2 === 0 ? "HTTP/1.1" : "HTTP/2",
-      //       httpMethod:
-      //         index % 3 === 0 ? "GET" : index % 3 === 1 ? "POST" : "PUT",
-      //       browserName: index % 2 === 0 ? "Chrome" : "Firefox",
-      //       browserVersion: `${80 + index}.0.1`,
-      //       osName: index % 2 === 0 ? "Windows" : "MacOS",
-      //       osVersion: `10.1${index}`,
-      //       language: "zh-CN",
-      //       isAjax: index % 2 === 0,
-      //     },
-      //     sessionId: `session-${index + 1}`,
-      //   })
-      // );
-
-      // 应用筛选条件
-      // const filteredData = mockData.filter((item) => {
-      //   // 环境筛选
-      //   if (
-      //     filterParams.environment &&
-      //     item.environment !== filterParams.environment
-      //   ) {
-      //     return false;
-      //   }
-
-      //   // 搜索筛选
-      //   if (filterParams.search) {
-      //     const searchLower = filterParams.search.toLowerCase();
-      //     const matchesSearch =
-      //       (item.api && item.api.toLowerCase().includes(searchLower)) ||
-      //       (item.module &&
-      //         item.module.toString().toLowerCase().includes(searchLower));
-
-      //     if (!matchesSearch) {
-      //       return false;
-      //     }
-      //   }
-
-      //   return true;
-      // });
-
-      setBackendData(response);
+      setBackendData(response[0]);
     } catch (error) {
       console.error("获取后端性能数据失败:", error);
     } finally {
@@ -280,66 +245,8 @@ const ProjectDetailPerformance: React.FC = () => {
         ...filterParams,
       });
 
-      // 模拟前端数据
-      // const mockData: FrontendPerformance[] = Array.from(
-      //   { length: 5 },
-      //   (_, index) => ({
-      //     id: `frontend-${index + 1}`,
-      //     timestamp: new Date(Date.now() - index * 60000).toISOString(),
-      //     projectId: projectId || 1,
-      //     sessionId: `session-${index + 1}`,
-      //     userAgent:
-      //       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      //     metrics: {
-      //       vitals: {
-      //         lcp: index * 100,
-      //         fcp: index * 50,
-      //       },
-      //       navigation: {
-      //         domReady: index * 30,
-      //         loadComplete: index * 70,
-      //       },
-      //     },
-      //     captureType:
-      //       index % 4 === 0
-      //         ? "pageLoad"
-      //         : index % 4 === 1
-      //         ? "apiCall"
-      //         : index % 4 === 2
-      //         ? "userAction"
-      //         : "custom",
-      //     duration: Math.floor(Math.random() * 5000) + 100,
-      //   })
-      // );
-
-      // // 应用筛选条件
-      // const filteredData = mockData.filter((item) => {
-      //   // 捕获类型筛选
-      //   if (
-      //     filterParams.captureType &&
-      //     item.captureType !== filterParams.captureType
-      //   ) {
-      //     return false;
-      //   }
-
-      //   // 搜索筛选
-      //   if (filterParams.search) {
-      //     const searchLower = filterParams.search.toLowerCase();
-      //     const matchesSearch =
-      //       (item.captureType &&
-      //         item.captureType.toLowerCase().includes(searchLower)) ||
-      //       (item.userAgent &&
-      //         item.userAgent.toLowerCase().includes(searchLower));
-
-      //     if (!matchesSearch) {
-      //       return false;
-      //     }
-      //   }
-
-      //   return true;
-      // });
-
-      setFrontendData(response);
+      console.log("前端性能数据:", response[1]);
+      setFrontendData(response[1]);
     } catch (error) {
       console.error("获取前端性能数据失败:", error);
     } finally {
@@ -358,59 +265,8 @@ const ProjectDetailPerformance: React.FC = () => {
         ...filterParams,
       });
 
-      // 模拟移动端数据
-      // const mockData: MobilePerformance[] = Array.from(
-      //   { length: 5 },
-      //   (_, index) => ({
-      //     id: `mobile-${index + 1}`,
-      //     timestamp: new Date(Date.now() - index * 60000).toISOString(),
-      //     projectId: projectId || 1,
-      //     deviceModule: index % 2 === 0 ? `Device-${index + 1}` : undefined,
-      //     osVersion: index % 2 === 0 ? `OS-${index + 1}.0` : undefined,
-      //     batteryLevel:
-      //       index % 2 === 0 ? Math.floor(Math.random() * 100) : undefined,
-      //     memoryUsage: {
-      //       usedMemory: `${Math.floor(Math.random() * 4096)}MB`,
-      //       totalMemory: `${Math.floor(Math.random() * 4096)}MB`,
-      //     },
-      //     operationFps:
-      //       index % 3 === 0
-      //         ? `${Math.floor(Math.random() * 60)} FPS`
-      //         : undefined,
-      //     duration: Math.floor(Math.random() * 5000) + 100,
-      //     operationId: index % 2 === 0 ? `op-${index + 1}` : undefined,
-      //     apiName: index % 3 === 0 ? `api-${index + 1}` : undefined,
-      //   })
-      // );
-
-      // // 应用筛选条件
-      // const filteredData = mockData.filter((item) => {
-      //   // 设备型号筛选
-      //   if (
-      //     filterParams.deviceModule &&
-      //     item.deviceModule !== filterParams.deviceModule
-      //   ) {
-      //     return false;
-      //   }
-
-      //   // 搜索筛选
-      //   if (filterParams.search) {
-      //     const searchLower = filterParams.search.toLowerCase();
-      //     const matchesSearch =
-      //       (item.deviceModule &&
-      //         item.deviceModule.toLowerCase().includes(searchLower)) ||
-      //       (item.osVersion &&
-      //         item.osVersion.toLowerCase().includes(searchLower));
-
-      //     if (!matchesSearch) {
-      //       return false;
-      //     }
-      //   }
-
-      //   return true;
-      // });
-
-      setMobileData(response);
+      console.log("移动端性能数据:", response[2]);
+      setMobileData(response[2]);
     } catch (error) {
       console.error("获取移动端性能数据失败:", error);
     } finally {
@@ -419,16 +275,16 @@ const ProjectDetailPerformance: React.FC = () => {
   };
 
   // 页面加载时间状态
-  const [pageLoadData, setPageLoadData] = useState<
-    { page: string; value: number }[]
-  >([]);
-  const [pageLoadLoading, setPageLoadLoading] = useState(false);
+  // const [pageLoadData, setPageLoadData] = useState<
+  //   { page: string; value: number }[]
+  // >([]);
+  // const [pageLoadLoading, setPageLoadLoading] = useState(false);
 
   // FP/FCP数据状态
-  const [fpData, setFpData] = useState<
-    { page: string; fp: number; fcp: number }[]
-  >([]);
-  const [fpLoading, setFpLoading] = useState(false);
+  // const [fpData, setFpData] = useState<
+  //   { page: string; fp: number; fcp: number }[]
+  // >([]);
+  // const [fpLoading, setFpLoading] = useState(false);
 
   // API请求时间状态
   const [apiRequestData, setApiRequestData] = useState<
@@ -440,63 +296,81 @@ const ProjectDetailPerformance: React.FC = () => {
   >("frontend");
 
   // 获取FP/FCP数据
-  const fetchFpData = async (timeType: string) => {
-    setFpLoading(true);
-    try {
-      // 实际使用时替换为:
-      // const response = await axios.get("你的FP/FCP数据API地址", {
-      //   params: { timeType, projectId }
-      // });
+  // const fetchFpData = async (timeType: string) => {
+  //   setFpLoading(true);
+  //   try {
+  //     const endTime = new Date();
+  //     const startTime = new Date();
 
-      // 模拟数据
-      await new Promise((resolve) => setTimeout(resolve, 800));
+  //     switch (timeType) {
+  //       case "day":
+  //         startTime.setDate(startTime.getDate() - 1);
+  //         break;
+  //       case "week":
+  //         startTime.setDate(startTime.getDate() - 7);
+  //         break;
+  //       case "month":
+  //         startTime.setDate(startTime.getDate() - 30);
+  //         break;
+  //       default:
+  //         startTime.setDate(startTime.getDate() - 7);
+  //     }
 
-      let mockData;
-      switch (timeType) {
-        case "day":
-          mockData = [
-            { page: "首页", lcp: 800, fcp: 1000, dom: 900, load: 1100 },
-            { page: "商品详情页", lcp: 900, fcp: 1200, dom: 1000, load: 1300 },
-            { page: "购物车", lcp: 500, fcp: 700, dom: 600, load: 800 },
-          ];
-          break;
-        case "week":
-          mockData = [
-            { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
-            { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
-            { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
-            { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
-            { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
-          ];
-          break;
-        case "month":
-          mockData = [
-            { page: "首页", lcp: 1500, fcp: 1800, dom: 1600, load: 1900 },
-            { page: "商品详情页", lcp: 1300, fcp: 1900, dom: 1700, load: 2100 },
-            { page: "购物车", lcp: 800, fcp: 1100, dom: 900, load: 1200 },
-            { page: "订单页", lcp: 1100, fcp: 1500, dom: 1300, load: 1700 },
-            { page: "个人中心", lcp: 900, fcp: 1200, dom: 1000, load: 1400 },
-            { page: "搜索页", lcp: 700, fcp: 900, dom: 800, load: 1000 },
-          ];
-          break;
-        default:
-          mockData = [
-            { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
-            { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
-            { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
-            { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
-            { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
-          ];
-      }
+  //     // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
+  //     const formatTime = (date: Date) => {
+  //       return date.toISOString().replace("T", " ").substring(0, 19);
+  //     };
 
-      setFpData(mockData);
-    } catch (error) {
-      console.error("获取FP/FCP数据失败:", error);
-      setFpData([]);
-    } finally {
-      setFpLoading(false);
-    }
-  };
+  //     const startTimeStr = formatTime(startTime);
+  //     const endTimeStr = formatTime(endTime);
+  //     const response = await getFpDataAPI(projectId, startTimeStr, endTimeStr);
+
+  //     // let mockData;
+  //     // switch (timeType) {
+  //     //   case "day":
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 800, fcp: 1000, dom: 900, load: 1100 },
+  //     //       { page: "商品详情页", lcp: 900, fcp: 1200, dom: 1000, load: 1300 },
+  //     //       { page: "购物车", lcp: 500, fcp: 700, dom: 600, load: 800 },
+  //     //     ];
+  //     //     break;
+  //     //   case "week":
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
+  //     //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
+  //     //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
+  //     //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
+  //     //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
+  //     //     ];
+  //     //     break;
+  //     //   case "month":
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 1500, fcp: 1800, dom: 1600, load: 1900 },
+  //     //       { page: "商品详情页", lcp: 1300, fcp: 1900, dom: 1700, load: 2100 },
+  //     //       { page: "购物车", lcp: 800, fcp: 1100, dom: 900, load: 1200 },
+  //     //       { page: "订单页", lcp: 1100, fcp: 1500, dom: 1300, load: 1700 },
+  //     //       { page: "个人中心", lcp: 900, fcp: 1200, dom: 1000, load: 1400 },
+  //     //       { page: "搜索页", lcp: 700, fcp: 900, dom: 800, load: 1000 },
+  //     //     ];
+  //     //     break;
+  //     //   default:
+  //     //     mockData = [
+  //     //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
+  //     //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
+  //     //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
+  //     //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
+  //     //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
+  //     //     ];
+  //     // }
+
+  //     setFpData(response);
+  //   } catch (error) {
+  //     console.error("获取FP/FCP数据失败:", error);
+  //     setFpData([]);
+  //   } finally {
+  //     setFpLoading(false);
+  //   }
+  // };
 
   // 更新筛选器的onChange处理函数，确保同时更新时间和平台
   const handleApiTimeChange = (value: string) => {
@@ -517,44 +391,23 @@ const ProjectDetailPerformance: React.FC = () => {
     setApiRequestLoading(true);
     try {
       // 实际使用时替换为:
-      // const response = await axios.get("你的API请求时间API地址", {
-      //   params: { timeType, platform, projectId }
-      // });
+      const response = await getAverageTimeDataAPI(
+        projectId,
+        platform,
+        timeType
+      );
+      const processedData = Object.entries(response).map(([key, value]) => ({
+        api: key,
+        time: value,
+      }));
 
-      // 模拟数据
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      let mockData;
-      switch (platform) {
-        case "frontend":
-          mockData = [
-            { api: "/api/home", time: 400 },
-            { api: "/api/products", time: 600 },
-            { api: "/api/cart", time: 300 },
-            { api: "/api/user", time: 350 },
-          ];
-          break;
-        case "backend":
-          mockData = [
-            { api: "/user/profile", time: 150 },
-            { api: "/order/list", time: 250 },
-            { api: "/product/detail", time: 180 },
-            { api: "/payment/status", time: 200 },
-          ];
-          break;
-        case "mobile":
-          mockData = [
-            { api: "/api/mobile/login", time: 500 },
-            { api: "/api/mobile/data", time: 700 },
-            { api: "/api/mobile/upload", time: 800 },
-            { api: "/api/mobile/notify", time: 400 },
-          ];
-          break;
-        default:
-          mockData = [];
-      }
-
-      setApiRequestData(mockData);
+      console.log(
+        "%c [ ]-273",
+        "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+        "performedData",
+        processedData
+      );
+      setApiRequestData(processedData);
     } catch (error) {
       console.error("获取API请求时间数据失败:", error);
       setApiRequestData([]);
@@ -571,7 +424,7 @@ const ProjectDetailPerformance: React.FC = () => {
     fetchFrontendData({});
     fetchMobileData({});
 
-    fetchFpData("day");
+    // fetchFpData("day");
     fetchApiRequestData("day", "frontend");
   }, [projectId]);
 
@@ -663,7 +516,7 @@ const ProjectDetailPerformance: React.FC = () => {
     switch (environment) {
       case "production":
         return <Tag color="red">生产</Tag>;
-      case "development":
+      case "dev":
         return <Tag color="blue">开发</Tag>;
       case "test":
         return <Tag color="orange">测试</Tag>;
@@ -677,14 +530,10 @@ const ProjectDetailPerformance: React.FC = () => {
     if (!captureType) return null;
 
     switch (captureType) {
-      case "pageLoad":
-        return <Tag color="green">页面加载</Tag>;
-      case "apiCall":
-        return <Tag color="blue">API调用</Tag>;
-      case "userAction":
-        return <Tag color="purple">用户操作</Tag>;
-      case "custom":
-        return <Tag color="cyan">自定义</Tag>;
+      case "auto":
+        return <Tag color="green">自动</Tag>;
+      case "navigation":
+        return <Tag color="blue">导航</Tag>;
       default:
         return <Tag>{captureType}</Tag>;
     }
@@ -848,7 +697,7 @@ const ProjectDetailPerformance: React.FC = () => {
               <div
                 style={{
                   background: "#f5f5f5",
-                  padding: "12px",
+                  padding: "8px 2px",
                   borderRadius: "4px",
                   margin: "8px 0 0 0",
                   fontSize: "12px",
@@ -1025,7 +874,7 @@ const ProjectDetailPerformance: React.FC = () => {
             {record.batteryLevel !== undefined && (
               <Col span={8}>
                 <Text strong>电池电量: </Text>
-                <Text>{record.batteryLevel}%</Text>
+                <Text>{record.batteryLevel}</Text>
               </Col>
             )}
             {record.memoryUsage && (
@@ -1040,22 +889,22 @@ const ProjectDetailPerformance: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {record.operationFps && (
+            {record.operationFps !== null && (
               <Col span={8}>
                 <Text strong>帧率: </Text>
                 <Text>{record.operationFps}</Text>
               </Col>
             )}
             {/* 新增字段显示 */}
-            {record.operationId !== undefined && (
+            {record.operationId && (
               <Col span={8}>
                 <Text strong>操作ID: </Text>
                 <Text>{record.operationId}</Text>
               </Col>
             )}
-            {record.apiName !== undefined && (
+            {record.apiName && (
               <Col span={8}>
-                <Text strong>API名称: </Text>
+                <Text strong>API: </Text>
                 <Text>{record.apiName}</Text>
               </Col>
             )}
@@ -1106,7 +955,7 @@ const ProjectDetailPerformance: React.FC = () => {
       </div>
 
       <div>
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        {/* <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={24}>
             <Card
               title="前端FCP,LCP,DOM.LOAD数据"
@@ -1116,7 +965,7 @@ const ProjectDetailPerformance: React.FC = () => {
                   style={{ width: 120 }}
                   onChange={(value) => {
                     setFpTimeType(value);
-                    fetchFpData(value); // 需要修改fetchFpData以接受timeType参数
+                    fetchFpData(value);
                   }}
                   options={[
                     { value: "day", label: "近1天" },
@@ -1135,7 +984,7 @@ const ProjectDetailPerformance: React.FC = () => {
               />
             </Card>
           </Col>
-        </Row>
+        </Row> */}
 
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={24}>
@@ -1192,7 +1041,7 @@ const ProjectDetailPerformance: React.FC = () => {
             }}
           >
             <Row gutter={16} align="middle">
-              <Col>
+              {/* <Col>
                 <Space>
                   <Text>环境:</Text>
                   <Select
@@ -1210,7 +1059,7 @@ const ProjectDetailPerformance: React.FC = () => {
                     <Option value="test">测试</Option>
                   </Select>
                 </Space>
-              </Col>
+              </Col> */}
 
               <Col flex="auto">
                 <Space>
@@ -1218,9 +1067,9 @@ const ProjectDetailPerformance: React.FC = () => {
                   <Input
                     style={{ width: 200 }}
                     placeholder="搜索API或模块"
-                    value={backendFilters.search}
+                    value={backendFilters.moduleName}
                     onChange={(e) =>
-                      handleBackendFilterChange("search", e.target.value)
+                      handleBackendFilterChange("moduleName", e.target.value)
                     }
                     allowClear
                     size="small"
@@ -1253,7 +1102,7 @@ const ProjectDetailPerformance: React.FC = () => {
               rowExpandable: () => true,
             }}
             pagination={{
-              pageSize: 5,
+              pageSize: 10,
               showSizeChanger: true,
               showTotal: (total) => `共 ${total} 条记录`,
             }}
@@ -1287,15 +1136,13 @@ const ProjectDetailPerformance: React.FC = () => {
                     allowClear
                     size="small"
                   >
-                    <Option value="pageLoad">页面加载</Option>
-                    <Option value="apiCall">API调用</Option>
-                    <Option value="userAction">用户操作</Option>
-                    <Option value="custom">自定义</Option>
+                    <Option value="auto">自动</Option>
+                    <Option value="navigation">导航</Option>
                   </Select>
                 </Space>
               </Col>
 
-              <Col flex="auto">
+              {/* <Col flex="auto">
                 <Space>
                   <Text>搜索:</Text>
                   <Input
@@ -1309,7 +1156,7 @@ const ProjectDetailPerformance: React.FC = () => {
                     size="small"
                   />
                 </Space>
-              </Col>
+              </Col> */}
 
               <Col>
                 <Button
@@ -1336,8 +1183,7 @@ const ProjectDetailPerformance: React.FC = () => {
               rowExpandable: () => true,
             }}
             pagination={{
-              pageSize: 5,
-              showSizeChanger: true,
+              pageSize: 10,
               showTotal: (total) => `共 ${total} 条记录`,
             }}
             rowKey="id"
@@ -1383,9 +1229,9 @@ const ProjectDetailPerformance: React.FC = () => {
                   <Input
                     style={{ width: 200 }}
                     placeholder="搜索设备或系统版本"
-                    value={mobileFilters.search}
+                    value={mobileFilters.osVersion}
                     onChange={(e) =>
-                      handleMobileFilterChange("search", e.target.value)
+                      handleMobileFilterChange("osVersion", e.target.value)
                     }
                     allowClear
                     size="small"
@@ -1418,8 +1264,7 @@ const ProjectDetailPerformance: React.FC = () => {
               rowExpandable: () => true,
             }}
             pagination={{
-              pageSize: 5,
-              showSizeChanger: true,
+              pageSize: 10,
               showTotal: (total) => `共 ${total} 条记录`,
             }}
             rowKey="id"

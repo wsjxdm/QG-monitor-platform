@@ -27,7 +27,7 @@ import { getPrivateProjects } from "../../../../api/service/projectoverview";
 const { Title, Text } = Typography;
 
 //todo
-const user = { id: 14 };
+const user = JSON.parse(localStorage.getItem("user"));
 const ProjectAll: React.FC = () => {
   const navigate = useNavigate();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);

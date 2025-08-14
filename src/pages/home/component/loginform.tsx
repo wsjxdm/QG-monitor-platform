@@ -1,6 +1,6 @@
 import { Form, Input, Button, Typography, Space, message } from "antd";
 import { useState, useEffect } from "react";
-import '@ant-design/v5-patch-for-react-19';
+import "@ant-design/v5-patch-for-react-19";
 import { getCodeAPI } from "../../../api/service/userService";
 import { login } from "../../../api/service/userService";
 import { findPassword } from "../../../api/service/userService";
@@ -36,14 +36,14 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg1
     //解密私钥
     const privateKey = `-----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7RP9KR+xTWnI+VGrW+fDUAzYyFzegXemaXpgePTchdbeioow+JkUPkWQWOmOlmgg+aXMymqgvkix1e3MrepRJkRNVXJJ5KvSJt7OPR5K5B8QTyLXEP8sOLaVpfTJxOmrbe5EwLf1iF63JmL+JoM3vxFZX/kroirb9fYCsWfaZG8IIil5SXlgS7UPd5mpy+pXn0QrhwP2Gw23nG8pX+AwTuL65dJC8DSZMfvFdWZeTQnw6AVS8StMmvXazMNWgOzA65kCJlQB62T69/CYttAjGGXzbWZ6Koe0/TOtpADIdLDOPIe++lxm6Rrn9AgMBAAECggEASPwDbOPIlG2Qb0jQhWawQkc74cyuzK4GCDQXCQcTwKk2SUePwVUoMatl7R5g9rNEwBCr3ayDJqtHRDoXJ69WvZW+n0QMJepMHm/49/GHRrnH1xS+nSlHs+g3UW8uGie92byg30XP3LBWBnM4k5d5Np9aSwiklKpvAQ/SNw7YLsxgG3tjmMgzbzQnNtTdW81BV+A4KIaYVUZnoSEVSzHN3T7WZgG9TLiCm7AowQ8qFTK0Sxu0kO3JGc6G3GkQmR77J4YDIv8O+Da+ITmyVEwxtzuIKNa/VDCtV3Anxit+Hk0xBNsT9Vvdv3upMyjOggjXnWbQYUXN4zbv1IoWlwqOiwKBgQDlzIUZHQPY5t1BWOOXr1w7KRVfxtqm9fKy1x4v+T7f1SPOmFpmAg3Qfv6c1dpON8d6NJS01kuymFW/iPVdvjpoGWqYBSEn0mbz9iBU9quNaU4WhqmlU8OdfqCch0jOK/l+3WCl4BshShpis2mvXPa8HtygkRqQfMVGML2nGttb+wKBgQDJpOTiJSRlcRgj27qXsQjXwrJsEAoZ0cA/UaUlWed/qHBsLE9yk+Y3bxlFc8Sf0wLJejaaCOQ4IS6e81bl7AOT/VBqU77zzBS1uZ4L1dMlJipELgtQcsv06CblDhnRJLAAJ0/xtX6HUqu2v8pGqaLyqsESZXn8TdwxyBKfbnioZwKBgQCIgQ7nNhcc9zajJLw9VIvDEMqDlEo6N4sttR9XfAVfTOryRAoe4kV2fpmcbGQ7ZmL2MtnK+ikJM/hryF2IjAGB6Ocq2pExaIiDjsbx8X1CiTU7qE6JyNJAcgHSOYKEBhc0xygsII29HpnB27WB2AUxBlwkfU18WsGMylM+OnPnlQKBgQC7MtQyhlzVuDq6/4Co1vfopp3R6MoX0jxyDDAPDvn177//DNvs+RVfHUsOyT0fS1xpA4axVdPZsCSB+FMSPRvNRfxj2b+Kwknvs5TgU/AjqtzOUxi55PkoMmX5fC/HlBG48sYrFV2T79HuZPs6wr2+H3wCwiaPbxEfPijbzklBvQKBgBFCAippRBOSX6gol9VJSwzB61Ak9U2vYKucWia4GrEtS/faEUmNKj220qksTEjiACnbTrWojZFKEWx30s+mrkwXdXmNbuq2so5fEvjGQ8rKXCcJNp5/pInPMvhCvw4tUuJ9lEH8EXkDFFRlTVoUnlWofHdTcQreOs/tkHlfrC5M
------END PRIVATE KEY-----`
+-----END PRIVATE KEY-----`;
     //登录成功后的处理
     const handleLogin = async (values: any) => {
         const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
             JSON.stringify({ email: values.email, password: values.password }),
             publicKey
         );
-        const response = await login(encryptedData, encryptedKey)
+        const response = await login(encryptedData, encryptedKey);
         console.log(response);
 
         if (response.code === 200) {
@@ -65,7 +65,7 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
     useEffect(() => {
         if (countdown > 0) {
             const timer = setTimeout(() => {
-                setCountdown(prev => prev - 1);
+                setCountdown((prev) => prev - 1);
             }, 1000);
 
             return () => clearTimeout(timer);
@@ -73,7 +73,6 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
     }, [countdown]);
     //获取验证码
     const handleGetCode = async () => {
-
         const email = form.getFieldValue("email");
 
         if (!email) {
@@ -87,7 +86,6 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
         );
 
         console.log("找回密码");
-
 
         const response = await getCodeAPI(encryptedData, encryptedKey);
 
@@ -107,9 +105,8 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
         const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
             JSON.stringify({
                 users: { email: email, password: password },
-                code: code
-            }
-            ),
+                code: code,
+            }),
             publicKey
         );
         const response = await findPassword(encryptedData, encryptedKey);
@@ -154,8 +151,12 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
                     </Form.Item>
 
                     <Form.Item>
-                        <Button type="primary" htmlType="submit" block
-                            style={{ backgroundColor: '#1890ff' }}>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            block
+                            style={{ backgroundColor: "#1890ff" }}
+                        >
                             登录
                         </Button>
                     </Form.Item>
@@ -174,7 +175,7 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
                     </Form.Item>
                 </Form>
             </div>
-        )
+        );
     }
     return (
         <div>
@@ -233,7 +234,7 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
                             onClick={handleGetCode}
                             disabled={countdown > 0}
                         >
-                            {countdown > 0 ? `(${countdown})秒后重新发送` : '发送验证码'}
+                            {countdown > 0 ? `(${countdown})秒后重新发送` : "发送验证码"}
                         </Button>
                     </Space.Compact>
                 </Form.Item>
@@ -241,8 +242,12 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
                 <Form.Item>
                     <Space>
                         {/* 这里发送完可以显示一个多少秒后继续发送 */}
-                        <Button type="primary" htmlType="submit" block
-                            style={{ backgroundColor: '#1890ff' }}>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            block
+                            style={{ backgroundColor: "#1890ff" }}
+                        >
                             确认修改密码
                         </Button>
                         <Button htmlType="button">
@@ -266,8 +271,6 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
             </Form>
         </div>
     );
-}
-
-
+};
 
 export default Loginform;
