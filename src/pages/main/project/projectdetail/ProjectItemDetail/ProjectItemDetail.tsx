@@ -8,7 +8,6 @@ import {
   Descriptions,
   Timeline,
   Tag,
-  Collapse,
   Modal,
   InputNumber,
   Form,
@@ -23,49 +22,48 @@ import {
 import moment from "moment";
 
 const { Title, Text } = Typography;
-const { Panel } = Collapse;
 
-// 普通错误
-interface ErrorItem {
-  id: string;
+import {
+  getErrorDetailAPI,
+  setIssueThresholdAPI,
+  getIssueThresholdAPI,
+  markIssueResolvedAPI,
+  getIssueStatusAPI,
+} from "../../../../../api/service/issue";
+import { getUserResponsibility } from "../../../../../api/service/projectoverview";
+
+interface ErrorDetailItem {
+  id: string | number;
   projectId: string | number;
   moduleId: number | string;
-  type: string;
-  timestamp: string | number | Date;
+  type?: string;
+  timestamp?: string | number | Date;
   message?: string;
-  isHandled: boolean;
+  isHandled?: boolean;
+  module?: string;
   stack?: string;
-  userAgent: string;
-  url: string;
-  captureType: string;
+  userAgent?: string;
+  url?: string;
+  captureType?: string;
+  env?: string;
+  event?: string | number;
+  errorType?: string;
   breadcrumbs?: Array<{
     category?: string;
     message?: string;
     level?: string;
-    timestamp?: string;
-    data?: {
-      title?: string;
-      referrer?: string;
-      timestamp?: string | number;
-    };
+    timestamp?: string | number;
+    data?: Record<string, any>;
     captureType?: string;
   }>;
-  env: string;
-  event: string | number;
-  errorType?: string;
-  tag?: [
-    environment?: string,
-    version?: string,
-    userId?: string,
-    custonField?: string
-  ];
-}
-
-// HTTP错误，包含ErrorItem的内容，以及其他特有的错误信息
-interface HttpErrorItem extends ErrorItem {
-  duration: number;
-  errorType: string;
-  message: string;
+  // JavaScript错误特有字段
+  sourceCode?: string;
+  filename?: string;
+  jsFilename?: string;
+  lineno?: number;
+  colno?: number;
+  // HTTP错误特有字段
+  duration?: number;
   request?: {
     url: string;
     method: string;
@@ -73,14 +71,9 @@ interface HttpErrorItem extends ErrorItem {
   response?: {
     status: number;
   };
-}
-
-// 资源请求错误
-interface ResourceErrorItem extends ErrorItem {
-  errorType: string;
-  message: string;
-  resourceType: string;
-  resourceUrl: string;
+  // 资源错误特有字段
+  resourceType?: string;
+  resourceUrl?: string;
   elementInfo?: {
     tagName: string;
     id?: string;
@@ -91,115 +84,65 @@ const ProjectItemDetail: React.FC = () => {
   const { projectId, type, detailId } = useParams();
   const navigate = useNavigate();
   const { state } = useLocation();
-  const [errorData, setErrorData] = useState<
-    ErrorItem | HttpErrorItem | ResourceErrorItem | null
-  >(null);
+  const [errorData, setErrorData] = useState<ErrorDetailItem | null>(null);
   const [isThresholdModalVisible, setIsThresholdModalVisible] = useState(false);
   const [thresholdForm] = Form.useForm();
   const [currentThreshold, setCurrentThreshold] = useState<number | null>(null);
-
-  // 添加已解决状态
   const [isResolved, setIsResolved] = useState(false);
 
-  useEffect(() => {
-    // 模拟获取错误详情数据
-    // 实际项目中应该通过API获取真实数据
-    if (state?.errorData) {
-      setErrorData(state.errorData);
-    } else {
-      // 模拟数据
-      const mockData: Record<string, any> = {
-        error: {
-          id: detailId,
-          projectId: projectId,
-          moduleId: "module-1",
-          type: "javascript",
-          timestamp: new Date().toISOString(),
-          message: "Uncaught ReferenceError: undefinedVariable is not defined",
-          isHandled: false,
-          stack:
-            "ReferenceError: undefinedVariable is not defined\n    at someFunction (app.js:15:10)\n    at HTMLButtonElement.onclick (index.html:25:13)",
-          userAgent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          url: "https://example.com/page",
-          captureType: "error",
-          breadcrumbs: [
-            {
-              category: "navigation",
-              message: "Page loaded",
-              timestamp: new Date(Date.now() - 10000).toISOString(),
-              data: {
-                title: "Example Page",
-                referrer: "https://google.com",
-              },
-            },
-            {
-              category: "ui.click",
-              message: "Button clicked",
-              timestamp: new Date(Date.now() - 5000).toISOString(),
-            },
-            {
-              category: "error",
-              message: "ReferenceError occurred",
-              timestamp: new Date().toISOString(),
-            },
-          ],
-          env: "production",
-          event: "error-event-123",
-          errorType: "ReferenceError",
-        },
-        http: {
-          id: detailId,
-          projectId: projectId,
-          moduleId: "module-2",
-          type: "http",
-          timestamp: new Date().toISOString(),
-          message:
-            "Failed to load resource: the server responded with a status of 500",
-          isHandled: false,
-          userAgent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          url: "https://example.com/api/data",
-          captureType: "http",
-          env: "production",
-          event: "http-error-456",
-          errorType: "HttpError",
-          duration: 1250,
-          request: {
-            url: "https://api.example.com/data",
-            method: "GET",
-          },
-          response: {
-            status: 500,
-          },
-        },
-        resource: {
-          id: detailId,
-          projectId: projectId,
-          moduleId: "module-3",
-          type: "resource",
-          timestamp: new Date().toISOString(),
-          message: "Failed to load image",
-          isHandled: false,
-          userAgent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          url: "https://example.com/page",
-          captureType: "resource",
-          env: "production",
-          event: "resource-error-789",
-          errorType: "ResourceError",
-          resourceType: "image",
-          resourceUrl: "https://example.com/images/missing.png",
-          elementInfo: {
-            tagName: "IMG",
-            id: "logo",
-          },
-        },
-      };
+  //读取错误平台
+  const location = useLocation();
+  const { platform, errorType } = location.state;
 
-      setErrorData(mockData[type as string] || null);
+  useEffect(() => {
+    const fetchErrorDetail = async () => {
+      try {
+        //todo 获取普通用户是否为负责人然后再接着判断
+        const issueState = await getIssueStatusAPI(
+          projectId,
+          errorType,
+          platform
+        );
+        console.log(
+          "%c [ ]-2111",
+          "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+          issueState
+        );
+        setIsResolved(issueState.isHandle);
+        const responsibleId = issueState.responsibleId;
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        getUserResponsibility(projectId, currentUser?.id).then((res) => {
+          if (res) {
+            if (res.userRole === 2 && responsibleId !== currentUser?.id) {
+              message.warning("您无权查看此错误详情，请联系项目管理员");
+              navigate(`/main/project/${projectId}/detail/issues`);
+              return;
+            }
+          }
+        });
+        const response = await getErrorDetailAPI(detailId, platform);
+        //将获取到的数据中的面包屑中的category为performance的去掉
+        if (response.breadcrumbs) {
+          response.breadcrumbs = response.breadcrumbs.filter(
+            (item: any) => item.category !== "performance"
+          );
+        }
+
+        //获取阈值
+        const res = await getIssueThresholdAPI(projectId, errorType, platform);
+        setCurrentThreshold(res.threshold);
+
+        setErrorData(response);
+      } catch (error) {
+        console.error("获取错误详情失败:", error);
+        message.error("获取错误详情失败");
+      }
+    };
+
+    if (detailId && platform) {
+      fetchErrorDetail();
     }
-  }, [projectId, type, detailId, state]);
+  }, [detailId, platform]);
 
   // 格式化时间戳
   const formatTimestamp = (timestamp: string | number | Date) => {
@@ -209,13 +152,17 @@ const ProjectItemDetail: React.FC = () => {
   const handleSetThreshold = async (values: { threshold: number }) => {
     try {
       // 这里应该调用实际的API来设置阈值
-      // await setIssueThresholdAPI(detailId, values.threshold);
-
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await setIssueThresholdAPI(
+        projectId,
+        errorData?.errorType,
+        platform,
+        values.threshold
+      );
 
       setCurrentThreshold(values.threshold);
       setIsThresholdModalVisible(false);
+      //将表单重置
+      thresholdForm.resetFields();
       message.success("阈值设置成功");
     } catch (error) {
       message.error("阈值设置失败");
@@ -226,10 +173,7 @@ const ProjectItemDetail: React.FC = () => {
   const handleMarkAsResolved = async () => {
     try {
       // 这里应该调用实际的API来标记问题为已解决
-      // await markIssueAsResolvedAPI(detailId);
-
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await markIssueResolvedAPI(projectId, platform, errorType);
 
       setIsResolved(true);
       message.success("问题已标记为已解决");
@@ -266,7 +210,7 @@ const ProjectItemDetail: React.FC = () => {
   );
 
   // 渲染面包屑
-  const renderBreadcrumbs = (breadcrumbs?: ErrorItem["breadcrumbs"]) => {
+  const renderBreadcrumbs = (breadcrumbs?: ErrorDetailItem["breadcrumbs"]) => {
     if (!breadcrumbs || breadcrumbs.length === 0) {
       return <Text type="secondary">无面包屑信息</Text>;
     }
@@ -284,12 +228,11 @@ const ProjectItemDetail: React.FC = () => {
               </Text>
               {breadcrumb.data && (
                 <div style={{ marginTop: 8 }}>
-                  {breadcrumb.data.title && (
-                    <div>页面标题: {breadcrumb.data.title}</div>
-                  )}
-                  {breadcrumb.data.referrer && (
-                    <div>来源页面: {breadcrumb.data.referrer}</div>
-                  )}
+                  {Object.entries(breadcrumb.data).map(([key, value]) => (
+                    <div key={key}>
+                      {key}: {String(value)}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -321,179 +264,199 @@ const ProjectItemDetail: React.FC = () => {
     );
   };
 
-  // 渲染普通错误详情
-  const renderErrorDetails = (data: ErrorItem) => (
-    <Space direction="vertical" size="middle" style={{ display: "flex" }}>
-      <Descriptions title="基本信息" bordered column={1}>
-        <Descriptions.Item label="错误ID">{data.id}</Descriptions.Item>
+  // 渲染源代码
+  const renderSourceCode = (sourceCode?: string) => {
+    if (!sourceCode) {
+      return <Text type="secondary">无源代码信息</Text>;
+    }
+
+    return (
+      <pre
+        style={{
+          background: "#f5f5f5",
+          padding: "12px",
+          borderRadius: "4px",
+          overflowX: "auto",
+          fontSize: "12px",
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {sourceCode}
+      </pre>
+    );
+  };
+
+  // 渲染基本信息
+  const renderBasicInfo = (data: ErrorDetailItem) => (
+    <Descriptions title="基本信息" bordered column={1}>
+      <Descriptions.Item label="错误ID">{data.id}</Descriptions.Item>
+      {data.errorType && (
         <Descriptions.Item label="错误类型">{data.errorType}</Descriptions.Item>
+      )}
+      {data.message && (
         <Descriptions.Item label="错误信息">{data.message}</Descriptions.Item>
+      )}
+      {data.timestamp && (
         <Descriptions.Item label="发生时间">
           {formatTimestamp(data.timestamp)}
         </Descriptions.Item>
+      )}
+      {data.url && (
         <Descriptions.Item label="页面URL">{data.url}</Descriptions.Item>
+      )}
+      {data.userAgent && (
         <Descriptions.Item label="浏览器信息">
           {data.userAgent}
         </Descriptions.Item>
+      )}
+      {data.env && (
         <Descriptions.Item label="环境">{data.env}</Descriptions.Item>
-        <Descriptions.Item label="状态">
-          <Tag color={data.isHandled ? "green" : "red"}>
-            {data.isHandled ? "已处理" : "未处理"}
-          </Tag>
+      )}
+      <Descriptions.Item label="状态">
+        <Tag color={data.isHandled ? "green" : "red"}>
+          {data.isHandled ? "已处理" : "未处理"}
+        </Tag>
+      </Descriptions.Item>
+      {data.filename && (
+        <Descriptions.Item label="文件名">{data.filename}</Descriptions.Item>
+      )}
+      {data.jsFilename && (
+        <Descriptions.Item label="JS文件名">
+          {data.jsFilename}
         </Descriptions.Item>
-      </Descriptions>
-
-      <Card title="面包屑" size="small">
-        {renderBreadcrumbs(data.breadcrumbs)}
-      </Card>
-
-      <Card title="错误堆栈" size="small">
-        {renderStackTrace(data.stack)}
-      </Card>
-    </Space>
-  );
-
-  // 渲染HTTP错误详情
-  const renderHttpErrorDetails = (data: HttpErrorItem) => (
-    <Space direction="vertical" size="middle" style={{ display: "flex" }}>
-      <Descriptions title="基本信息" bordered column={1}>
-        <Descriptions.Item label="错误ID">{data.id}</Descriptions.Item>
-        <Descriptions.Item label="错误类型">{data.errorType}</Descriptions.Item>
-        <Descriptions.Item label="错误信息">{data.message}</Descriptions.Item>
-        <Descriptions.Item label="发生时间">
-          {formatTimestamp(data.timestamp)}
-        </Descriptions.Item>
-        <Descriptions.Item label="页面URL">{data.url}</Descriptions.Item>
-        <Descriptions.Item label="浏览器信息">
-          {data.userAgent}
-        </Descriptions.Item>
-        <Descriptions.Item label="环境">{data.env}</Descriptions.Item>
-        <Descriptions.Item label="状态">
-          <Tag color={data.isHandled ? "green" : "red"}>
-            {data.isHandled ? "已处理" : "未处理"}
-          </Tag>
-        </Descriptions.Item>
-      </Descriptions>
-
-      <Descriptions title="请求信息" bordered column={1}>
-        <Descriptions.Item label="请求URL">
-          {data.request?.url}
-        </Descriptions.Item>
-        <Descriptions.Item label="请求方法">
-          {data.request?.method}
-        </Descriptions.Item>
-        <Descriptions.Item label="响应状态码">
-          <Tag color={data.response?.status === 200 ? "green" : "red"}>
-            {data.response?.status}
-          </Tag>
-        </Descriptions.Item>
+      )}
+      {data.lineno && (
+        <Descriptions.Item label="行号">{data.lineno}</Descriptions.Item>
+      )}
+      {data.colno && (
+        <Descriptions.Item label="列号">{data.colno}</Descriptions.Item>
+      )}
+      {data.duration !== undefined && data.duration !== null && (
         <Descriptions.Item label="请求耗时">
           {data.duration} ms
         </Descriptions.Item>
-      </Descriptions>
-
-      <Card title="面包屑" size="small">
-        {renderBreadcrumbs(data.breadcrumbs)}
-      </Card>
-    </Space>
+      )}
+    </Descriptions>
   );
 
-  // 渲染资源错误详情
-  const renderResourceErrorDetails = (data: ResourceErrorItem) => (
-    <Space direction="vertical" size="middle" style={{ display: "flex" }}>
-      <Descriptions title="基本信息" bordered column={1}>
-        <Descriptions.Item label="错误ID">{data.id}</Descriptions.Item>
-        <Descriptions.Item label="错误类型">{data.errorType}</Descriptions.Item>
-        <Descriptions.Item label="错误信息">{data.message}</Descriptions.Item>
-        <Descriptions.Item label="发生时间">
-          {formatTimestamp(data.timestamp)}
-        </Descriptions.Item>
-        <Descriptions.Item label="页面URL">{data.url}</Descriptions.Item>
-        <Descriptions.Item label="浏览器信息">
-          {data.userAgent}
-        </Descriptions.Item>
-        <Descriptions.Item label="环境">{data.env}</Descriptions.Item>
-        <Descriptions.Item label="状态">
-          <Tag color={data.isHandled ? "green" : "red"}>
-            {data.isHandled ? "已处理" : "未处理"}
-          </Tag>
-        </Descriptions.Item>
-      </Descriptions>
+  // 渲染请求信息
+  const renderRequestInfo = (data: ErrorDetailItem) => {
+    if (!data.request && !data.response) {
+      return null;
+    }
 
-      <Descriptions title="资源信息" bordered column={1}>
-        <Descriptions.Item label="资源类型">
-          {data.resourceType}
-        </Descriptions.Item>
-        <Descriptions.Item label="资源URL">
-          {data.resourceUrl}
-        </Descriptions.Item>
-        {data.elementInfo && (
-          <>
-            <Descriptions.Item label="元素标签">
-              {data.elementInfo.tagName}
-            </Descriptions.Item>
-            {data.elementInfo.id && (
-              <Descriptions.Item label="元素ID">
-                {data.elementInfo.id}
-              </Descriptions.Item>
-            )}
-          </>
+    return (
+      <Descriptions title="请求信息" bordered column={1}>
+        {data.request?.url && (
+          <Descriptions.Item label="请求URL">
+            {data.request.url}
+          </Descriptions.Item>
+        )}
+        {data.request?.method && (
+          <Descriptions.Item label="请求方法">
+            {data.request.method}
+          </Descriptions.Item>
+        )}
+        {data.response?.status && (
+          <Descriptions.Item label="响应状态码">
+            <Tag color={data.response.status === 200 ? "green" : "red"}>
+              {data.response.status}
+            </Tag>
+          </Descriptions.Item>
         )}
       </Descriptions>
+    );
+  };
 
-      <Card title="面包屑" size="small">
-        {renderBreadcrumbs(data.breadcrumbs)}
-      </Card>
-    </Space>
-  );
+  // 渲染资源信息
+  const renderResourceInfo = (data: ErrorDetailItem) => {
+    if (!data.resourceType && !data.resourceUrl && !data.elementInfo) {
+      return null;
+    }
 
-  // 根据类型显示不同的内容
+    return (
+      <Descriptions title="资源信息" bordered column={1}>
+        {data.resourceType && (
+          <Descriptions.Item label="资源类型">
+            {data.resourceType}
+          </Descriptions.Item>
+        )}
+        {data.resourceUrl && (
+          <Descriptions.Item label="资源URL">
+            {data.resourceUrl}
+          </Descriptions.Item>
+        )}
+        {data.elementInfo?.tagName && (
+          <Descriptions.Item label="元素标签">
+            {data.elementInfo.tagName}
+          </Descriptions.Item>
+        )}
+        {data.elementInfo?.id && (
+          <Descriptions.Item label="元素ID">
+            {data.elementInfo.id}
+          </Descriptions.Item>
+        )}
+      </Descriptions>
+    );
+  };
+
+  // 渲染内容
   const renderContent = () => {
     if (!errorData) {
       return <Text>加载中...</Text>;
     }
 
-    switch (type) {
-      case "error":
-        return renderErrorDetails(errorData as ErrorItem);
-      case "http":
-        return renderHttpErrorDetails(errorData as HttpErrorItem);
-      case "resource":
-        return renderResourceErrorDetails(errorData as ResourceErrorItem);
-      default:
-        return (
-          <Descriptions title="详情信息" bordered column={1}>
-            <Descriptions.Item label="类型">{type}</Descriptions.Item>
-            <Descriptions.Item label="ID">{detailId}</Descriptions.Item>
-          </Descriptions>
-        );
-    }
+    return (
+      <Space direction="vertical" size="middle" style={{ display: "flex" }}>
+        {renderBasicInfo(errorData)}
+
+        {renderRequestInfo(errorData)}
+
+        {renderResourceInfo(errorData)}
+
+        {errorData.sourceCode && (
+          <Card title="源代码" size="small">
+            {renderSourceCode(errorData.sourceCode)}
+          </Card>
+        )}
+
+        <Card title="面包屑" size="small">
+          {renderBreadcrumbs(errorData.breadcrumbs)}
+        </Card>
+
+        {errorData.stack && (
+          <Card title="错误堆栈" size="small">
+            {renderStackTrace(errorData.stack)}
+          </Card>
+        )}
+      </Space>
+    );
   };
 
   // 返回到上一个页面
   const handleBack = () => {
-    navigate(-1); // 返回上一页
+    navigate(-1);
   };
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 24, display: "flex", alignItems: "center" }}>
         <Button
-          type="primary"
+          type="text"
           icon={<ArrowLeftOutlined />}
           onClick={handleBack}
+          style={{ padding: "5px", marginRight: 12 }}
         >
           返回
         </Button>
+        <Title level={4} style={{ margin: 0, fontSize: "24px" }}>
+          错误详情
+        </Title>
       </div>
 
       <Card>
         <Space direction="vertical" size="middle" style={{ display: "flex" }}>
-          <Title level={2}>项目 {projectId} - 错误详情</Title>
-
-          {/* 添加操作按钮 */}
           {renderActionButtons()}
-
           {renderContent()}
         </Space>
       </Card>
@@ -524,9 +487,14 @@ const ProjectItemDetail: React.FC = () => {
             />
           </Form.Item>
           <div>
-            <Text type="secondary">
-              当前阈值:{" "}
-              {currentThreshold !== null ? currentThreshold : "未设置"}
+            <Text
+              type="secondary"
+              style={{ display: "flex", gap: "8px", alignItems: "center" }}
+            >
+              当前阈值:
+              <Text strong>
+                {currentThreshold !== null ? currentThreshold : "10"}
+              </Text>
             </Text>
           </div>
         </Form>

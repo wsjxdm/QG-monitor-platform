@@ -24,6 +24,7 @@ import {
   getProjectMembersAPI,
   getPlatformDataAPI,
   getPlatformTenAPI,
+  getIllegalAccessAPI,
 } from "../../../../../api/service/issue";
 import { getUserResponsibility } from "../../../../../api/service/projectoverview";
 
@@ -51,6 +52,7 @@ interface ErrorItem {
   username?: string | null;
   avatarUrl?: string | null;
   errorType?: string;
+  responsibleId?: string | number | null;
 }
 
 // 项目成员接口
@@ -63,7 +65,13 @@ interface ProjectMember {
   power?: number | string;
 }
 
-// 平台访问量
+// 非法访问项接口
+interface IllegalAccessItem {
+  ip: string;
+  event: number;
+}
+
+// 错误趋势
 const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,7 +92,6 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
     };
     fetchRole().then((role) => {
       currentUser.role = role;
-      console.log("当前用户角色:", currentUser);
     });
   }, [timeType, projectId]);
 
@@ -148,9 +155,10 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
         style={{
           marginBottom: 20,
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
         }}
       >
+        <Title level={5}>错误趋势</Title>
         <Select
           value={timeType}
           style={{ width: 120 }}
@@ -209,35 +217,6 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
     setLoading(true);
     try {
       const response = await getPlatformTenAPI(projectId);
-      console.log(response);
-
-      // 模拟错误数量数据 (柱状图)
-      const mockErrorCountData: ErrorCountDataItem[] = [
-        { errorType: "TypeError", count: 120 },
-        { errorType: "ReferenceError", count: 95 },
-        { errorType: "NetworkError", count: 87 },
-        { errorType: "SyntaxError", count: 76 },
-        { errorType: "RangeError", count: 65 },
-        { errorType: "PromiseRejection", count: 54 },
-        { errorType: "SecurityError", count: 43 },
-        { errorType: "URIError", count: 32 },
-        { errorType: "EvalError", count: 21 },
-        { errorType: "InternalError", count: 15 },
-      ];
-
-      // 模拟错误占比数据 (折线图)
-      const mockErrorRatioData: ErrorRatioDataItem[] = [
-        { errorType: "TypeError", ratio: 0.25 },
-        { errorType: "ReferenceError", ratio: 0.19 },
-        { errorType: "NetworkError", ratio: 0.17 },
-        { errorType: "SyntaxError", ratio: 0.15 },
-        { errorType: "RangeError", ratio: 0.13 },
-        { errorType: "PromiseRejection", ratio: 0.11 },
-        { errorType: "SecurityError", ratio: 0.08 },
-        { errorType: "URIError", ratio: 0.06 },
-        { errorType: "EvalError", ratio: 0.04 },
-        { errorType: "InternalError", ratio: 0.03 },
-      ];
 
       setErrorCountData(response[0]);
       setErrorRatioData(response[1]);
@@ -290,9 +269,10 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
         style={{
           marginBottom: 20,
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
         }}
       >
+        <Title level={5}>平台错误分析</Title>
         <Select
           value={platform}
           style={{ width: 120 }}
@@ -314,14 +294,164 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
   );
 };
 
+// 非法访问统计图表组件
+const IllegalAccessChart: React.FC<{ projectId: string }> = ({ projectId }) => {
+  const [data, setData] = useState<IllegalAccessItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [timeType, setTimeType] = useState("day"); // 时间筛选移到组件内部
+
+  // 时间筛选选项
+  const timeOptions = [
+    { value: "day", label: "近1天" },
+    { value: "week", label: "近7天" },
+    { value: "month", label: "近30天" },
+  ];
+
+  useEffect(() => {
+    fetchIllegalAccessData();
+  }, [projectId]);
+
+  const fetchIllegalAccessData = async () => {
+    setLoading(true);
+    try {
+      // 计算时间范围
+      const endTime = new Date();
+      const startTime = new Date();
+
+      switch (timeType) {
+        case "day":
+          startTime.setDate(startTime.getDate() - 1);
+          break;
+        case "week":
+          startTime.setDate(startTime.getDate() - 7);
+          break;
+        case "month":
+          startTime.setDate(startTime.getDate() - 30);
+          break;
+        default:
+          startTime.setDate(startTime.getDate() - 7);
+      }
+
+      // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
+      const formatTime = (date: Date) => {
+        return date.toISOString().replace("T", " ").substring(0, 19);
+      };
+
+      const startTimeStr = formatTime(startTime);
+      const endTimeStr = formatTime(endTime);
+
+      const response = await getIllegalAccessAPI(
+        projectId,
+        startTimeStr,
+        endTimeStr
+      );
+      const mockData: IllegalAccessItem[] = [
+        { ip: "192.168.1.100", event: 25 },
+        { ip: "192.168.1.105", event: 18 },
+        { ip: "10.0.0.50", event: 15 },
+        { ip: "172.16.0.30", event: 12 },
+        { ip: "203.0.113.45", event: 8 },
+        { ip: "198.51.100.22", event: 5 },
+      ];
+      console.log(
+        "%c [ ]-273",
+        "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+        "获取非法访问数据成功:",
+        response
+      );
+
+      setData(response);
+    } catch (error) {
+      console.error("获取非法访问数据失败:", error);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const config = {
+    data,
+    xField: "ip",
+    yField: "event",
+    loading: loading,
+    axis: {
+      x: {
+        label: {
+          autoHide: true,
+          autoRotate: true,
+        },
+      },
+      y: {
+        title: {
+          text: "访问次数",
+        },
+      },
+    },
+    style: {
+      maxWidth: 50,
+    },
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Title level={5}>非法访问统计图表组件</Title>
+        <Select
+          value={timeType}
+          style={{ width: 120 }}
+          onChange={setTimeType}
+          options={timeOptions}
+        />
+      </div>
+      <div style={{ height: 300 }}>
+        {loading ? (
+          <Spin />
+        ) : data.length > 0 ? (
+          <Column autoFit {...config} />
+        ) : (
+          <Empty description="暂无非法访问数据" />
+        )}
+      </div>
+    </div>
+  );
+};
+
 const ProjectDetailIssues: React.FC = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
 
   // 跳转到错误详情页
-  const goToErrorDetail = (errorId: number, platform: string) => {
-    navigate(`/main/project/${projectId}/detail/error/${errorId}`, {
-      state: { platform },
+  const goToErrorDetail = (
+    errorId: number,
+    platform: string,
+    errorType: string,
+    responsibleId: number | string | null
+  ) => {
+    getUserResponsibility(projectId, currentUser?.id).then((res) => {
+      if (res) {
+        console.log(
+          "%c [ ]-211",
+          "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+          res.userRole,
+          responsibleId,
+          currentUser?.id
+        );
+        if (res.userRole === 2 && responsibleId !== currentUser?.id) {
+          message.warning("您无权查看此错误详情，请联系项目管理员");
+          return;
+        } else {
+          navigate(`/main/project/${projectId}/detail/error/${errorId}`, {
+            state: { platform, errorType },
+          });
+        }
+      }
     });
   };
 
@@ -424,11 +554,6 @@ const ProjectDetailIssues: React.FC = () => {
   // 渲染指派列
   const renderAssignColumn = (record: ErrorItem) => {
     // 只显示普通成员(userRole == 2)作为可指派选项
-    console.log(
-      "%c [ ]-273",
-      "color: #f00; font-weight: bold;background: #fff;width: 100%;",
-      members
-    );
     const menuItems = members
       .filter((member) => member.userRole == 2)
       .map((member) => ({
@@ -549,6 +674,17 @@ const ProjectDetailIssues: React.FC = () => {
           ...item,
           platform: "backend",
           username: item.name,
+          timestamp: new Date(item.timestamp)
+            .toLocaleString("zh-CN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            })
+            .replace(/\//g, "-"),
         };
       });
       const updataArry2 = arry2.map((item: any) => {
@@ -556,6 +692,17 @@ const ProjectDetailIssues: React.FC = () => {
           ...item,
           username: item.name,
           platform: "frontend",
+          timestamp: new Date(item.timestamp)
+            .toLocaleString("zh-CN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            })
+            .replace(/\//g, "-"),
         };
       });
       const updataArry3 = arry3.map((item: any) => {
@@ -596,6 +743,14 @@ const ProjectDetailIssues: React.FC = () => {
 
   // 页面初始化时获取数据
   useEffect(() => {
+    getUserResponsibility(projectId, currentUser?.id).then((res) => {
+      if (res) {
+        if (res.power === 0) {
+          message.warning("您无权进入该项目，请联系项目管理员");
+          navigate("/main/project/all");
+        }
+      }
+    });
     fetchErrorData();
     fetchProjectMembers();
   }, []);
@@ -624,7 +779,11 @@ const ProjectDetailIssues: React.FC = () => {
           scroll={{ x: "max-content" }}
           onRow={(record) => ({
             onClick: () => {
-              goToErrorDetail(record.id as number, record.platform);
+              goToErrorDetail(
+                record.id as number,
+                record.platform,
+                record.errorType || null
+              );
             },
           })}
           rowKey="id"
@@ -640,7 +799,7 @@ const ProjectDetailIssues: React.FC = () => {
 
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={24}>
-            <Card title="错误趋势" bordered={false}>
+            <Card>
               <PlatformData projectId={projectId} />
             </Card>
           </Col>
@@ -648,8 +807,16 @@ const ProjectDetailIssues: React.FC = () => {
 
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={24}>
-            <Card title="平台错误分析" bordered={false}>
+            <Card>
               <TopErrorsChart projectId={projectId} />
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card>
+              <IllegalAccessChart projectId={projectId} />
             </Card>
           </Col>
         </Row>
@@ -665,7 +832,12 @@ const ProjectDetailIssues: React.FC = () => {
           onRefresh={handleRefresh}
           onRow={(record) => ({
             onClick: () => {
-              goToErrorDetail(record.id as number, record.platform);
+              goToErrorDetail(
+                record.id as number,
+                record.platform,
+                record.errorType,
+                record.responsibleId
+              );
             },
           })}
           rowKey="id"

@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { use, useEffect, useMemo, useState } from "react";
 import { Column } from "@ant-design/plots";
 import { DualAxes } from "@ant-design/plots";
-import { Select, Row, Col, Card, Typography, Spin, Empty } from "antd";
+import { Select, Row, Col, Card, Typography, Spin, Empty, message } from "antd";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -12,7 +12,9 @@ import {
   getBuryPointDataAPI,
   getButtonClickDataAPI,
 } from "../../../../../api/service/Behavior";
+import { useNavigate } from "react-router-dom";
 import processTimeData from "../../../../../utils/addTime";
+import { getUserResponsibility } from "../../../../../api/service/projectoverview";
 
 interface Behavior {
   id: number;
@@ -128,7 +130,7 @@ const BuryPointDetail: React.FC<{ timeType: string; projectId: string }> = ({
     <div style={{ height: 300 }}>
       {loading ? (
         <Spin />
-      ) : data.length > 0 ? (
+      ) : data?.length > 0 ? (
         <Column autoFit {...config} />
       ) : (
         <Empty />
@@ -256,9 +258,10 @@ const PageData: React.FC<{ timeType: string; projectId: string }> = ({
         style={{
           marginBottom: 20,
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
         }}
       >
+        <Title level={5}>页面数据</Title>
         <Select
           value={localTimeType}
           style={{ width: 120 }}
@@ -287,6 +290,7 @@ const FormData: React.FC<{ timeType: string; projectId: string }> = ({
 }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFormData();
@@ -328,17 +332,9 @@ const FormData: React.FC<{ timeType: string; projectId: string }> = ({
         labelFormatter: (val: any) => {
           if (val == null) return val;
           const s = String(val);
-          return s.length > 5 ? s.slice(0, 5) + "…" : s;
+          return s.length > 2 ? s.slice(0, 2) + "…" : s;
         },
         labelFontSize: 12,
-        // 如果标签重叠，尝试旋转（可选）
-        transform: [
-          {
-            type: "rotate",
-            optionalAngles: [0, -45],
-            recoverWhenFailed: true,
-          },
-        ],
       },
     },
     children: [
@@ -356,7 +352,7 @@ const FormData: React.FC<{ timeType: string; projectId: string }> = ({
   };
 
   return (
-    <div style={{ height: 300 }}>
+    <div>
       {loading ? (
         <Spin />
       ) : data.length > 0 ? (
@@ -418,36 +414,26 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
     xField: "time",
     yField: "value",
     style: {
-      // minWidth: "100px",
+      minWidth: "50px",
     },
-    // 添加滚动条支持
-    // scrollbar: {
-    //   x: { ratio: 0.7 }, // 显示70%的数据范围
-    // },
-    // 调整轴标签避免重叠
+
     axis: {
       x: {
-        label: {
-          autoHide: true, // 自动隐藏重叠标签
-          autoRotate: true, // 自动旋转标签
-          formatter: (text: string) => {
-            if (timeType === "day") {
-              return text.split(" ")[1]?.substring(0, 5) || text; // 只显示小时:分钟
-            }
-            return text.substring(5); // 去掉年份，只显示月日
-          },
+        // 直接在这里截断显示（如果传进来不是 string，请先处理）
+        labelFormatter: (val: any) => {
+          if (val == null) return val;
+          const s = String(val);
+          return s.length > 5 ? s.slice(0, 5) + "…" : s;
         },
-        title: false,
-      },
-      y: {
-        label: {
-          formatter: (value: number) => {
-            if (value >= 1000) {
-              return `${(value / 1000).toFixed(1)}k`; // 千位简化
-            }
-            return value;
+        labelFontSize: 12,
+        // 如果标签重叠，尝试旋转（可选）
+        transform: [
+          {
+            type: "rotate",
+            optionalAngles: [0, -45],
+            recoverWhenFailed: true,
           },
-        },
+        ],
       },
     },
     loading: loading,
@@ -459,10 +445,10 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
         style={{
           marginBottom: 20,
           display: "flex",
-          justifyContent: "flex-end",
-          maxWidth: "150px",
+          justifyContent: "space-between",
         }}
       >
+        <Title level={5}>平台访问量</Title>
         <Select
           value={timeType}
           style={{ width: 120 }}
@@ -487,6 +473,18 @@ const ProjectDetailBehavior: React.FC = () => {
   //从路由中获取项目id
   const { projectId } = useParams();
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    getUserResponsibility(projectId, user?.id).then((res) => {
+      if (res) {
+        if (res.power === 0) {
+          message.warning("您无权进入该项目，请联系项目管理员");
+          navigate("/main/project/all");
+        }
+      }
+    });
+  }, [projectId]);
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -503,7 +501,7 @@ const ProjectDetailBehavior: React.FC = () => {
 
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col span={24}>
-          <Card title="页面数据" bordered={false}>
+          <Card>
             <PageData timeType="day" projectId={projectId} />
           </Card>
         </Col>
@@ -519,7 +517,7 @@ const ProjectDetailBehavior: React.FC = () => {
 
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col span={24}>
-          <Card title="平台访问量" bordered={false}>
+          <Card>
             <PlatformData projectId={projectId} />
           </Card>
         </Col>

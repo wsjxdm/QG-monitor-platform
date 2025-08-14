@@ -71,8 +71,14 @@ export const getUserInfoAPI = async (id: number) => {
 };
 
 //修改用户信息
-export const updateUserInfoAPI = async (encryptedData: string, encryptedKey: string) => {
-  const response = await apiClient.put("/users/updateUser", { encryptedData, encryptedKey });
+export const updateUserInfoAPI = async (
+  encryptedData: string,
+  encryptedKey: string
+) => {
+  const response = await apiClient.put("/users/updateUser", {
+    encryptedData,
+    encryptedKey,
+  });
   return response;
 };
 
@@ -80,8 +86,8 @@ export const updateUserInfoAPI = async (encryptedData: string, encryptedKey: str
 export const updateUserAvatarAPI = async (formData: FormData) => {
   const response = await apiClient.post("/users/updateAvatar", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+      "Content-Type": "multipart/form-data",
+    },
   });
   return response;
 };

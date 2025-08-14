@@ -210,10 +210,13 @@ function App() {
 
   // 开始编辑字段
   const startEdit = (field: string, value: string) => {
-    console.log(field, value);
-    // 权限不为2的用户不能编辑
-    console.log(role);
-    if (role !== 2) {
+    console.log(
+      "%c [ ]-273",
+      "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+      userRole
+    );
+    // 只有非普通成员才能编辑 (userRole !== 2)
+    if (userRole === 2) {
       message.warning("您没有权限进行此操作");
       return;
     }
@@ -369,6 +372,10 @@ function App() {
     }
     try {
       await changeUserLevelAPI(projectId, memberId, newRole);
+      //如果用户修改自己的权限，更新当前用户的权限状态
+      if (memberId === user.id) {
+        setUserRole(newRole);
+      }
       setGroupMembers((prevMembers) =>
         prevMembers.map((member) =>
           member.userId === memberId ? { ...member, userRole: newRole } : member
@@ -671,18 +678,20 @@ function App() {
                 </Text>
               </div>
             </div>
-            {renderCopyableEditableField(
-              "groupCode",
-              "微信群号",
-              projectData?.groupCode || "暂无",
-              "微信群号"
-            )}
-            {renderCopyableEditableField(
-              "webhook",
-              "企业微信群机器人URL",
-              projectData?.webhook || "暂无",
-              "Webhook地址"
-            )}
+            {role === 2 &&
+              renderCopyableEditableField(
+                "groupCode",
+                "微信群号",
+                projectData?.groupCode || "暂无",
+                "微信群号"
+              )}
+            {role == 2 &&
+              renderCopyableEditableField(
+                "webhook",
+                "企业微信群机器人URL",
+                projectData?.webhook || "暂无",
+                "Webhook地址"
+              )}
 
             <div
               style={{
@@ -690,7 +699,7 @@ function App() {
                 gap: "12px",
               }}
             >
-              {role === 2 && (
+              {(userRole === 0 || userRole === 1) && (
                 <Popconfirm
                   title="删除项目"
                   description={
@@ -756,7 +765,7 @@ function App() {
           </div>
 
           {/* 图表区域 */}
-          <div className={styles.section}>
+          {/* <div className={styles.section}>
             <Title level={4} className={styles.sectionTitle}>
               项目监控数据
             </Title>
@@ -765,25 +774,27 @@ function App() {
                 <Demo />
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* 右侧信息栏 */}
         <div className={styles.rightColumn}>
           {/* 生成邀请码链接 */}
-          <div className={styles.section}>
-            <Title level={4} className={styles.sectionTitle}>
-              邀请好友当牛马
-            </Title>
-            <Button
-              type="link"
-              icon={<BookOutlined />}
-              onClick={showInviteModal}
-              style={{ padding: 0 }}
-            >
-              生成邀请码
-            </Button>
-          </div>
+          {(userRole === 0 || userRole === 1) && (
+            <div className={styles.section}>
+              <Title level={4} className={styles.sectionTitle}>
+                邀请好友加入项目
+              </Title>
+              <Button
+                type="link"
+                icon={<BookOutlined />}
+                onClick={showInviteModal}
+                style={{ padding: 0 }}
+              >
+                生成邀请码
+              </Button>
+            </div>
+          )}
           {/* 教程链接，点击后弹窗展示教程 */}
           <div className={styles.section}>
             <Title level={4} className={styles.sectionTitle}>

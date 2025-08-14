@@ -14,15 +14,19 @@ import {
   Card,
   Spin,
   Empty,
+  message,
 } from "antd";
-import { Column, Line } from "@ant-design/plots";
+import { Column, DualAxes } from "@ant-design/plots";
 import { ReloadOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { useNavigate } from "react-router-dom";
 import {
   getPerformanceDataAPI,
   getFpDataAPI,
+  getMobilePerformanceDataAPI,
   getAverageTimeDataAPI,
 } from "../../../../../api/service/performance";
+import { getUserResponsibility } from "../../../../../api/service/projectoverview";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -60,7 +64,11 @@ interface FrontendPerformance {
   sessionId?: string | number;
   userAgent?: string;
   metrics?: {
-    vitals?: { fcp: number | string; lcp: number | string };
+    vitals?: {
+      fcp: number | string;
+      lcp: number | string;
+      ttfb: number | string;
+    };
     navigation?: { domReady: number | string; loadComplete: number | string };
   };
   captureType?: string;
@@ -81,49 +89,6 @@ interface MobilePerformance {
   apiName?: string;
 }
 
-// fcp、domReady、loadComplete
-// const FpDataChart: React.FC<{
-//   timeType: string;
-//   projectId: string;
-//   loading: boolean;
-//   data: { page: string; lcp: number; fcp: number; dom: number; load: number }[];
-// }> = ({ timeType, projectId, loading, data }) => {
-//   // 转换数据格式以适应双折线图
-//   const transformedData = data.flatMap((item) => [
-//     { page: item.page, type: "LCP", value: item.lcp },
-//     { page: item.page, type: "FCP", value: item.fcp },
-//     { page: item.page, type: "DOM", value: item.dom },
-//     { page: item.page, type: "LOAD", value: item.load },
-//   ]);
-
-//   const config = {
-//     data: transformedData,
-//     xField: "page",
-//     yField: "value",
-//     seriesField: "type",
-//     loading,
-//     axis: {
-//       y: {
-//         title: "时间 (ms)",
-//       },
-//     },
-//     legend: {
-//       color: {
-//         itemMarker: "circle",
-//       },
-//     },
-//     style: {
-//       lineWidth: 2,
-//     },
-//   };
-
-//   return (
-//     <div style={{ height: 300 }}>
-//       {loading ? <Spin /> : <Line autoFit {...config} />}
-//     </div>
-//   );
-// };
-
 // 三端请求平均用时柱状图组件
 const ApiRequestTimeChart: React.FC<{
   timeType: string;
@@ -139,7 +104,7 @@ const ApiRequestTimeChart: React.FC<{
     loading,
     axis: {
       x: {
-        // 直接在这里截断显示（如果传进来不是 string，请先处理）
+        // 直接在这里截断显示
         labelFormatter: (val: any) => {
           if (val == null) return val;
           const s = String(val);
@@ -155,10 +120,6 @@ const ApiRequestTimeChart: React.FC<{
           },
         ],
       },
-    },
-    label: {
-      text: (d: any) => `${d.time}ms`,
-      position: "top",
     },
     style: {
       maxWidth: 50,
@@ -178,10 +139,127 @@ const ApiRequestTimeChart: React.FC<{
   );
 };
 
+// 修改 MobilePerformanceChart 组件为以下版本
+const MobilePerformanceChart: React.FC<{
+  timeType: string;
+  projectId: string;
+  loading: boolean;
+  data: MobilePerformance[];
+}> = ({ timeType, projectId, loading, data }) => {
+  // 处理数据，为每个操作创建独立的数据点
+  const fpsData = data.map((item) => {
+    const timeLabel = new Date(item.timestamp).toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return {
+      time: timeLabel,
+      operationId: `${item.operationId}`,
+      operationFps: item.operationFps || 0,
+    };
+  });
+
+  // 处理内存使用率数据
+  const memoryData = data.map((item) => {
+    const timeLabel = new Date(item.timestamp).toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // 将内存使用量从字符串转换为百分比
+    const usedMemoryStr = item.memoryUsage?.usedMemory || "0MB";
+    const totalMemoryStr = item.memoryUsage?.totalMemory || "1MB";
+
+    const usedMemory = parseFloat(usedMemoryStr.replace("MB", ""));
+    const totalMemory = parseFloat(totalMemoryStr.replace("MB", ""));
+
+    return {
+      time: timeLabel,
+      operationId: `${item.operationId}`,
+      memoryUsage: totalMemory > 0 ? (usedMemory / totalMemory) * 100 : 0,
+    };
+  });
+
+  // 提取所有唯一的操作ID
+  const operationIds = Array.from(
+    new Set(data.map((item) => item.operationId))
+  );
+
+  // 为不同操作ID设置不同颜色
+  const getColor = (index: number) => {
+    const colors = ["#5B8FF9", "#5AD8A6", "#5D7092", "#F6BD16", "#E8684A"];
+    return colors[index % colors.length];
+  };
+
+  const config = {
+    xField: "time",
+    legend: true,
+    children: [
+      {
+        type: "interval",
+        data: fpsData,
+        yField: "operationFps",
+        seriesField: "operationId",
+        axis: { y: { position: "left" } },
+        style: {
+          maxWidth: 50,
+        },
+        color: (d: any) => {
+          const index = operationIds.indexOf(d.operationId);
+          return getColor(index);
+        },
+      },
+      {
+        type: "line",
+        data: memoryData,
+        yField: "memoryUsage",
+        seriesField: "operationId",
+        shapeField: "smooth",
+        axis: {
+          y: {
+            position: "right",
+            title: "内存使用率 (%)",
+            labelFormatter: (val: number) => `${val.toFixed(0)}%`,
+          },
+        },
+        style: (d: any) => {
+          const index = operationIds.indexOf(d.operationId);
+          return {
+            lineWidth: 2,
+            stroke: getColor(index),
+          };
+        },
+      },
+    ],
+    loading: loading,
+  };
+
+  return (
+    <div style={{ height: 300 }}>
+      {loading ? (
+        <Spin />
+      ) : data.length > 0 ? (
+        <DualAxes autoFit {...config} />
+      ) : (
+        <Empty />
+      )}
+    </div>
+  );
+};
+
 const ProjectDetailPerformance: React.FC = () => {
+  const navigate = useNavigate();
   const { projectId } = useParams();
   const [fpTimeType, setFpTimeType] = useState("day");
   const [apiTimeType, setApiTimeType] = useState("day");
+  const [mobilePerformanceData, setMobilePerformanceData] = useState<
+    { time: string; operationFps: number; memoryUsage: number }[]
+  >([]);
+  const [mobilePerformanceLoading, setMobilePerformanceLoading] =
+    useState(false);
+  const [mobilePerformanceTimeType, setMobilePerformanceTimeType] =
+    useState("day");
 
   // 后端性能数据状态
   const [backendData, setBackendData] = useState<BackendPerformance[]>([]);
@@ -271,6 +349,20 @@ const ProjectDetailPerformance: React.FC = () => {
       console.error("获取移动端性能数据失败:", error);
     } finally {
       setMobileLoading(false);
+    }
+  };
+
+  // 添加获取移动端运行性能数据的函数
+  const fetchMobilePerformanceData = async (timeType: string) => {
+    setMobilePerformanceLoading(true);
+    try {
+      const response = await getMobilePerformanceDataAPI(projectId, timeType);
+      setMobilePerformanceData(response);
+    } catch (error) {
+      console.error("获取移动端运行性能数据失败:", error);
+      setMobilePerformanceData([]);
+    } finally {
+      setMobilePerformanceLoading(false);
     }
   };
 
@@ -417,13 +509,21 @@ const ProjectDetailPerformance: React.FC = () => {
   };
 
   useEffect(() => {
-    //todo 可以先获取后端的，其他等切换的时候获取，也可以通过plateform:all来获取所有数据
-
+    const user = JSON.parse(localStorage.getItem("user"));
+    getUserResponsibility(projectId, user?.id).then((res) => {
+      if (res) {
+        if (res.power === 0) {
+          message.warning("您无权进入该项目，请联系项目管理员");
+          navigate("/main/project/all");
+        }
+      }
+    });
     // 初始加载所有数据
     fetchBackendData({});
     fetchFrontendData({});
     fetchMobileData({});
 
+    fetchMobilePerformanceData("day");
     // fetchFpData("day");
     fetchApiRequestData("day", "frontend");
   }, [projectId]);
@@ -813,7 +913,19 @@ const ProjectDetailPerformance: React.FC = () => {
                     <div>
                       <Text>FCP: {record.metrics.vitals.fcp}ms</Text>
                       <br />
-                      <Text>LCP: {record.metrics.vitals.lcp}ms</Text>
+                      <Text>
+                        LCP:{" "}
+                        {record.metrics.vitals.lcp
+                          ? `${record.metrics.vitals.lcp}ms`
+                          : "N/A"}
+                      </Text>
+                      <br />
+                      <Text>
+                        TTFB:{" "}
+                        {record.metrics.vitals.ttfb
+                          ? `${record.metrics.vitals.ttfb}ms`
+                          : "N/A"}
+                      </Text>
                     </div>
                   </Col>
                 )}
@@ -985,6 +1097,37 @@ const ProjectDetailPerformance: React.FC = () => {
             </Card>
           </Col>
         </Row> */}
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <Card
+              title="移动端运行性能 (FPS 和内存使用率)"
+              extra={
+                <Select
+                  value={mobilePerformanceTimeType}
+                  style={{ width: 120 }}
+                  onChange={(value) => {
+                    setMobilePerformanceTimeType(value);
+                    fetchMobilePerformanceData(value);
+                  }}
+                  options={[
+                    { value: "day", label: "近1天" },
+                    { value: "week", label: "近7天" },
+                    { value: "month", label: "近30天" },
+                  ]}
+                  size="small"
+                />
+              }
+            >
+              <MobilePerformanceChart
+                timeType={mobilePerformanceTimeType}
+                projectId={projectId || "1"}
+                loading={mobilePerformanceLoading}
+                data={mobilePerformanceData}
+              />
+            </Card>
+          </Col>
+        </Row>
 
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={24}>
