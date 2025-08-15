@@ -198,3 +198,20 @@ export const getIssueStatusAPI = async (
     throw error;
   }
 };
+
+//获取地图
+export const getMapDataAPI = async (
+  projectId: string | number,
+  startTime: string,
+  endTime: string
+) => {
+  try {
+    const response = await apiClient.get("/graph/getForeignIpInterception", {
+      params: { projectId, startTime, endTime },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取地图数据失败:", error);
+    throw error;
+  }
+};

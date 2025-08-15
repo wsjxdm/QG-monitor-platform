@@ -94,7 +94,7 @@ export const updateUserAvatar = createAsyncThunk(
         avatar: avatar,
       };
       // 获取用户信息
-      const response = await updateUserAPI(userData);
+      const response = await updateUserAvatarAPI(userData);
 
       return response; // 假设更新成功返回的数据在 response.data 中
     } catch (error: any) {}
@@ -163,15 +163,6 @@ export const userSlice = createSlice({
 
           state.user.email = action.payload.email;
           state.user.createdAt = action.payload.createdTime;
-
-          // 同时更新 localStorage
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              id: action.payload.id,
-              token: action.payload.token,
-            })
-          );
         }
       )
       .addCase(fetchUserInfo.rejected, (state, action) => {

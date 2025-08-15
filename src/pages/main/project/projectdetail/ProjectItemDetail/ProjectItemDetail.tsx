@@ -81,9 +81,8 @@ interface ErrorDetailItem {
 }
 
 const ProjectItemDetail: React.FC = () => {
-  const { projectId, type, detailId } = useParams();
+  const { projectId, detailId } = useParams();
   const navigate = useNavigate();
-  const { state } = useLocation();
   const [errorData, setErrorData] = useState<ErrorDetailItem | null>(null);
   const [isThresholdModalVisible, setIsThresholdModalVisible] = useState(false);
   const [thresholdForm] = Form.useForm();
@@ -117,7 +116,7 @@ const ProjectItemDetail: React.FC = () => {
         });
         const response = await getErrorDetailAPI(detailId, platform);
         //将获取到的数据中的面包屑中的category为performance的去掉
-        if (response.breadcrumbs) {
+        if (response?.breadcrumbs) {
           response.breadcrumbs = response.breadcrumbs.filter(
             (item: any) => item.category !== "performance"
           );

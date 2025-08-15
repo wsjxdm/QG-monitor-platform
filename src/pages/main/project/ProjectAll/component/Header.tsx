@@ -36,9 +36,6 @@ interface searchProject {
   description: string;
   isPublic: boolean;
 }
-const user = {
-  id: 14,
-};
 
 const ProjectHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -49,6 +46,9 @@ const ProjectHeader: React.FC = () => {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [joinForm] = Form.useForm();
   const [createForm] = Form.useForm();
+  const [user, setUser] = useState<any>(
+    JSON.parse(localStorage.getItem("user"))
+  );
   // 在组件内部使用useWatch监听表单值
   const isPublic = Form.useWatch("isPublic", createForm);
 
@@ -138,7 +138,7 @@ const ProjectHeader: React.FC = () => {
           overlayStyle={{ zIndex: 10 }}
           dropdownRender={() => (
             <div className={styles.searchDropdown}>
-              {searchResults.length > 0 ? (
+              {searchResults ? (
                 <List
                   dataSource={searchResults}
                   renderItem={(item) => (

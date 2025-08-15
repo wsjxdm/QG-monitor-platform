@@ -7,7 +7,7 @@ import {
   message,
   FloatButton,
 } from "antd";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./Layout.module.css";
 import {
   DownOutlined,
@@ -37,10 +37,9 @@ import {
   getPublicProjects,
 } from "../../api/service/projectoverview";
 import ChatDrawer from "../chat/ChatDrawer";
+import { eventBus } from "../../utils/event";
 
 const { Header, Sider, Content } = Layout;
-//从local storage获取用户信息
-const user = JSON.parse(localStorage.getItem("user"));
 const AppLayout = () => {
   const location = useLocation();
   //用来将outlet外层的div滚动回顶部
@@ -56,18 +55,57 @@ const AppLayout = () => {
   const [chatVisible, setChatVisible] = useState(false);
   const [showChatButton, setShowChatButton] = useState(false);
   const matches = useMatches();
+  const [user, setUser] = useState<any>(
+    JSON.parse(localStorage.getItem("user"))
+  );
+
+  const [projectRefreshToken, setProjectRefreshToken] = useState(0);
+
+  const refreshProjects = useCallback(() => {
+    setProjectRefreshToken((prev) => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const privateProject = await getPrivateProjects(user.id);
+        const publicProject = await getPublicProjects();
+        setPrivateProjects(privateProject.reverse());
+        setPublicProjects(publicProject.reverse());
+      } catch (error) {
+        message.error("获取项目列表失败");
+      }
+    };
+    fetchData();
+  }, [dispatch, user.id, projectRefreshToken]);
+
+  useEffect(() => {
+    const handleProjectChange = () => {
+      refreshProjects();
+    };
+
+    eventBus.on("projectListChanged", handleProjectChange);
+
+    return () => {
+      eventBus.off("projectListChanged", handleProjectChange);
+    };
+  }, [refreshProjects]);
 
   // ==== 页面刷新时重新获取用户信息存入redux===
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(user.id);
+        // console.log(user.id);
 
         dispatch(fetchUserInfo(user.id));
         const privateProject = await getPrivateProjects(user.id);
         const publicProject = await getPublicProjects();
-        setPrivateProjects(privateProject.reverse());
-        setPublicProjects(publicProject.reverse());
+        if (privateProject) {
+          setPrivateProjects(privateProject.reverse());
+        }
+        if (publicProject) {
+          setPublicProjects(publicProject.reverse());
+        }
       } catch (error) {
         message.error("获取项目列表失败");
       }
@@ -177,12 +215,13 @@ const AppLayout = () => {
       key: "all-projects",
       label: "所有项目",
       icon: <UnorderedListOutlined />,
-      children: privateProjects.map((project) => ({
-        key: `private-${project.uuid}`,
-        label: project.name,
-        icon: <ProjectOutlined />,
-      })),
-      // 使用 onTitleClick 处理分组标题点击
+      children: privateProjects?.length
+        ? privateProjects.map((project) => ({
+            key: `private-${project.uuid}`,
+            label: project.name,
+            icon: <ProjectOutlined />,
+          }))
+        : [],
       onTitleClick: () => {
         navigate("/main/project/all");
       },
@@ -191,13 +230,13 @@ const AppLayout = () => {
       key: "public-projects",
       label: "公开项目",
       icon: <GlobalOutlined />,
-      //模拟数据
-      children: publicProjects.map((project) => ({
-        key: `public-${project.uuid}`,
-        label: project.name,
-        icon: <ProjectOutlined />,
-      })),
-      // 使用 onTitleClick 处理分组标题点击
+      children: publicProjects?.length
+        ? publicProjects.map((project) => ({
+            key: `public-${project.uuid}`,
+            label: project.name,
+            icon: <ProjectOutlined />,
+          }))
+        : [],
       onTitleClick: () => {
         navigate("/main/project/public");
       },
