@@ -124,6 +124,10 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg1
                     label="确认手机号"
                     rules={[
                         { required: true, message: "请输入手机号" },
+                        {
+                            pattern: /^1[3-9]\d{9}$/,
+                            message: "请输入正确的手机号格式"
+                        }
                     ]}
                 >
                     <Input placeholder="手机号" />
