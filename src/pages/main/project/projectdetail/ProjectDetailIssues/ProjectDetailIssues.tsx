@@ -230,8 +230,10 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
         response = await getPlatformMobileTenAPI(projectId);
       }
 
-      setErrorCountData(response[0]);
-      setErrorRatioData(response[1]);
+      if (response) {
+        setErrorCountData(response[0]);
+        setErrorRatioData(response[1]);
+      }
     } catch (error) {
       console.error("获取数据失败:", error);
     } finally {
@@ -273,7 +275,7 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
     loading: loading,
   };
 
-  const hasData = errorCountData.length > 0 || errorRatioData.length > 0;
+  const hasData = errorCountData?.length > 0 || errorRatioData?.length > 0;
 
   return (
     <div>
