@@ -15,9 +15,10 @@ export interface UserInfo {
     user: {
         id: string | null;
         name: string | null;
-        avater: string | null;
+        avatar: string | null;
         email: string | null;
         createdAt: string | null;
+        phone: string | null;
     };
 }
 
@@ -27,9 +28,10 @@ const initialState: UserInfo = {
     user: {
         id: null,
         name: null,
-        avater: null,
+        avatar: null,
         email: null,
         createdAt: null,
+        phone: null,
     },
 };
 //解密私钥
@@ -75,7 +77,7 @@ export const updateUserInfo = createAsyncThunk(
                 response.data.encryptedKey,
                 privateKey
             );
-            console.log("更新后返回的数据", decryptedData);
+            console.log("这是dispatch更新后返回的用户信息(这里检查有没有返回头像)", decryptedData);
 
             return JSON.parse(decryptedData); // 假设更新成功返回的数据在 response.data 中
         } catch (error: any) {
@@ -116,8 +118,9 @@ export const userSlice = createSlice({
             state.user.id = action.payload.user.id;
             state.token = action.payload.token;
             state.user.name = action.payload.user.username;
-            state.user.avater = action.payload.user.avatar;
+            state.user.avatar = action.payload.user.avatar;
             state.user.createdAt = action.payload.user.createdTime;
+            state.user.phone = action.payload.user.phone;
 
             const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
                 state.token,
@@ -135,11 +138,8 @@ export const userSlice = createSlice({
             );
         },
         setAvatar: (state, action) => {
-            console.log("设置头像", action.payload);
-
-            state.user.avater = action.payload;
-            console.log("用户头像", state.user.avater);
-
+            state.user.avatar = action.payload;
+            console.log("使用了setAvatar后是否储存了呢", state.user.avatar);
         },
         // 清除用户信息（登出时使用）
         clearUser: (state, action) => {
@@ -161,14 +161,15 @@ export const userSlice = createSlice({
                     // 成功获取用户信息后更新 state
                     state.user.id = action.payload.id;
                     state.user.name = action.payload.username;
-                    console.log("name", state.user.name);
-
                     state.token = action.payload.token;
-                    state.user.avater = action.payload.avatar;
-                    console.log("avater", state.user.avater);
+                    console.log("这里是fetchUserInfo检查有没有正确传递action头像", state.user.avatar);
+
+                    state.user.avatar = action.payload.avatar;
+                    console.log("这里是fetchUserInfo检查redux有没有正确存储头像", state.user.avatar);
 
                     state.user.email = action.payload.email;
                     state.user.createdAt = action.payload.createdTime;
+                    state.user.phone = action.payload.phone;
                 }
             )
             .addCase(fetchUserInfo.rejected, (state, action) => {
@@ -178,9 +179,8 @@ export const userSlice = createSlice({
             })
             .addCase(updateUserInfo.fulfilled, (state, action) => {
                 state.user.name = action.payload.username;
-                console.log("更新", action.payload.username);
-
                 state.user.email = action.payload.email;
+                // state.user.avatar = action.payload.avatar;
             })
             .addCase(updateUserInfo.rejected, (state, action) => {
                 console.error("更新用户信息失败:", action.payload);

@@ -9,8 +9,8 @@ import { message } from "antd";
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",
-  // baseURL: "http://192.168.1.161:8080",
-  baseURL: "http://47.113.224.195:30422/api",
+  baseURL: "http://192.168.1.161:8080",
+  // baseURL: "http://47.113.224.195:30422/api",
   timeout: 100000,
   headers: {
     "Content-Type": "application/json",
@@ -22,8 +22,8 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 在发送请求之前带上token
     //这里应该使用对token进行加密
-    const token = JSON.parse(localStorage.getItem("user")).token;
-    const key = JSON.parse(localStorage.getItem("user")).key;
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    const key = JSON.parse(localStorage.getItem("user"))?.key;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

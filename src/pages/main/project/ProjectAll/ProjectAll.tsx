@@ -52,6 +52,7 @@ const ProjectAll: React.FC = () => {
 
   //接口获取私有项目列表
   useEffect(() => {
+    console.log("从localStorage获取用户信息", user);
     getPrivateProjects(user.id).then((res: any) => {
       // console.log("获取私有项目列表", res);
       if (res) {
