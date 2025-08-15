@@ -28,6 +28,8 @@ import { updateUserInfo } from "../../../store/slice/userSlice";
 import { updateUserAvatarAPI } from "../../../api/service/userService";
 import { setAvatar } from "../../../store/slice/userSlice";
 import { useSelector } from "react-redux";
+import { clearUser } from "../../../store/slice/userSlice";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
@@ -41,7 +43,7 @@ const SettingProfile: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState<string>(userData.avatar);
   const [formData, setFormData] = useState(null)
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
 
   useEffect(() => {
     setUserData(userInfo);
@@ -98,12 +100,11 @@ const SettingProfile: React.FC = () => {
     setAvatarUrl(userData.avatar); // 恢复头像
   };
 
-  // 注销账号
+  // 退出登录+
   const handleDeleteAccount = async () => {
-    // 调用注销API，传入用户id
-    await deleteUserAPI();
-    message.info("注销账号功能待实现");
-    // 这里可以添加实际的注销逻辑
+    dispatch(clearUser());
+    message.success("退出登录成功");
+    navigate("/");
   };
 
   // 处理头像上传
@@ -281,14 +282,14 @@ const SettingProfile: React.FC = () => {
 
             <div className={styles.rightActions}>
               <Popconfirm
-                title="确定要注销账号吗？"
-                description="注销后所有数据将被永久删除，无法恢复"
+                title="确定退出登录吗？"
+                // description="注销后所有数据将被永久删除，无法恢复"
                 onConfirm={handleDeleteAccount}
                 okText="确定"
                 cancelText="取消"
               >
                 <Button danger className={styles.deleteButton}>
-                  注销账号
+                  退出登录
                 </Button>
               </Popconfirm>
             </div>

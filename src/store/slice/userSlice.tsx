@@ -140,7 +140,7 @@ export const userSlice = createSlice({
             state.user.avatar = action.payload;
         },
         // 清除用户信息（登出时使用）
-        clearUser: (state) => {
+        clearUser: (state, action) => {
             state.user.id = null;
             state.token = null;
             localStorage.removeItem("user");
