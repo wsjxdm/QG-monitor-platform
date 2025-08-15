@@ -68,6 +68,8 @@ const SettingProfile: React.FC = () => {
         },
       }));
 
+      console.log("111");
+
       if (formData) {
         const response = await updateUserAvatarAPI(formData);
         if (response.code === 200) {
@@ -111,7 +113,8 @@ const SettingProfile: React.FC = () => {
       // 目前使用本地预览
       const formData = new FormData();
       formData.append('avatar', info.file.originFileObj);
-      formData.append('userId', 12);
+      const updateid = JSON.parse(localStorage.getItem("user")).id
+      formData.append('userId', updateid);
       setFormData(formData);
       if (info.file.originFileObj) {
         const reader = new FileReader();

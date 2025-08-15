@@ -1,7 +1,7 @@
 import {
-  createSlice,
-  createAsyncThunk,
-  type PayloadAction,
+    createSlice,
+    createAsyncThunk,
+    type PayloadAction,
 } from "@reduxjs/toolkit";
 import { getUserInfoAPI } from "../../api/service/userService";
 import { updateUserInfoAPI } from "../../api/service/userService";
@@ -11,26 +11,26 @@ import { decryptWithAESAndRSA } from "../../utils/encrypt";
 
 // 定义用户信息的类型
 export interface UserInfo {
-  token: string | null;
-  user: {
-    id: string | null;
-    name: string | null;
-    avater: string | null;
-    email: string | null;
-    createdAt: string | null;
-  };
+    token: string | null;
+    user: {
+        id: string | null;
+        name: string | null;
+        avater: string | null;
+        email: string | null;
+        createdAt: string | null;
+    };
 }
 
 // 定义初始状态
 const initialState: UserInfo = {
-  token: null,
-  user: {
-    id: null,
-    name: null,
-    avater: null,
-    email: null,
-    createdAt: null,
-  },
+    token: null,
+    user: {
+        id: null,
+        name: null,
+        avater: null,
+        email: null,
+        createdAt: null,
+    },
 };
 //解密私钥
 const privateKey = `-----BEGIN PRIVATE KEY-----
@@ -39,66 +39,66 @@ MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1AZj7Ik201dBfzZ9eP3rJCsdt9Hy7
 
 // 异步获取用户信息的 thunk
 export const fetchUserInfo = createAsyncThunk(
-  "user/fetchUserInfo",
-  async (userId: number) => {
-    try {
-      // 调用 API 获取用户信息
-      const response = await getUserInfoAPI(userId);
-      const decryptedData = decryptWithAESAndRSA(
-        response.data.encryptedData,
-        response.data.encryptedKey,
-        privateKey
-      );
-      console.log("解密的数据", decryptedData);
+    "user/fetchUserInfo",
+    async (userId: number) => {
+        try {
+            // 调用 API 获取用户信息
+            const response = await getUserInfoAPI(userId);
+            const decryptedData = decryptWithAESAndRSA(
+                response.data.encryptedData,
+                response.data.encryptedKey,
+                privateKey
+            );
+            console.log("解密的数据", decryptedData);
 
-      return JSON.parse(decryptedData); // 假设用户数据在 response.data 中
-    } catch (error: any) {
-      // 处理错误情况
-      throw error;
+            return JSON.parse(decryptedData); // 假设用户数据在 response.data 中
+        } catch (error: any) {
+            // 处理错误情况
+            throw error;
+        }
     }
-  }
 );
 
 //更新用户信息的thunk
 export const updateUserInfo = createAsyncThunk(
-  "user/updateUserInfo",
-  async (userData: any) => {
-    try {
-      const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
-        JSON.stringify(userData),
-        publicKey
-      );
-      // 发送更新用户信息请求
-      const response = await updateUserInfoAPI(encryptedData, encryptedKey);
-      const decryptedData = decryptWithAESAndRSA(
-        response.data.encryptedData,
-        response.data.encryptedKey,
-        privateKey
-      );
-      console.log("更新后返回的数据", decryptedData);
+    "user/updateUserInfo",
+    async (userData: any) => {
+        try {
+            const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
+                JSON.stringify(userData),
+                publicKey
+            );
+            // 发送更新用户信息请求
+            const response = await updateUserInfoAPI(encryptedData, encryptedKey);
+            const decryptedData = decryptWithAESAndRSA(
+                response.data.encryptedData,
+                response.data.encryptedKey,
+                privateKey
+            );
+            console.log("更新后返回的数据", decryptedData);
 
-      return JSON.parse(decryptedData); // 假设更新成功返回的数据在 response.data 中
-    } catch (error: any) {
-      // 处理错误情况
-      throw error;
+            return JSON.parse(decryptedData); // 假设更新成功返回的数据在 response.data 中
+        } catch (error: any) {
+            // 处理错误情况
+            throw error;
+        }
     }
-  }
 );
 
 export const updateUserAvatar = createAsyncThunk(
-  "user/updateUserAvatar",
-  async (avatar: string) => {
-    try {
-      // 创建用户数据对象
-      const userData = {
-        avatar: avatar,
-      };
-      // 获取用户信息
-      const response = await updateUserAvatarAPI(userData);
+    "user/updateUserAvatar",
+    async (avatar: string) => {
+        try {
+            // 创建用户数据对象
+            const userData = {
+                avatar: avatar,
+            };
+            // 获取用户信息
+            const response = await updateUserAvatarAPI(userData);
 
-      return response; // 假设更新成功返回的数据在 response.data 中
-    } catch (error: any) {}
-  }
+            return response; // 假设更新成功返回的数据在 response.data 中
+        } catch (error: any) { }
+    }
 );
 
 //加密token的公钥
@@ -108,85 +108,85 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg1
 
 // 创建 slice
 export const userSlice = createSlice({
-  name: "user",
-  initialState,
-  reducers: {
-    // 设置用户信息
-    setUser: (state, action: PayloadAction<UserInfo>) => {
-      state.user.id = action.payload.user.id;
-      state.token = action.payload.token;
-      state.user.name = action.payload.user.username;
-      state.user.avater = action.payload.user.avatar;
-      state.user.createdAt = action.payload.user.createdTime;
+    name: "user",
+    initialState,
+    reducers: {
+        // 设置用户信息
+        setUser: (state, action: PayloadAction<UserInfo>) => {
+            state.user.id = action.payload.user.id;
+            state.token = action.payload.token;
+            state.user.name = action.payload.user.username;
+            state.user.avater = action.payload.user.avatar;
+            state.user.createdAt = action.payload.user.createdTime;
 
-      const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
-        state.token,
-        publicKey
-      );
-      console.log("登录成功后获取的id", action.payload.user.id);
+            const { encryptedData, encryptedKey } = encryptWithAESAndRSA(
+                state.token,
+                publicKey
+            );
+            console.log("登录成功后获取的id", action.payload.user.id);
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: action.payload.user.id,
-          token: encryptedData,
-          key: encryptedKey,
-        })
-      );
+            localStorage.setItem(
+                "user",
+                JSON.stringify({
+                    id: action.payload.user.id,
+                    token: encryptedData,
+                    key: encryptedKey,
+                })
+            );
+        },
+        setAvatar: (state, action) => {
+            console.log("设置头像", action.payload);
+
+            state.user.avatar = action.payload;
+        },
+        // 清除用户信息（登出时使用）
+        clearUser: (state) => {
+            state.user.id = null;
+            state.token = null;
+            localStorage.removeItem("user");
+        },
     },
-    setAvatar: (state, action) => {
-      console.log("设置头像", action.payload);
+    extraReducers: (builder) => {
+        builder
+            // 处理获取用户信息的异步操作
+            .addCase(fetchUserInfo.pending, (state) => {
+                // 可以在这里设置加载状态（如果需要的话）
+                console.log("正在获取用户信息...");
+            })
+            .addCase(
+                fetchUserInfo.fulfilled,
+                (state, action: PayloadAction<UserInfo>) => {
+                    // 成功获取用户信息后更新 state
+                    state.user.id = action.payload.id;
+                    state.user.name = action.payload.username;
+                    console.log("name", state.user.name);
 
-      state.user.avatar = action.payload;
+                    state.token = action.payload.token;
+                    state.user.avater = action.payload.avatar;
+                    console.log("avater", state.user.avater);
+
+                    state.user.email = action.payload.email;
+                    state.user.createdAt = action.payload.createdTime;
+                }
+            )
+            .addCase(fetchUserInfo.rejected, (state, action) => {
+                // 处理获取用户信息失败的情况
+                console.error("获取用户信息失败:", action.payload);
+                // 可以根据需要添加错误处理逻辑
+            })
+            .addCase(updateUserInfo.fulfilled, (state, action) => {
+                state.user.name = action.payload.username;
+                console.log("更新", action.payload.username);
+
+                state.user.email = action.payload.email;
+            })
+            .addCase(updateUserInfo.rejected, (state, action) => {
+                console.error("更新用户信息失败:", action.payload);
+            })
+            .addCase(updateUserInfo.pending, (state) => {
+                console.log("正在更新用户信息...");
+            });
     },
-    // 清除用户信息（登出时使用）
-    clearUser: (state) => {
-      state.user.id = null;
-      state.token = null;
-      localStorage.removeItem("user");
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      // 处理获取用户信息的异步操作
-      .addCase(fetchUserInfo.pending, (state) => {
-        // 可以在这里设置加载状态（如果需要的话）
-        console.log("正在获取用户信息...");
-      })
-      .addCase(
-        fetchUserInfo.fulfilled,
-        (state, action: PayloadAction<UserInfo>) => {
-          // 成功获取用户信息后更新 state
-          state.user.id = action.payload.id;
-          state.user.name = action.payload.username;
-          console.log("name", state.user.name);
-
-          state.token = action.payload.token;
-          state.user.avater = action.payload.avatar;
-          console.log("avater", state.user.avater);
-
-          state.user.email = action.payload.email;
-          state.user.createdAt = action.payload.createdTime;
-        }
-      )
-      .addCase(fetchUserInfo.rejected, (state, action) => {
-        // 处理获取用户信息失败的情况
-        console.error("获取用户信息失败:", action.payload);
-        // 可以根据需要添加错误处理逻辑
-      })
-      .addCase(updateUserInfo.fulfilled, (state, action) => {
-        state.user.name = action.payload.username;
-        console.log("更新", action.payload.username);
-
-        state.user.email = action.payload.email;
-      })
-      .addCase(updateUserInfo.rejected, (state, action) => {
-        console.error("更新用户信息失败:", action.payload);
-      })
-      .addCase(updateUserInfo.pending, (state) => {
-        console.log("正在更新用户信息...");
-      });
-  },
 });
 
 // 导出 actions
