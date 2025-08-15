@@ -8,7 +8,9 @@ import { useSelector } from 'react-redux';
 const MessageTask: React.FC = () => {
 
   //从redux获取id
-  const currentUser = useSelector((state: any) => state.user);
+  const currentUser = useSelector((state: any) => state.user.user);
+  console.log("currentUser", currentUser);
+
   const currentUserId = currentUser?.id;
   const renderAvatar = (item: any) => (
     <Avatar src={item.avatar} />
