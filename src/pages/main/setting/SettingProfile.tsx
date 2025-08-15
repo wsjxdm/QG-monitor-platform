@@ -39,7 +39,7 @@ const SettingProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
   const userInfo = useSelector((state) => state.user.user);
-  const [userData, setUserData] = useState(userInfo);
+  const [userData, setUserData] = useState({});
   const [avatarUrl, setAvatarUrl] = useState<string>(userData.avatar);
   const [formData, setFormData] = useState(null)
   const dispatch = useDispatch();
@@ -47,12 +47,12 @@ const SettingProfile: React.FC = () => {
 
   useEffect(() => {
     setUserData(userInfo);
-    console.log("更新完头像", userData.avatar);
-
     setAvatarUrl(userData.avatar);
   }, [userInfo]);
 
-
+  useEffect(() => {
+    setAvatarUrl(userData.avatar);
+  }, [userData]);
 
   // 开始编辑
   const handleEdit = () => {
@@ -76,11 +76,11 @@ const SettingProfile: React.FC = () => {
 
       if (formData) {
         const response = await updateUserAvatarAPI(formData);
-        if (response.code === 200) {
-          console.log("把返回的头像地址保存到store中");
-          console.log("检查头像", response.data);
+        console.log("这里是updateUserAvatarAPI更新头像的返回头像链接", response.data);
 
+        if (response.code === 200) {
           dispatch(setAvatar(response.data));
+          console.log("使用dispatch后检查redux是否储存了头像", userInfo);
           message.success("修改头像成功");
         }
         else {
@@ -186,6 +186,23 @@ const SettingProfile: React.FC = () => {
                     <Input prefix={<MailOutlined />} placeholder="请输入邮箱" />
                   ) : (
                     <Text className={styles.infoText}>{userData.email}</Text>
+                  )}
+                </Form.Item>
+
+                {/* 手机 */}
+                <Form.Item
+                  label="手机"
+                  name="phone"
+                  // rules={[
+                  //   { required: true, message: "请输入手机号" },
+                  //   { type: "phone", message: "请输入有效的手机号地址" },
+                  // ]}
+                  className={styles.formItem}
+                >
+                  {isEditing ? (
+                    <Input prefix={<MailOutlined />} placeholder="请输入手机号" />
+                  ) : (
+                    <Text className={styles.infoText}>{userData.phone}</Text>
                   )}
                 </Form.Item>
 
