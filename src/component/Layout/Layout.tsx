@@ -61,7 +61,7 @@ const AppLayout = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(user.id);
+        console.log('使用这个id去获取用户信息', user.id);
 
         dispatch(fetchUserInfo(user.id));
         const privateProject = await getPrivateProjects(user.id);

@@ -26,7 +26,7 @@ import { deleteUserAPI } from "../../../api/service/userService";
 import { useDispatch } from "react-redux";
 import { updateUserInfo } from "../../../store/slice/userSlice";
 import { updateUserAvatarAPI } from "../../../api/service/userService";
-import { setAvater } from "../../../store/slice/userSlice";
+import { setAvatar } from "../../../store/slice/userSlice";
 import { useSelector } from "react-redux";
 
 const { Title, Text } = Typography;
@@ -46,6 +46,7 @@ const SettingProfile: React.FC = () => {
   useEffect(() => {
     setUserData(userInfo);
   }, [userInfo]);
+
 
 
   // 开始编辑
@@ -70,7 +71,10 @@ const SettingProfile: React.FC = () => {
       if (formData) {
         const response = await updateUserAvatarAPI(formData);
         if (response.code === 200) {
-          dispatch(setAvater(response.data));
+          console.log("把返回的头像地址保存到store中");
+          console.log("检查头像", response.data);
+
+          dispatch(setAvatar(response.data));
           message.success("修改头像成功");
         }
         else {

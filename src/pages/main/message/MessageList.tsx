@@ -65,7 +65,7 @@ const MessageList: React.FC<MessageListProps> = ({
             setLoading(false);
         };
         fetchMessages();
-    }, [ischange]);
+    }, [ischange, receiverId]);
 
     useEffect(() => {
         if (Object.keys(notification).length === 0) return;
@@ -84,7 +84,7 @@ const MessageList: React.FC<MessageListProps> = ({
     );
 
     //点击了标记已读
-    const handleClick = (errorId: number, platform: string, projectId: number, errorType: string, e: React.MouseEvent) => {
+    const handleClick = (errorId: number, platform: string, projectId: number, errorType: string, e: React.MouseEvent, id: number) => {
         e.stopPropagation();
         if (e.target.textContent !== "删除消息") {
             setMessages(prevMessages =>
@@ -95,7 +95,7 @@ const MessageList: React.FC<MessageListProps> = ({
 
             const updateStatus = async () => {
                 try {
-                    await updateStatusAPI(errorId);
+                    await updateStatusAPI(id);
                 } catch (error) {
                     console.error('更新消息状态失败:', error);
                 }
@@ -125,11 +125,11 @@ const MessageList: React.FC<MessageListProps> = ({
     }
 
     //删除单条消息
-    const handleClearSingle = async (errorId: number, e: React.MouseEvent) => {
+    const handleClearSingle = async (id: number, e: React.MouseEvent) => {
         e.stopPropagation(); // 阻止事件冒泡
-        const response = await deleteByIdAPI(errorId);
+        const response = await deleteByIdAPI(id);
         if (response.code === 200) {
-            setMessages(messages.filter((message) => message.errorId !== errorId));
+            setMessages(messages.filter((message) => message.id !== id));
         } else {
             console.error("删除消息失败");
         }
@@ -167,8 +167,7 @@ const MessageList: React.FC<MessageListProps> = ({
                     renderItem={(item) => (
                         <List.Item
                             className={`${styles['list-item']} ${item.isRead ? styles['read'] : styles['unread']}`}
-                            onClick={(e) => handleClick(item.errorId, item.errorType, item.projectId, item.platform, e)}
-
+                            onClick={(e) => handleClick(item.errorId, item.errorType, item.projectId, item.platform, e, item.id)}
                         >
                             <List.Item.Meta
                                 avatar={renderAvatar ? renderAvatar(item) : defaultAvatar}
@@ -177,6 +176,11 @@ const MessageList: React.FC<MessageListProps> = ({
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             {!item.isRead && <div className={styles['unread-dot']} />}
                                             <Text className={styles['project-name']}>{item.projectName}</Text>
+                                            {item.responsibleName && (
+                                                <Text type="secondary" className={styles['response-info']}>
+                                                    负责人：{item.responsibleName}
+                                                </Text>
+                                            )}
                                         </div>
                                         <Text type="secondary" className={styles.time}>
                                             {moment(item.timestamp).fromNow()}
@@ -195,7 +199,8 @@ const MessageList: React.FC<MessageListProps> = ({
                                             className={styles['error-message']}
                                             style={{ fontWeight: item.isRead ? 'normal' : 'bold' }}
                                         >
-                                            {item.errorType}
+
+                                            {item.responsibleName ? '错误未解决:' : '警报:'}{item.errorType}
                                         </Text>
                                         <div className={styles['additional-info']}>
                                             <Text type="secondary" className={styles['additional-time']}>
@@ -203,7 +208,7 @@ const MessageList: React.FC<MessageListProps> = ({
                                             </Text>
                                             <Popconfirm
                                                 title="确定要删除这条消息吗？"
-                                                onConfirm={(e) => handleClearSingle(item.errorId, e)}
+                                                onConfirm={(e) => handleClearSingle(item.id, e)}
                                                 okText="确定"
                                                 cancelText="取消"
                                             >

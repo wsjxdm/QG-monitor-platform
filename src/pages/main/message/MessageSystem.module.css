@@ -79,6 +79,11 @@
     margin-right: 8px;
 }
 
+
+.response-info {
+    font-size: 10px;
+}
+
 /* 已读/未读项目名称样式 */
 .project-name {
     font-weight: 600;
