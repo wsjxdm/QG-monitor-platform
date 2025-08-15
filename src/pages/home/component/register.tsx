@@ -105,6 +105,10 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg1
                     rules={[
                         { required: true, message: "请输入密码" },
                         { min: 6, message: "密码至少6个字符!" },
+                        {
+                            pattern: /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/,
+                            message: "密码只能包含字母、数字和特殊符号"
+                        }
                     ]}
                 >
                     <Input.Password placeholder="请输入密码" />
@@ -115,6 +119,10 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsQBfHrU7NYVB8l0kmD79ayRbS2Nmu0gOKIg1
                     rules={[
                         { required: true, message: "请输入确认密码" },
                         { min: 6, message: "密码至少6个字符!" },
+                        {
+                            pattern: /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/,
+                            message: "密码只能包含字母、数字和特殊符号"
+                        }
                     ]}
                 >
                     <Input.Password placeholder="请输入确认密码" />
