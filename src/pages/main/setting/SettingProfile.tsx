@@ -47,6 +47,8 @@ const SettingProfile: React.FC = () => {
 
   useEffect(() => {
     setUserData(userInfo);
+    console.log("更新完头像", userData.avatar);
+
     setAvatarUrl(userData.avatar);
   }, [userInfo]);
 
@@ -71,7 +73,6 @@ const SettingProfile: React.FC = () => {
         },
       }));
 
-      console.log("111");
 
       if (formData) {
         const response = await updateUserAvatarAPI(formData);
@@ -219,7 +220,7 @@ const SettingProfile: React.FC = () => {
                   <Avatar
                     size={100}
                     icon={<UserOutlined />}
-                    src={avatarUrl || undefined}
+                    src={avatarUrl}
                     className={styles.avatar}
                   />
                 </Upload>
