@@ -33,21 +33,20 @@ import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
-
-
 const SettingProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
   const userInfo = useSelector((state) => state.user.user);
   const [userData, setUserData] = useState({});
   const [avatarUrl, setAvatarUrl] = useState<string>(userData.avatar);
-  const [formData, setFormData] = useState(null)
+  const [formData, setFormData] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   useEffect(() => {
     setUserData(userInfo);
     setAvatarUrl(userData.avatar);
+    console.log("[头像更新] >", userData.avatar);
   }, [userInfo]);
 
   useEffect(() => {
@@ -65,25 +64,28 @@ const SettingProfile: React.FC = () => {
     try {
       const values = await form.validateFields();
       // await updateUserAPI(values);
-      dispatch(updateUserInfo({
-        user: {
-          id: userInfo.id,
-          username: values.name,
-          email: values.email,
-        },
-      }));
-
+      dispatch(
+        updateUserInfo({
+          user: {
+            id: userInfo.id,
+            username: values.name,
+            email: values.email,
+          },
+        })
+      );
 
       if (formData) {
         const response = await updateUserAvatarAPI(formData);
-        console.log("这里是updateUserAvatarAPI更新头像的返回头像链接", response.data);
+        console.log(
+          "这里是updateUserAvatarAPI更新头像的返回头像链接",
+          response.data
+        );
 
         if (response.code === 200) {
           dispatch(setAvatar(response.data));
           console.log("使用dispatch后检查redux是否储存了头像", userInfo);
           message.success("修改头像成功");
-        }
-        else {
+        } else {
           message.error("修改头像失败");
         }
       }
@@ -115,9 +117,9 @@ const SettingProfile: React.FC = () => {
       // 这里应该上传到服务器并获取返回的URL
       // 目前使用本地预览
       const formData = new FormData();
-      formData.append('avatar', info.file.originFileObj);
-      const updateid = JSON.parse(localStorage.getItem("user")).id
-      formData.append('userId', updateid);
+      formData.append("avatar", info.file.originFileObj);
+      const updateid = JSON.parse(localStorage.getItem("user")).id;
+      formData.append("userId", updateid);
       setFormData(formData);
       if (info.file.originFileObj) {
         const reader = new FileReader();
@@ -200,7 +202,10 @@ const SettingProfile: React.FC = () => {
                   className={styles.formItem}
                 >
                   {isEditing ? (
-                    <Input prefix={<MailOutlined />} placeholder="请输入手机号" />
+                    <Input
+                      prefix={<MailOutlined />}
+                      placeholder="请输入手机号"
+                    />
                   ) : (
                     <Text className={styles.infoText}>{userData.phone}</Text>
                   )}

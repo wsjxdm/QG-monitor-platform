@@ -230,8 +230,10 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
         response = await getPlatformMobileTenAPI(projectId);
       }
 
-      setErrorCountData(response[0]);
-      setErrorRatioData(response[1]);
+      if (response) {
+        setErrorCountData(response[0]);
+        setErrorRatioData(response[1]);
+      }
     } catch (error) {
       console.error("获取数据失败:", error);
     } finally {
@@ -273,7 +275,7 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
     loading: loading,
   };
 
-  const hasData = errorCountData.length > 0 || errorRatioData.length > 0;
+  const hasData = errorCountData?.length > 0 || errorRatioData?.length > 0;
 
   return (
     <div>
@@ -546,19 +548,6 @@ const ProjectDetailIssues: React.FC = () => {
         { label: "移动", value: "mobile" },
       ],
     },
-    // {
-    //   key: "moduleId",
-    //   label: "模块名称",
-    //   type: "select" as const,
-    //   options: [
-    //     //todo 这里的模块名称需要从后端获取
-    //     { label: "模块1", value: 1 },
-    //     { label: "模块2", value: 2 },
-    //     { label: "模块3", value: 3 },
-    //     { label: "模块4", value: 4 },
-    //     { label: "模块5", value: 5 },
-    //   ],
-    // },
   ];
 
   useEffect(() => {
@@ -581,7 +570,8 @@ const ProjectDetailIssues: React.FC = () => {
     errorId: string | number,
     responsibleId: string | number,
     delegatorId: string | number,
-    platform: string
+    platform: string,
+    errorType: string
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
@@ -602,7 +592,7 @@ const ProjectDetailIssues: React.FC = () => {
       // 更新本地数据而不重新获取
       setData((prevData) =>
         prevData.map((item) =>
-          item.id == errorId
+          item.errorType == errorType
             ? {
                 ...item,
                 delegatorId: delegatorId,
@@ -637,7 +627,13 @@ const ProjectDetailIssues: React.FC = () => {
     const menuProps = {
       items: menuItems,
       onClick: ({ key }: { key: string }) => {
-        handleAssignError(record.id, key, currentUser.id, record.platform);
+        handleAssignError(
+          record.id,
+          key,
+          currentUser.id,
+          record.platform,
+          record.errorType
+        );
       },
     };
 
@@ -806,11 +802,6 @@ const ProjectDetailIssues: React.FC = () => {
           };
         });
       }
-      // console.log("获取错误数据", [
-      //   ...updataArry1,
-      //   ...updataArry2,
-      //   ...updataArry3,
-      // ]);
       setData([...updataArry1, ...updataArry2, ...updataArry3]);
     } catch (error) {
       console.error("获取错误数据失败:", error);
@@ -847,33 +838,33 @@ const ProjectDetailIssues: React.FC = () => {
   };
 
   // 自定义渲染表格，添加横向滚动和固定列支持
-  const renderCustomTable = () => {
-    return (
-      <div style={{ width: "100%", overflowX: "auto" }}>
-        <Table
-          dataSource={data}
-          columns={columns}
-          loading={loading}
-          pagination={{
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 条数据`,
-          }}
-          scroll={{ x: "max-content" }}
-          onRow={(record) => ({
-            onClick: () => {
-              goToErrorDetail(
-                record.id as number,
-                record.platform,
-                record.errorType || null
-              );
-            },
-          })}
-          rowKey="id"
-        />
-      </div>
-    );
-  };
+  // const renderCustomTable = () => {
+  //   return (
+  //     <div style={{ width: "100%", overflowX: "auto" }}>
+  //       <Table
+  //         dataSource={data}
+  //         columns={columns}
+  //         loading={loading}
+  //         pagination={{
+  //           showSizeChanger: true,
+  //           showQuickJumper: true,
+  //           showTotal: (total) => `共 ${total} 条数据`,
+  //         }}
+  //         scroll={{ x: "max-content" }}
+  //         onRow={(record) => ({
+  //           onClick: () => {
+  //             goToErrorDetail(
+  //               record.id as number,
+  //               record.platform,
+  //               record.errorType || null
+  //             );
+  //           },
+  //         })}
+  //         rowKey="id"
+  //       />
+  //     </div>
+  //   );
+  // };
 
   return (
     <div>

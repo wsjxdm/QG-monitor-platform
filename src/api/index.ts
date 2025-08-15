@@ -22,13 +22,13 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 在发送请求之前带上token
     //这里应该使用对token进行加密
-    // const token = JSON.parse(localStorage.getItem("user")).token;
-    // const key = JSON.parse(localStorage.getItem("user")).key;
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    const key = JSON.parse(localStorage.getItem("user"))?.key;
 
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    //   config.headers.RSAKey = `${key}`;
-    // }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.RSAKey = `${key}`;
+    }
     return config;
   },
   (error) => {

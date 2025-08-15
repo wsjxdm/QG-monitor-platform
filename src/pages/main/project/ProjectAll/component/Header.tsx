@@ -25,6 +25,7 @@ import {
   createProject,
 } from "../../../../../api/service/projectheader";
 import { useNavigate } from "react-router-dom";
+import { eventBus } from "../../../../../utils/event";
 
 const { Search } = Input;
 const { Text, Title } = Typography;
@@ -113,6 +114,8 @@ const ProjectHeader: React.FC = () => {
       message.success("项目创建成功");
       setIsCreateModalVisible(false);
       createForm.resetFields();
+
+      eventBus.emit("projectListChanged");
       navigate(`/main/project/${uuid}/detail/overview`, {
         state: { isNew: true }, // 表示这是新创建的项目
       });
