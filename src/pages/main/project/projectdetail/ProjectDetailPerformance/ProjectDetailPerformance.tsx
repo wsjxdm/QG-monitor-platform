@@ -79,7 +79,7 @@ interface MobilePerformance {
   id: number | string;
   timestamp: string | number | Date;
   projectId: string | number;
-  deviceModule?: string;
+  deviceModel?: string;
   osVersion?: string;
   batteryLevel?: number;
   memoryUsage?: { usedMemory: string | number; totalMemory: string | number };
@@ -268,7 +268,7 @@ const ProjectDetailPerformance: React.FC = () => {
     React.Key[]
   >([]);
   const [backendFilters, setBackendFilters] = useState({
-    moduleName: "",
+    api: "",
   });
 
   // 前端性能数据状态
@@ -386,83 +386,6 @@ const ProjectDetailPerformance: React.FC = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<
     "frontend" | "backend" | "mobile"
   >("frontend");
-
-  // 获取FP/FCP数据
-  // const fetchFpData = async (timeType: string) => {
-  //   setFpLoading(true);
-  //   try {
-  //     const endTime = new Date();
-  //     const startTime = new Date();
-
-  //     switch (timeType) {
-  //       case "day":
-  //         startTime.setDate(startTime.getDate() - 1);
-  //         break;
-  //       case "week":
-  //         startTime.setDate(startTime.getDate() - 7);
-  //         break;
-  //       case "month":
-  //         startTime.setDate(startTime.getDate() - 30);
-  //         break;
-  //       default:
-  //         startTime.setDate(startTime.getDate() - 7);
-  //     }
-
-  //     // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
-  //     const formatTime = (date: Date) => {
-  //       return date.toISOString().replace("T", " ").substring(0, 19);
-  //     };
-
-  //     const startTimeStr = formatTime(startTime);
-  //     const endTimeStr = formatTime(endTime);
-  //     const response = await getFpDataAPI(projectId, startTimeStr, endTimeStr);
-
-  //     // let mockData;
-  //     // switch (timeType) {
-  //     //   case "day":
-  //     //     mockData = [
-  //     //       { page: "首页", lcp: 800, fcp: 1000, dom: 900, load: 1100 },
-  //     //       { page: "商品详情页", lcp: 900, fcp: 1200, dom: 1000, load: 1300 },
-  //     //       { page: "购物车", lcp: 500, fcp: 700, dom: 600, load: 800 },
-  //     //     ];
-  //     //     break;
-  //     //   case "week":
-  //     //     mockData = [
-  //     //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
-  //     //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
-  //     //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
-  //     //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
-  //     //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
-  //     //     ];
-  //     //     break;
-  //     //   case "month":
-  //     //     mockData = [
-  //     //       { page: "首页", lcp: 1500, fcp: 1800, dom: 1600, load: 1900 },
-  //     //       { page: "商品详情页", lcp: 1300, fcp: 1900, dom: 1700, load: 2100 },
-  //     //       { page: "购物车", lcp: 800, fcp: 1100, dom: 900, load: 1200 },
-  //     //       { page: "订单页", lcp: 1100, fcp: 1500, dom: 1300, load: 1700 },
-  //     //       { page: "个人中心", lcp: 900, fcp: 1200, dom: 1000, load: 1400 },
-  //     //       { page: "搜索页", lcp: 700, fcp: 900, dom: 800, load: 1000 },
-  //     //     ];
-  //     //     break;
-  //     //   default:
-  //     //     mockData = [
-  //     //       { page: "首页", lcp: 1200, fcp: 1500, dom: 1300, load: 1600 },
-  //     //       { page: "商品详情页", lcp: 1000, fcp: 1600, dom: 1400, load: 1800 },
-  //     //       { page: "购物车", lcp: 600, fcp: 900, dom: 800, load: 1000 },
-  //     //       { page: "订单页", lcp: 900, fcp: 1300, dom: 1100, load: 1500 },
-  //     //       { page: "个人中心", lcp: 700, fcp: 1000, dom: 900, load: 1200 },
-  //     //     ];
-  //     // }
-
-  //     setFpData(response);
-  //   } catch (error) {
-  //     console.error("获取FP/FCP数据失败:", error);
-  //     setFpData([]);
-  //   } finally {
-  //     setFpLoading(false);
-  //   }
-  // };
 
   // 更新筛选器的onChange处理函数，确保同时更新时间和平台
   const handleApiTimeChange = (value: string) => {
@@ -721,11 +644,11 @@ const ProjectDetailPerformance: React.FC = () => {
     },
     {
       title: "设备型号",
-      dataIndex: "deviceModule",
-      key: "deviceModule",
+      dataIndex: "deviceModel",
+      key: "deviceModel",
       width: 150,
-      render: (deviceModule?: string) =>
-        deviceModule ? <Text>{deviceModule}</Text> : null,
+      render: (deviceModel?: string) =>
+        deviceModel ? <Text>{deviceModel}</Text> : null,
     },
     {
       title: "系统版本",
@@ -962,10 +885,10 @@ const ProjectDetailPerformance: React.FC = () => {
               <Text strong>项目ID: </Text>
               <Text>{record.projectId}</Text>
             </Col>
-            {record.deviceModule && (
+            {record.deviceModel && (
               <Col span={8}>
                 <Text strong>设备型号: </Text>
-                <Text>{record.deviceModule}</Text>
+                <Text>{record.deviceModel}</Text>
               </Col>
             )}
             {record.osVersion && (
@@ -1209,10 +1132,10 @@ const ProjectDetailPerformance: React.FC = () => {
                   <Text>搜索:</Text>
                   <Input
                     style={{ width: 200 }}
-                    placeholder="搜索API或模块"
-                    value={backendFilters.moduleName}
+                    placeholder="搜索API"
+                    value={backendFilters.api}
                     onChange={(e) =>
-                      handleBackendFilterChange("moduleName", e.target.value)
+                      handleBackendFilterChange("api", e.target.value)
                     }
                     allowClear
                     size="small"
@@ -1266,7 +1189,7 @@ const ProjectDetailPerformance: React.FC = () => {
             }}
           >
             <Row gutter={16} align="middle">
-              <Col>
+              <Col flex="auto">
                 <Space>
                   <Text>类型:</Text>
                   <Select
@@ -1284,22 +1207,6 @@ const ProjectDetailPerformance: React.FC = () => {
                   </Select>
                 </Space>
               </Col>
-
-              {/* <Col flex="auto">
-                <Space>
-                  <Text>搜索:</Text>
-                  <Input
-                    style={{ width: 200 }}
-                    placeholder="搜索类型或用户代理"
-                    value={frontendFilters.search}
-                    onChange={(e) =>
-                      handleFrontendFilterChange("search", e.target.value)
-                    }
-                    allowClear
-                    size="small"
-                  />
-                </Space>
-              </Col> */}
 
               <Col>
                 <Button
@@ -1346,32 +1253,12 @@ const ProjectDetailPerformance: React.FC = () => {
             }}
           >
             <Row gutter={16} align="middle">
-              {/* <Col>
-                <Space>
-                  <Text>设备:</Text>
-                  <Select
-                    style={{ width: 150 }}
-                    placeholder="全部设备"
-                    value={mobileFilters.deviceModule || undefined}
-                    onChange={(value) =>
-                      handleMobileFilterChange("deviceModule", value)
-                    }
-                    allowClear
-                    size="small"
-                  >
-                    <Option value="Device-1">Device-1</Option>
-                    <Option value="Device-2">Device-2</Option>
-                    <Option value="Device-3">Device-3</Option>
-                  </Select>
-                </Space>
-              </Col> */}
-
               <Col flex="auto">
                 <Space>
                   <Text>搜索:</Text>
                   <Input
                     style={{ width: 200 }}
-                    placeholder="搜索设备或系统版本"
+                    placeholder="搜索系统版本"
                     value={mobileFilters.osVersion}
                     onChange={(e) =>
                       handleMobileFilterChange("osVersion", e.target.value)

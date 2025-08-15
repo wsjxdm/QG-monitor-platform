@@ -222,6 +222,9 @@ const ProjectDetailOverview: React.FC = () => {
     if (deleteConfirmText.trim() === projectData.name.trim()) {
       try {
         await deleteProjectAPI(projectId);
+
+        eventBus.emit("projectListChanged", projectId);
+
         message.success("项目删除成功");
         navigate("/main/project/all");
       } catch (error) {
