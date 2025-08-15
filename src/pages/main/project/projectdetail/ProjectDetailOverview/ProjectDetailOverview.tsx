@@ -222,6 +222,9 @@ const ProjectDetailOverview: React.FC = () => {
     if (deleteConfirmText.trim() === projectData.name.trim()) {
       try {
         await deleteProjectAPI(projectId);
+
+        eventBus.emit("projectListChanged", projectId);
+
         message.success("项目删除成功");
         navigate("/main/project/all");
       } catch (error) {
@@ -407,39 +410,30 @@ const ProjectDetailOverview: React.FC = () => {
   // 渲染成员网格
   const renderMemberGrid = (members: any[], title: string, role: number) => {
     if (members.length === 0) return null;
-    // console.log("成员网格:", members);
+
     return (
       <div key={role} style={{ marginBottom: "20px" }}>
-        <Title level={5} style={{ marginBottom: "10px" }}>
-          {title}
-        </Title>
-        <Row gutter={[8, 8]}>
+        <div className={styles.memberGrid}>
           {members.map((member) => (
-            <Col key={member.id} xs={6} sm={4} md={3} lg={3}>
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "10px",
-                  borderRadius: "4px",
-                  cursor: role !== 2 ? "pointer" : "default",
-                  position: "relative",
-                }}
-                onContextMenu={(e) => handleMemberContextMenu(member, e)}
-              >
-                <Badge>
-                  <Avatar
-                    size={50}
-                    icon={<UserOutlined />}
-                    src={member.avatar || undefined}
-                  />
-                </Badge>
-                <div style={{ marginTop: "10px" }}>
-                  <Text strong>{member.username}</Text>
-                </div>
+            <div
+              key={member.id}
+              className={styles.memberCard}
+              onContextMenu={(e) => handleMemberContextMenu(member, e)}
+              style={{ cursor: role !== 2 ? "pointer" : "default" }}
+            >
+              <Badge>
+                <Avatar
+                  size={50}
+                  icon={<UserOutlined />}
+                  src={member.avatar || undefined}
+                />
+              </Badge>
+              <div className={styles.memberName}>
+                <Text strong>{member.username}</Text>
               </div>
-            </Col>
+            </div>
           ))}
-        </Row>
+        </div>
       </div>
     );
   };
@@ -621,8 +615,8 @@ const ProjectDetailOverview: React.FC = () => {
       <div className={styles.content}>
         {/* 左侧主要内容 */}
         <div className={styles.leftColumn}>
-          {/* 项目基本信息卡片 */}
-          <div className={styles.section}>
+          {/* 项目英雄区域 */}
+          <div className={styles.projectHero}>
             <div className={styles.projectHeader}>
               <Title level={3} className={styles.projectTitle}>
                 {projectData.name}
@@ -632,70 +626,123 @@ const ProjectDetailOverview: React.FC = () => {
                   projectData.isPublic ? <UnlockOutlined /> : <LockOutlined />
                 }
                 color={projectData.isPublic ? "success" : "processing"}
+                className={styles.projectTag}
               >
                 {projectData.isPublic ? "公开项目" : "私有项目"}
               </Tag>
             </div>
+            <Text className={styles.projectDescription}>
+              {projectData.description}
+            </Text>
+          </div>
 
-            {renderEditableField("name", "项目名称", projectData.name)}
-            <div className={styles.infoItem}>
-              <Text className={styles.infoLabel} strong>
-                项目ID
-              </Text>
-              <div className={styles.infoValue}>
-                <Text>{projectData.uuid}</Text>
+          {/* 基本信息卡片 */}
+          <div className={styles.section}>
+            <Title level={4} className={styles.sectionTitle}>
+              项目基本信息
+            </Title>
+
+            <div className={styles.infoCards}>
+              <div className={styles.infoCard}>
+                <div className={styles.infoItem}>
+                  <div className={styles.infoValue}>
+                    {renderEditableField("name", "项目名称", projectData.name)}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <div className={styles.infoItem}>
+                  <div className={styles.infoValue}>
+                    <Text>{projectData.uuid}</Text>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <div className={styles.infoItem}>
+                  <div className={styles.infoValue}>
+                    <Text>
+                      {new Date(projectData.createdTime)
+                        .toLocaleString("zh-CN", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: false,
+                        })
+                        .replace(/\//g, "-")}
+                    </Text>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <div className={styles.infoItem}>
+                  <div className={styles.infoValue}>
+                    {renderEditableSwitchField(
+                      "isPublic",
+                      "项目权限",
+                      projectData.isPublic
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 条件渲染的字段 */}
+              {role === 2 && (
+                <>
+                  <div className={styles.infoCard}>
+                    <div className={styles.infoItem}>
+                      <div
+                        className={`${styles.infoValue} ${styles.copyableField}`}
+                      >
+                        {renderCopyableEditableField(
+                          "groupCode",
+                          "微信群号",
+                          projectData?.groupCode || "暂无",
+                          "微信群号"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.infoCard}>
+                    <div className={styles.infoItem}>
+                      <div
+                        className={`${styles.infoValue} ${styles.copyableField}`}
+                      >
+                        {renderCopyableEditableField(
+                          "webhook",
+                          "企业微信群机器人URL",
+                          projectData?.webhook || "暂无",
+                          "Webhook地址"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* 项目描述单独一行 */}
+            <div className={styles.infoCard} style={{ gridColumn: "1 / -1" }}>
+              <div className={styles.infoItem}>
+                <div className={styles.infoValue}>
+                  {renderEditableField(
+                    "description",
+                    "项目简介",
+                    projectData.description,
+                    "textarea"
+                  )}
+                </div>
               </div>
             </div>
-            {renderEditableField(
-              "description",
-              "项目简介",
-              projectData.description,
-              "textarea"
-            )}
-            {renderEditableSwitchField(
-              "isPublic",
-              "项目权限",
-              projectData.isPublic
-            )}
-            <div className={styles.infoItem}>
-              <Text className={styles.infoLabel}>创建时间</Text>
-              <div className={styles.infoValue}>
-                <Text>
-                  {new Date(projectData.createdTime)
-                    .toLocaleString("zh-CN", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                      hour12: false,
-                    })
-                    .replace(/\//g, "-")}
-                </Text>
-              </div>
-            </div>
-            {role === 2 &&
-              renderCopyableEditableField(
-                "groupCode",
-                "微信群号",
-                projectData?.groupCode || "暂无",
-                "微信群号"
-              )}
-            {role == 2 &&
-              renderCopyableEditableField(
-                "webhook",
-                "企业微信群机器人URL",
-                projectData?.webhook || "暂无",
-                "Webhook地址"
-              )}
 
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-              }}
-            >
+            {/* 操作按钮 */}
+            <div className={styles.actionButtons}>
               {(userRole === 0 || userRole === 1) && (
                 <Popconfirm
                   title="删除项目"
@@ -754,26 +801,31 @@ const ProjectDetailOverview: React.FC = () => {
               {groupMembers.length === 0 ? (
                 <Empty description="暂无成员" />
               ) : (
-                <>
-                  {renderMemberGrid(owners, "老板", 1)}
-                  {renderMemberGrid(admins, "管理员", 2)}
-                  {renderMemberGrid(members, "成员", 3)}
-                </>
+                <div>
+                  <div className={styles.memberGroup}>
+                    <div className={styles.memberGroupTitle}>老板</div>
+                    <Row gutter={[16, 16]}>
+                      {renderMemberGrid(owners, "老板", 1)}
+                    </Row>
+                  </div>
+
+                  <div className={styles.memberGroup}>
+                    <div className={styles.memberGroupTitle}>管理员</div>
+                    <Row gutter={[16, 16]}>
+                      {renderMemberGrid(admins, "管理员", 2)}
+                    </Row>
+                  </div>
+
+                  <div className={styles.memberGroup}>
+                    <div className={styles.memberGroupTitle}>成员</div>
+                    <Row gutter={[16, 16]}>
+                      {renderMemberGrid(members, "成员", 3)}
+                    </Row>
+                  </div>
+                </div>
               )}
             </div>
           </div>
-
-          {/* 图表区域 */}
-          {/* <div className={styles.section}>
-            <Title level={4} className={styles.sectionTitle}>
-              项目监控数据
-            </Title>
-            <div className={styles.chartContainer}>
-              <div style={{ width: "100%", height: "100%" }}>
-                <Demo />
-              </div>
-            </div>
-          </div> */}
         </div>
 
         {/* 右侧信息栏 */}
@@ -788,13 +840,14 @@ const ProjectDetailOverview: React.FC = () => {
                 type="link"
                 icon={<BookOutlined />}
                 onClick={showInviteModal}
-                style={{ padding: 0 }}
+                className={styles.linkButton}
               >
                 生成邀请码
               </Button>
             </div>
           )}
-          {/* 教程链接，点击后弹窗展示教程 */}
+
+          {/* 教程链接 */}
           <div className={styles.section}>
             <Title level={4} className={styles.sectionTitle}>
               使用教程
@@ -803,7 +856,7 @@ const ProjectDetailOverview: React.FC = () => {
               type="link"
               icon={<BookOutlined />}
               onClick={showTutorialModal}
-              style={{ padding: 0 }}
+              className={styles.linkButton}
             >
               查看项目接入教程
             </Button>

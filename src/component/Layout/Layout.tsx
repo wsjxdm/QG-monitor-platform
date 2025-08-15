@@ -370,7 +370,9 @@ const AppLayout = () => {
   // 判断是否显示第三层导航栏 - 只有在选择了具体项目时才显示
   const showThirdLevel =
     !["all-projects", "public-projects"].includes(secondLevelKey) &&
-    firstLevelKey === "project";
+    firstLevelKey === "project" &&
+    (secondLevelKey.startsWith("private-") ||
+      secondLevelKey.startsWith("public-"));
 
   //=========组件初始化时配置全局socket==========
   useEffect(() => {

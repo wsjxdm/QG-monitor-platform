@@ -55,6 +55,8 @@ const MessageList: React.FC<MessageListProps> = ({
     useEffect(() => {
         const fetchMessages = async () => {
             try {
+                console.log("receiverId", receiverId);
+
                 const data = await getMessagesAPI(receiverId, messageTypeCode);
                 setMessages(data);
                 console.log(data);
