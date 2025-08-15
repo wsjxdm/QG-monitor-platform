@@ -137,7 +137,9 @@ export const userSlice = createSlice({
         setAvatar: (state, action) => {
             console.log("设置头像", action.payload);
 
-            state.user.avatar = action.payload;
+            state.user.avater = action.payload;
+            console.log("用户头像", state.user.avater);
+
         },
         // 清除用户信息（登出时使用）
         clearUser: (state, action) => {
