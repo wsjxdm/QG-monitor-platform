@@ -141,10 +141,18 @@
 
 .infoItem {
   margin-bottom: 16px;
+  width: 100%;
+  overflow: hidden;
 }
 
 .infoItem:last-child {
   margin-bottom: 0;
+}
+
+.infoValue {
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
 .infoLabel {
