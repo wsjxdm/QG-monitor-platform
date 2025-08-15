@@ -110,6 +110,10 @@ const ProjectDetailOverview: React.FC = () => {
   );
 
   useEffect(() => {
+    // 重置编辑状态
+    setEditingField(null);
+    setEditValue("");
+
     //获取当前成员的权限
     getUserResponsibility(projectId, user.id).then((res) => {
       console.log(
@@ -163,7 +167,7 @@ const ProjectDetailOverview: React.FC = () => {
     //   userRole
     // );
     // 只有非普通成员才能编辑 (userRole !== 2)
-    if (userRole === 2) {
+    if (userRole === 2 || userRole == null) {
       message.warning("您没有权限进行此操作");
       return;
     }
@@ -247,6 +251,9 @@ const ProjectDetailOverview: React.FC = () => {
         );
         return;
       }
+    }
+    if (userRole == null) {
+      message.warning("您并非项目成员，无法退出项目");
     }
 
     try {
@@ -718,21 +725,23 @@ const ProjectDetailOverview: React.FC = () => {
                 </Popconfirm>
               )}
 
-              <Popconfirm
-                title="退出项目"
-                onConfirm={leaveProject}
-                okText="确认退出"
-                cancelText="取消"
-                icon={<WarningOutlined style={{ color: "red" }} />}
-              >
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  className={styles.deleteButton}
+              {userRole !== null && (
+                <Popconfirm
+                  title="退出项目"
+                  onConfirm={leaveProject}
+                  okText="确认退出"
+                  cancelText="取消"
+                  icon={<WarningOutlined style={{ color: "red" }} />}
                 >
-                  退出项目
-                </Button>
-              </Popconfirm>
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    className={styles.deleteButton}
+                  >
+                    退出项目
+                  </Button>
+                </Popconfirm>
+              )}
             </div>
           </div>
 

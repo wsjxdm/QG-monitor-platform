@@ -49,9 +49,11 @@ const Work: React.FC = () => {
 
       // 初始化每个项目的加载状态
       const loadingState: Record<string, boolean> = {};
-      response.forEach((project: ProjectItem) => {
-        loadingState[project.uuid as string] = false;
-      });
+      if (response) {
+        response.forEach((project: ProjectItem) => {
+          loadingState[project.uuid as string] = false;
+        });
+      }
       setProjectLoading(loadingState);
     } catch (error) {
       console.error("获取项目列表失败:", error);
@@ -75,9 +77,18 @@ const Work: React.FC = () => {
         return;
       }
 
-      const arry1 = response[0];
-      const arry2 = response[1];
-      const arry3 = response[2];
+      let arry1 = [];
+      let arry2 = [];
+      let arry3 = [];
+      if (response[0]) {
+        arry1 = response[0] || [];
+      }
+      if (response[1]) {
+        arry2 = response[1] || [];
+      }
+      if (response[2]) {
+        arry3 = response[2] || [];
+      }
 
       let updataArry1 = [];
       let updataArry2 = [];
