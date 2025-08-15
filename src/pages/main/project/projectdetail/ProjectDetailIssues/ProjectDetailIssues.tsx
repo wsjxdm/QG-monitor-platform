@@ -394,7 +394,7 @@ const IllegalAccessChart: React.FC<{ projectId: string; timeType: string }> = ({
       <div style={{ height: 300 }}>
         {loading ? (
           <Spin />
-        ) : data.length > 0 ? (
+        ) : data && data.length > 0 ? (
           <Column autoFit {...config} />
         ) : (
           <Empty description="暂无非法访问数据" />

@@ -45,9 +45,11 @@ export const wsMiddleware: Middleware<{}> = (store) => {
 
         //这个12到时候也得从redux获取
         console.log(msg);
-        const currentUserId = store.getState().user?.id;
+        const currentUserId = JSON.parse(localStorage.getItem("user")).id;
+
 
         if (msg.data.data[0].receiverId === currentUserId) {
+
           if (!msg.type) throw new Error("消息缺少type字段");
           // 如果消息类型是 notification，则显示全局通知
           if (msg.type === "notifications") {

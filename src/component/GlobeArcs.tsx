@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import Globe from "react-globe.gl";
+import { FullscreenOutlined, FullscreenExitOutlined } from "@ant-design/icons";
 
 export type Route = {
   id?: string | number;
@@ -27,6 +28,29 @@ export default function GlobeArcs({
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<any>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // 切换全屏
+  const handleFullscreen = () => {
+    setIsFullscreen((v) => !v);
+    const el = containerRef.current;
+    if (el) {
+      if (!isFullscreen) {
+        if (el.requestFullscreen) el.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+  };
+
+  // 监听全屏变化，自动同步状态
+  useEffect(() => {
+    const handler = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
 
   // 监听父容器尺寸变化
   useEffect(() => {
@@ -93,23 +117,60 @@ export default function GlobeArcs({
     return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
   }
 
+  const globeImageUrl = isFullscreen
+    ? "https://unpkg.com/three-globe/example/img/earth-dark.jpg"
+    : "https://unpkg.com/three-globe/example/img/earth-day.jpg";
+  const bumpImageUrl = isFullscreen
+    ? "https://unpkg.com/three-globe/example/img/earth-topology.png"
+    : undefined;
+  const backgroundImageUrl = isFullscreen
+    ? "https://unpkg.com/three-globe/example/img/night-sky.png"
+    : "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Earth_map_blank.svg/2048px-Earth_map_blank.svg.png";
+  const bgColor = isFullscreen ? "#18181c" : backgroundColor;
   return (
     <div
       ref={containerRef}
       style={{
         width: "100%",
         height: "100%",
-        backgroundColor,
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E\")",
+        backgroundColor: bgColor,
+        backgroundImage: backgroundImageUrl,
+        position: "relative",
+        zIndex: isFullscreen ? 9999 : "auto",
       }}
     >
+      {/* 全屏按钮 */}
+      <div
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          zIndex: 10000,
+        }}
+      >
+        <button
+          style={{
+            background: "rgba(0,0,0,0.5)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4,
+            padding: 8,
+            cursor: "pointer",
+            fontSize: 18,
+          }}
+          onClick={handleFullscreen}
+        >
+          {isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+        </button>
+      </div>
       <Globe
         ref={globeRef}
         width={size.width}
         height={size.height}
-        backgroundColor="rgba(255,255,255,1)" // 白色主题
-        globeImageUrl="https://unpkg.com/three-globe/example/img/earth-day.jpg"
+        backgroundColor={isFullscreen ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)"}
+        globeImageUrl={globeImageUrl}
+        bumpImageUrl={bumpImageUrl}
+        backgroundImageUrl={isFullscreen ? backgroundImageUrl : ""}
         arcsData={arcs}
         arcColor={(d: any) => d.color}
         arcStroke={0.8}

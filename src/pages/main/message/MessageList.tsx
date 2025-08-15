@@ -30,8 +30,6 @@ interface MessageItem {
   avatar?: string; // 可选的头像字段
   senderName?: string; // 可选的发送者名称
   isSenderExist?: number;
-  projectId: number;
-  platform: string;
 }
 
 interface MessageListProps {
@@ -73,7 +71,7 @@ const MessageList: React.FC<MessageListProps> = ({
       setLoading(false);
     };
     fetchMessages();
-  }, [ischange]);
+  }, [ischange, receiverId]);
 
   useEffect(() => {
     if (Object.keys(notification).length === 0) return;
@@ -97,7 +95,8 @@ const MessageList: React.FC<MessageListProps> = ({
     platform: string,
     projectId: number,
     errorType: string,
-    e: React.MouseEvent
+    e: React.MouseEvent,
+    id: number
   ) => {
     e.stopPropagation();
     if (e.target.textContent !== "删除消息") {
@@ -109,7 +108,7 @@ const MessageList: React.FC<MessageListProps> = ({
 
       const updateStatus = async () => {
         try {
-          await updateStatusAPI(errorId);
+          await updateStatusAPI(id);
         } catch (error) {
           console.error("更新消息状态失败:", error);
         }
@@ -139,11 +138,11 @@ const MessageList: React.FC<MessageListProps> = ({
   };
 
   //删除单条消息
-  const handleClearSingle = async (errorId: number, e: React.MouseEvent) => {
+  const handleClearSingle = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation(); // 阻止事件冒泡
-    const response = await deleteByIdAPI(errorId);
+    const response = await deleteByIdAPI(id);
     if (response.code === 200) {
-      setMessages(messages.filter((message) => message.errorId !== errorId));
+      setMessages(messages.filter((message) => message.id !== id));
     } else {
       console.error("删除消息失败");
     }
@@ -195,7 +194,8 @@ const MessageList: React.FC<MessageListProps> = ({
                   item.platform,
                   item.projectId,
                   item.errorType,
-                  e
+                  e,
+                  item.id
                 )
               }
             >
@@ -219,6 +219,14 @@ const MessageList: React.FC<MessageListProps> = ({
                         <Text className={styles["project-name"]}>
                           {item.projectName}
                         </Text>
+                        {item.responsibleName && (
+                          <Text
+                            type="secondary"
+                            className={styles["response-info"]}
+                          >
+                            负责人：{item.responsibleName}
+                          </Text>
+                        )}
                       </div>
                       <Text type="secondary" className={styles.time}>
                         {moment(item.timestamp).fromNow()}
@@ -241,6 +249,7 @@ const MessageList: React.FC<MessageListProps> = ({
                       className={styles["error-message"]}
                       style={{ fontWeight: item.isRead ? "normal" : "bold" }}
                     >
+                      {item.responsibleName ? "错误未解决:" : "警报:"}
                       {item.errorType}
                     </Text>
                     <div className={styles["additional-info"]}>
@@ -253,7 +262,7 @@ const MessageList: React.FC<MessageListProps> = ({
                       </Text>
                       <Popconfirm
                         title="确定要删除这条消息吗？"
-                        onConfirm={(e) => handleClearSingle(item.errorId, e)}
+                        onConfirm={(e) => handleClearSingle(item.id, e)}
                         okText="确定"
                         cancelText="取消"
                       >

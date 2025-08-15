@@ -123,6 +123,8 @@ export const userSlice = createSlice({
         state.token,
         publicKey
       );
+      console.log("登录成功后获取的id", action.payload.user.id);
+
       localStorage.setItem(
         "user",
         JSON.stringify({
@@ -132,8 +134,10 @@ export const userSlice = createSlice({
         })
       );
     },
-    setAvater: (state) => {
-      state.user.avatar = action.payload.avatar;
+    setAvatar: (state, action) => {
+      console.log("设置头像", action.payload);
+
+      state.user.avatar = action.payload;
     },
     // 清除用户信息（登出时使用）
     clearUser: (state) => {
@@ -186,7 +190,7 @@ export const userSlice = createSlice({
 });
 
 // 导出 actions
-export const { setUser, clearUser, setAvater } = userSlice.actions;
+export const { setUser, clearUser, setAvatar } = userSlice.actions;
 
 // 导出 reducer
 export default userSlice.reducer;
