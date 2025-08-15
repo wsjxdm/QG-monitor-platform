@@ -81,14 +81,13 @@ interface ErrorDetailItem {
 }
 
 const ProjectItemDetail: React.FC = () => {
-  const { projectId, type, detailId } = useParams();
+  const { projectId, detailId } = useParams();
   const navigate = useNavigate();
-  const { state } = useLocation();
   const [errorData, setErrorData] = useState<ErrorDetailItem | null>(null);
   const [isThresholdModalVisible, setIsThresholdModalVisible] = useState(false);
   const [thresholdForm] = Form.useForm();
   const [currentThreshold, setCurrentThreshold] = useState<number | null>(null);
-  const [isResolved, setIsResolved] = useState(false);
+  const [issueStatus, setIssueStatus] = useState<number>(0);
 
   //读取错误平台
   const location = useLocation();
@@ -103,12 +102,7 @@ const ProjectItemDetail: React.FC = () => {
           errorType,
           platform
         );
-        console.log(
-          "%c [ ]-2111",
-          "color: #f00; font-weight: bold;background: #fff;width: 100%;",
-          issueState
-        );
-        setIsResolved(issueState.isHandle);
+        setIssueStatus(issueState.isHandle);
         const responsibleId = issueState.responsibleId;
         const currentUser = JSON.parse(localStorage.getItem("user"));
         getUserResponsibility(projectId, currentUser?.id).then((res) => {
@@ -122,7 +116,7 @@ const ProjectItemDetail: React.FC = () => {
         });
         const response = await getErrorDetailAPI(detailId, platform);
         //将获取到的数据中的面包屑中的category为performance的去掉
-        if (response.breadcrumbs) {
+        if (response?.breadcrumbs) {
           response.breadcrumbs = response.breadcrumbs.filter(
             (item: any) => item.category !== "performance"
           );
@@ -172,11 +166,12 @@ const ProjectItemDetail: React.FC = () => {
   // 添加标记为已解决的函数
   const handleMarkAsResolved = async () => {
     try {
-      // 这里应该调用实际的API来标记问题为已解决
+      // 调用API切换问题状态
       await markIssueResolvedAPI(projectId, platform, errorType);
 
-      setIsResolved(true);
-      message.success("问题已标记为已解决");
+      // 切换状态：如果是已解决(1)则改为未解决(0)，如果是未解决(0)则改为已解决(1)
+      setIssueStatus((prevStatus) => (prevStatus === 1 ? 0 : 1));
+      message.success(`问题已标记为${issueStatus === 1 ? "未解决" : "已解决"}`);
     } catch (error) {
       message.error("标记失败，请重试");
     }
@@ -189,27 +184,39 @@ const ProjectItemDetail: React.FC = () => {
   };
 
   // 渲染操作按钮
-  const renderActionButtons = () => (
-    <Space style={{ marginBottom: 16 }}>
-      <Button icon={<SettingOutlined />} onClick={showThresholdModal}>
-        设置阈值
-      </Button>
+  const renderActionButtons = () => {
+    const isUnassigned = issueStatus === -1;
+    const isResolved = issueStatus === 1;
 
-      <Popconfirm
-        title="确认标记为已解决?"
-        description={`确认后该问题将被标记为${
-          isResolved ? "未" : "已"
-        }解决状态`}
-        onConfirm={handleMarkAsResolved}
-        okText="确认"
-        cancelText="取消"
-      >
-        <Button type="primary" icon={<CheckOutlined />}>
-          {isResolved ? "已解决" : "标记为已解决"}
+    return (
+      <Space style={{ marginBottom: 16 }}>
+        <Button icon={<SettingOutlined />} onClick={showThresholdModal}>
+          设置阈值
         </Button>
-      </Popconfirm>
-    </Space>
-  );
+
+        <Popconfirm
+          title={`确认标记为${isResolved ? "未解决" : "已解决"}?`}
+          description={
+            isUnassigned
+              ? "该问题无人负责，请先指派负责人"
+              : `确认后该问题将被标记为${isResolved ? "未解决" : "已解决"}状态`
+          }
+          onConfirm={isUnassigned ? undefined : handleMarkAsResolved}
+          okText="确认"
+          cancelText="取消"
+          okButtonProps={{ disabled: isUnassigned }}
+        >
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
+            disabled={isUnassigned}
+          >
+            {isUnassigned ? "无人负责" : isResolved ? "已解决" : "标记为已解决"}
+          </Button>
+        </Popconfirm>
+      </Space>
+    );
+  };
 
   // 渲染面包屑
   const renderBreadcrumbs = (breadcrumbs?: ErrorDetailItem["breadcrumbs"]) => {
