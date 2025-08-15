@@ -167,7 +167,7 @@ const MessageList: React.FC<MessageListProps> = ({
                     renderItem={(item) => (
                         <List.Item
                             className={`${styles['list-item']} ${item.isRead ? styles['read'] : styles['unread']}`}
-                            onClick={(e) => handleClick(item.errorId, item.errorType, item.projectId, item.platform, e, item.id)}
+                            onClick={(e) => handleClick(item.errorId, item.platform, item.projectId, item.errorType, e, item.id)}
                         >
                             <List.Item.Meta
                                 avatar={renderAvatar ? renderAvatar(item) : defaultAvatar}

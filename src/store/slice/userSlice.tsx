@@ -94,7 +94,7 @@ export const updateUserAvatar = createAsyncThunk(
                 avatar: avatar,
             };
             // 获取用户信息
-            const response = await updateUserAPI(userData);
+            const response = await updateUserAvatarAPI(userData);
 
             return response; // 假设更新成功返回的数据在 response.data 中
         } catch (error: any) { }
