@@ -71,9 +71,35 @@ export const getPlatformDataAPI = async (
 };
 
 //每一个平台展示近一周次数前十的错误(前端)
-export const getPlatformTenAPI = async (projectId: string | number) => {
+export const getPlatformFrontTenAPI = async (projectId: string | number) => {
   try {
     const response = await apiClient.get("graph/getFrontendErrorStats", {
+      params: { projectId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取平台数据失败:", error);
+    throw error;
+  }
+};
+
+//每一个平台展示近一周次数前十的错误(后端)
+export const getPlatformBackenTenAPI = async (projectId: string | number) => {
+  try {
+    const response = await apiClient.get("graph/getBackendErrorStatsPro", {
+      params: { projectId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取平台数据失败:", error);
+    throw error;
+  }
+};
+
+//每一个平台展示近一周次数前十的错误(移动)
+export const getPlatformMobileTenAPI = async (projectId: string | number) => {
+  try {
+    const response = await apiClient.get("graph/getMobileErrorStatsPro", {
       params: { projectId },
     });
     return response.data;
@@ -159,16 +185,19 @@ export const getIssueThresholdAPI = async (
 
 //标记解决
 export const markIssueResolvedAPI = async (
-  platform: string,
   projectId: string | number,
+  platform: string,
   errorType: string | number
 ) => {
   try {
-    const response = await apiClient.put("errors/markResolved", {
-      projectId,
-      platform,
-      errorType,
-    });
+    const response = await apiClient.put(
+      "/responsibilities/updateHandleStatus",
+      {
+        projectId,
+        platform,
+        errorType,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("标记错误为已解决失败:", error);
@@ -192,6 +221,23 @@ export const getIssueStatusAPI = async (
     return response.data;
   } catch (error) {
     console.error("获取错误处理情况失败:", error);
+    throw error;
+  }
+};
+
+//获取地图
+export const getMapDataAPI = async (
+  projectId: string | number,
+  startTime: string,
+  endTime: string
+) => {
+  try {
+    const response = await apiClient.get("/graph/getForeignIpInterception", {
+      params: { projectId, startTime, endTime },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取地图数据失败:", error);
     throw error;
   }
 };

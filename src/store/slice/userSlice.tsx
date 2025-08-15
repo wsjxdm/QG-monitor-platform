@@ -123,7 +123,7 @@ export const userSlice = createSlice({
                 state.token,
                 publicKey
             );
-            console.log('登录成功后获取的id', action.payload.user.id);
+            console.log("登录成功后获取的id", action.payload.user.id);
 
             localStorage.setItem(
                 "user",

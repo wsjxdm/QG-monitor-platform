@@ -23,10 +23,15 @@ import {
   assignErrorAPI,
   getProjectMembersAPI,
   getPlatformDataAPI,
-  getPlatformTenAPI,
+  getPlatformFrontTenAPI,
+  getPlatformBackenTenAPI,
+  getPlatformMobileTenAPI,
   getIllegalAccessAPI,
+  getMapDataAPI,
 } from "../../../../../api/service/issue";
 import { getUserResponsibility } from "../../../../../api/service/projectoverview";
+import GlobeArcs from "../../../../../component/GlobeArcs";
+import type { Route } from "../../../../../component/GlobeArcs";
 
 const { Title } = Typography;
 
@@ -216,7 +221,14 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getPlatformTenAPI(projectId);
+      let response;
+      if (platform === "frontend") {
+        response = await getPlatformFrontTenAPI(projectId);
+      } else if (platform === "backend") {
+        response = await getPlatformBackenTenAPI(projectId);
+      } else {
+        response = await getPlatformMobileTenAPI(projectId);
+      }
 
       setErrorCountData(response[0]);
       setErrorRatioData(response[1]);
@@ -294,23 +306,17 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
   );
 };
 
-// 非法访问统计图表组件
-const IllegalAccessChart: React.FC<{ projectId: string }> = ({ projectId }) => {
+//  IllegalAccessChart 组件
+const IllegalAccessChart: React.FC<{ projectId: string; timeType: string }> = ({
+  projectId,
+  timeType,
+}) => {
   const [data, setData] = useState<IllegalAccessItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [timeType, setTimeType] = useState("day"); // 时间筛选移到组件内部
-
-  // 时间筛选选项
-  const timeOptions = [
-    { value: "day", label: "近1天" },
-    { value: "week", label: "近7天" },
-    { value: "month", label: "近30天" },
-  ];
-
   useEffect(() => {
     fetchIllegalAccessData();
-  }, [projectId]);
+  }, [projectId, timeType]); // 添加 timeType 作为依赖
 
   const fetchIllegalAccessData = async () => {
     setLoading(true);
@@ -319,7 +325,9 @@ const IllegalAccessChart: React.FC<{ projectId: string }> = ({ projectId }) => {
       const endTime = new Date();
       const startTime = new Date();
 
-      switch (timeType) {
+      switch (
+        timeType // 使用传入的 timeType
+      ) {
         case "day":
           startTime.setDate(startTime.getDate() - 1);
           break;
@@ -345,20 +353,6 @@ const IllegalAccessChart: React.FC<{ projectId: string }> = ({ projectId }) => {
         projectId,
         startTimeStr,
         endTimeStr
-      );
-      const mockData: IllegalAccessItem[] = [
-        { ip: "192.168.1.100", event: 25 },
-        { ip: "192.168.1.105", event: 18 },
-        { ip: "10.0.0.50", event: 15 },
-        { ip: "172.16.0.30", event: 12 },
-        { ip: "203.0.113.45", event: 8 },
-        { ip: "198.51.100.22", event: 5 },
-      ];
-      console.log(
-        "%c [ ]-273",
-        "color: #f00; font-weight: bold;background: #fff;width: 100%;",
-        "获取非法访问数据成功:",
-        response
       );
 
       setData(response);
@@ -395,6 +389,7 @@ const IllegalAccessChart: React.FC<{ projectId: string }> = ({ projectId }) => {
 
   return (
     <div>
+      {/* 移除原来的时间筛选器 */}
       <div
         style={{
           marginBottom: 20,
@@ -403,17 +398,12 @@ const IllegalAccessChart: React.FC<{ projectId: string }> = ({ projectId }) => {
         }}
       >
         <Title level={5}>非法访问统计图表组件</Title>
-        <Select
-          value={timeType}
-          style={{ width: 120 }}
-          onChange={setTimeType}
-          options={timeOptions}
-        />
+        {/* 时间筛选器已移至父组件 */}
       </div>
       <div style={{ height: 300 }}>
         {loading ? (
           <Spin />
-        ) : data.length > 0 ? (
+        ) : data && data.length > 0 ? (
           <Column autoFit {...config} />
         ) : (
           <Empty description="暂无非法访问数据" />
@@ -426,6 +416,85 @@ const IllegalAccessChart: React.FC<{ projectId: string }> = ({ projectId }) => {
 const ProjectDetailIssues: React.FC = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  // 添加地图数据状态
+  const [mapRoutes, setMapRoutes] = useState<Route[]>([
+    {
+      start: { lat: 39.9042, lng: 116.4074, city: "北京", event: 10 },
+      end: { lat: 37.7749, lng: -122.4194, city: "旧金山", event: 5 },
+      color: ["#2dd4bf", "#60a5fa"],
+      altitude: 0.22,
+    },
+  ]);
+  // 添加统一的时间筛选状态
+  const [illegalAccessTimeType, setIllegalAccessTimeType] = useState("day");
+
+  // 获取地图数据的函数
+  const fetchMapData = async (timeType: string) => {
+    try {
+      // 计算时间范围
+      const endTime = new Date();
+      const startTime = new Date();
+
+      switch (timeType) {
+        case "day":
+          startTime.setDate(startTime.getDate() - 1);
+          break;
+        case "week":
+          startTime.setDate(startTime.getDate() - 7);
+          break;
+        case "month":
+          startTime.setDate(startTime.getDate() - 30);
+          break;
+        default:
+          startTime.setDate(startTime.getDate() - 1);
+      }
+
+      // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
+      const formatTime = (date: Date) => {
+        return date.toISOString().replace("T", " ").substring(0, 19);
+      };
+
+      const startTimeStr = formatTime(startTime);
+      const endTimeStr = formatTime(endTime);
+
+      // 调用 getMapDataAPI 获取地图数据
+      const response = await getMapDataAPI(projectId, startTimeStr, endTimeStr);
+
+      console.log("211热水", response);
+      // 处理响应数据并转换为 Route 格式
+      const routesData = response.map((item: any) => ({
+        start: {
+          lat: item.latitude,
+          lng: item.longitude,
+          city: `${item.city}/${item.country}`,
+          event: item.event,
+        },
+        end: {
+          lat: "23.0333",
+          lng: "113.4006",
+          city: "中国广东",
+        },
+        color: ["#2dd4bf", "#60a5fa"],
+        altitude: 0.22,
+      }));
+      console.log("212", routesData);
+
+      setMapRoutes(routesData);
+    } catch (error) {
+      console.error("获取地图数据失败:", error);
+      // 保持默认数据或设置为空数组
+      setMapRoutes([]);
+    }
+  };
+
+  // 当时间筛选器变化时，同时更新两个图表的数据
+  useEffect(() => {
+    // 更新非法访问统计数据
+    // 这里会触发 IllegalAccessChart 组件重新获取数据
+
+    // 更新地图数据
+    fetchMapData(illegalAccessTimeType);
+  }, [illegalAccessTimeType, projectId]);
 
   // 跳转到错误详情页
   const goToErrorDetail = (
@@ -493,7 +562,7 @@ const ProjectDetailIssues: React.FC = () => {
   ];
 
   useEffect(() => {
-    console.log("更新后的项目成员:", members);
+    // console.log("更新后的项目成员:", members);
   }, [members]);
 
   // 获取项目成员
@@ -501,7 +570,7 @@ const ProjectDetailIssues: React.FC = () => {
     try {
       const response = await getProjectMembersAPI(projectId);
       setMembers(response);
-      console.log("项目成员:", response);
+      // console.log("项目成员:", response);
     } catch (error) {
       console.error("获取项目成员失败:", error);
     }
@@ -544,7 +613,7 @@ const ProjectDetailIssues: React.FC = () => {
             : item
         )
       );
-      console.log(data);
+      // console.log(data);
     } catch (error) {
       message.error("指派失败");
       console.error("指派错误失败:", error);
@@ -666,68 +735,82 @@ const ProjectDetailIssues: React.FC = () => {
         ...filterParams,
         projectId,
       });
-      const arry1 = response[0];
-      const arry2 = response[1];
-      const arry3 = response[2];
-      const updataArry1 = arry1.map((item: any) => {
-        return {
-          ...item,
-          platform: "backend",
-          username: item.name,
-          timestamp: new Date(item.timestamp)
-            .toLocaleString("zh-CN", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            })
-            .replace(/\//g, "-"),
-        };
-      });
-      const updataArry2 = arry2.map((item: any) => {
-        return {
-          ...item,
-          username: item.name,
-          platform: "frontend",
-          timestamp: new Date(item.timestamp)
-            .toLocaleString("zh-CN", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            })
-            .replace(/\//g, "-"),
-        };
-      });
-      const updataArry3 = arry3.map((item: any) => {
-        return {
-          ...item,
-          platform: "mobile",
-          username: item.name,
-          timestamp: new Date(item.timestamp)
-            .toLocaleString("zh-CN", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            })
-            .replace(/\//g, "-"),
-        };
-      });
-      console.log("获取错误数据", [
-        ...updataArry1,
-        ...updataArry2,
-        ...updataArry3,
-      ]);
+      let arry1 = [];
+      let arry2 = [];
+      let arry3 = [];
+      if (response) {
+        arry1 = response[0] || [];
+        arry2 = response[1] || [];
+        arry3 = response[2] || [];
+      }
+      let updataArry1 = [];
+      let updataArry2 = [];
+      let updataArry3 = [];
+      if (arry1) {
+        updataArry1 = arry1.map((item: any) => {
+          return {
+            ...item,
+            platform: "backend",
+            username: item.name,
+            timestamp: new Date(item.timestamp)
+              .toLocaleString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              })
+              .replace(/\//g, "-"),
+          };
+        });
+      }
+      if (arry2) {
+        updataArry2 = arry2.map((item: any) => {
+          return {
+            ...item,
+            username: item.name,
+            platform: "frontend",
+            timestamp: new Date(item.timestamp)
+              .toLocaleString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              })
+              .replace(/\//g, "-"),
+          };
+        });
+      }
+      if (arry3) {
+        updataArry3 = arry3.map((item: any) => {
+          return {
+            ...item,
+            platform: "mobile",
+            username: item.name,
+            timestamp: new Date(item.timestamp)
+              .toLocaleString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              })
+              .replace(/\//g, "-"),
+          };
+        });
+      }
+      // console.log("获取错误数据", [
+      //   ...updataArry1,
+      //   ...updataArry2,
+      //   ...updataArry3,
+      // ]);
       setData([...updataArry1, ...updataArry2, ...updataArry3]);
     } catch (error) {
       console.error("获取错误数据失败:", error);
@@ -814,9 +897,47 @@ const ProjectDetailIssues: React.FC = () => {
         </Row>
 
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col span={24}>
+          <Col
+            xs={{ span: 24 }}
+            sm={{ span: 24 }}
+            md={{ span: 12 }}
+            lg={{ span: 12 }}
+          >
             <Card>
-              <IllegalAccessChart projectId={projectId} />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginBottom: 20,
+                }}
+              >
+                <Select
+                  value={illegalAccessTimeType}
+                  style={{ width: 120 }}
+                  onChange={setIllegalAccessTimeType}
+                  options={[
+                    { value: "day", label: "近1天" },
+                    { value: "week", label: "近7天" },
+                    { value: "month", label: "近30天" },
+                  ]}
+                />
+              </div>
+              <IllegalAccessChart
+                projectId={projectId}
+                timeType={illegalAccessTimeType}
+              />
+            </Card>
+          </Col>
+          <Col
+            xs={{ span: 24 }}
+            sm={{ span: 24 }}
+            md={{ span: 12 }}
+            lg={{ span: 12 }}
+          >
+            <Card title="非法访问轨迹">
+              <div style={{ width: "100%", height: "400px" }}>
+                <GlobeArcs routes={mapRoutes} />
+              </div>
             </Card>
           </Col>
         </Row>

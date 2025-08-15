@@ -19,11 +19,7 @@ const Form = () => {
         {
             key: '2',
             label: `注册`,
-            children: <RegisterForm onTabChange={(tab) => {
-                if (tab === 'login') {
-                    setActiveKey('1'); // 切换到登录 tab
-                }
-            }} />,
+            children: <RegisterForm onTabChange={handleTabChange} />,
         },
     ];
 

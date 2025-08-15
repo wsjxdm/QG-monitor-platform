@@ -57,11 +57,11 @@ import {
   getInviteCodeAPI,
 } from "../../../../../api/service/projectoverview";
 import project from "../../../../../mock/project";
+import { eventBus } from "../../../../../utils/event";
 
 const { Title, Text } = Typography;
 
 //todo 用户权限，以及不可见的话要跳转
-const user = JSON.parse(localStorage.getItem("user"));
 
 interface projectData {
   id: string | number;
@@ -81,65 +81,6 @@ interface ProjectMember {
   avatar?: string;
   userId: string | number;
 }
-
-const Chart = React.memo(
-  ({ onReady }) => {
-    const config = {
-      colorField: "series",
-      yField: "value",
-      xField: (d) => new Date(d["Date"]),
-      axis: {
-        x: {
-          labelAutoRotate: false,
-        },
-      },
-      data: {
-        type: "fetch",
-        value:
-          "https://gw.alipayobjects.com/os/antfincdn/3PtP0m%26VuK/trend-data.json",
-      },
-      onReady,
-    };
-    return <Line {...config} />;
-  },
-  () => true
-);
-
-const Demo = () => {
-  const [data, setData] = React.useState([]);
-  return (
-    <div style={{ height: "100%" }}>
-      {data.length > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            zIndex: 10,
-            background: "#ccc",
-            padding: "10px",
-            borderRadius: "6px",
-          }}
-        >
-          {data.map((d, i) => (
-            <div key={i}>
-              {d.series} : {d.value}
-            </div>
-          ))}
-        </div>
-      )}
-      <Chart
-        onReady={({ chart }) => {
-          chart.on("plot:click", (e) => {
-            const { x, y } = e;
-            setData(chart.getDataByXY({ x, y }, { shared: true }));
-          });
-        }}
-      />
-    </div>
-  );
-};
-
 const ProjectDetailOverview: React.FC = () => {
   const { projectId } = useParams();
   const { isNew } = useLocation()?.state || {};
@@ -164,13 +105,28 @@ const ProjectDetailOverview: React.FC = () => {
   const [markdown, setMarkdown] = useState();
   const [contextMenuMember, setContextMenuMember] = useState<any>(null);
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(
+    JSON.parse(localStorage.getItem("user"))
+  );
 
   useEffect(() => {
     //获取当前成员的权限
     getUserResponsibility(projectId, user.id).then((res) => {
+      console.log(
+        "%c [ ]-272",
+        "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+        res
+      );
       if (res) {
         setRole(res.power);
         setUserRole(res.userRole);
+        // 将日志移到这里
+        console.log(
+          "%c [ ]-273",
+          "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+          res.userRole,
+          res.power
+        );
         if (res.power === 0) {
           message.warning("您无权进入该项目，请联系项目管理员");
           navigate("/main/project/all");
@@ -180,26 +136,32 @@ const ProjectDetailOverview: React.FC = () => {
     //获取项目资料
     getProjectInfo(projectId).then((res) => {
       if (res) {
-        console.log("项目资料:", res);
+        // console.log("项目资料:", res);
         setProjectData(res);
       }
     });
     //获取项目成员列表
     getProjectMembers(projectId).then((res) => {
       if (res) {
-        console.log("项目成员列表:", res);
+        // console.log("项目成员列表:", res);
         setGroupMembers(res);
+      }
+    });
+    getTutorialMarkdown().then((res) => {
+      if (res) {
+        // console.log("获取到的教程:", res);
+        setMarkdown(res[0].content);
       }
     });
   }, [projectId]);
 
   // 开始编辑字段
   const startEdit = (field: string, value: string) => {
-    console.log(
-      "%c [ ]-273",
-      "color: #f00; font-weight: bold;background: #fff;width: 100%;",
-      userRole
-    );
+    // console.log(
+    //   "%c [ ]-273",
+    //   "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+    //   userRole
+    // );
     // 只有非普通成员才能编辑 (userRole !== 2)
     if (userRole === 2) {
       message.warning("您没有权限进行此操作");
@@ -209,7 +171,6 @@ const ProjectDetailOverview: React.FC = () => {
     setEditValue(value);
   };
 
-  // 保存编辑
   // 保存编辑
   const saveEdit = async () => {
     if (editingField) {
@@ -270,11 +231,31 @@ const ProjectDetailOverview: React.FC = () => {
 
   //退出项目
   const leaveProject = async () => {
-    console.log("退出项目:", projectId);
+    // 检查是否是最后一个管理员或老板
+    const isOwnerOrAdmin = userRole === 0 || userRole === 1;
+
+    if (isOwnerOrAdmin) {
+      // 计算当前项目中管理员和老板的数量
+      const ownerAndAdminCount = groupMembers.filter(
+        (member) => member.userRole === 0 || member.userRole === 1
+      ).length;
+
+      // 如果当前用户是管理员或老板，且是最后一个，则显示提示
+      if (ownerAndAdminCount <= 1) {
+        message.warning(
+          "当前项目只有您一位管理者，如果退出需先转让管理身份或删除项目"
+        );
+        return;
+      }
+    }
+
     try {
-      await exitProjectAPI(projectId, userRole);
+      await exitProjectAPI(projectId, user.id);
+      eventBus.emit("projectListChanged");
       navigate("/main/project/all");
-    } catch (error) { }
+    } catch (error) {
+      message.error("退出项目失败");
+    }
   };
 
   // 显示教程弹窗
@@ -284,7 +265,7 @@ const ProjectDetailOverview: React.FC = () => {
     try {
       // 从后台获取markdown文件
       const markdownContent = await getTutorialMarkdown();
-      console.log("获取到的教程:", markdownContent);
+      // console.log("获取到的教程:", markdownContent);
       // 设置获取到的内容
       setMarkdown(markdownContent[0].content);
       setIsTutorialModalLoading(false);
@@ -366,7 +347,7 @@ const ProjectDetailOverview: React.FC = () => {
           member.userId === memberId ? { ...member, userRole: newRole } : member
         )
       );
-      console.log("更新后的成员列表:", groupMembers);
+      // console.log("更新后的成员列表:", groupMembers);
       message.success("成员角色更新成功");
     } catch (error) {
       message.error("成员角色更新失败");
@@ -376,6 +357,30 @@ const ProjectDetailOverview: React.FC = () => {
 
   // 移除成员
   const removeMember = async (memberId: number, memberRole: number) => {
+    if (!userRole) {
+      message.error("请先登录");
+      return;
+    }
+
+    const isRemovingSelf = memberId === user.id;
+
+    // 如果移除的是自己，且自己是管理员或老板
+    if (isRemovingSelf && (userRole === 0 || userRole === 1)) {
+      // 计算当前项目中管理员和老板的数量
+      const ownerAndAdminCount = groupMembers.filter(
+        (member) => member.userRole === 0 || member.userRole === 1
+      ).length;
+
+      // 如果是最后一个管理员或老板
+      if (ownerAndAdminCount <= 1) {
+        message.warning(
+          "当前项目只有您一位管理者，如果退出需先转让管理身份或删除项目"
+        );
+        closeContextMenu();
+        return;
+      }
+    }
+
     if (memberRole < userRole) {
       message.error("权限不足");
       return;
@@ -395,7 +400,7 @@ const ProjectDetailOverview: React.FC = () => {
   // 渲染成员网格
   const renderMemberGrid = (members: any[], title: string, role: number) => {
     if (members.length === 0) return null;
-    console.log("成员网格:", members);
+    // console.log("成员网格:", members);
     return (
       <div key={role} style={{ marginBottom: "20px" }}>
         <Title level={5} style={{ marginBottom: "10px" }}>

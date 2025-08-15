@@ -323,7 +323,7 @@ const ProjectDetailPerformance: React.FC = () => {
         ...filterParams,
       });
 
-      console.log("前端性能数据:", response[1]);
+      // console.log("前端性能数据:", response[1]);
       setFrontendData(response[1]);
     } catch (error) {
       console.error("获取前端性能数据失败:", error);
@@ -343,7 +343,7 @@ const ProjectDetailPerformance: React.FC = () => {
         ...filterParams,
       });
 
-      console.log("移动端性能数据:", response[2]);
+      // console.log("移动端性能数据:", response[2]);
       setMobileData(response[2]);
     } catch (error) {
       console.error("获取移动端性能数据失败:", error);
@@ -493,12 +493,12 @@ const ProjectDetailPerformance: React.FC = () => {
         time: value,
       }));
 
-      console.log(
-        "%c [ ]-273",
-        "color: #f00; font-weight: bold;background: #fff;width: 100%;",
-        "performedData",
-        processedData
-      );
+      // console.log(
+      //   "%c [ ]-273",
+      //   "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+      //   "performedData",
+      //   processedData
+      // );
       setApiRequestData(processedData);
     } catch (error) {
       console.error("获取API请求时间数据失败:", error);

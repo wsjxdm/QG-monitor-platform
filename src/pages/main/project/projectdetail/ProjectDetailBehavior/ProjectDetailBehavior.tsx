@@ -87,7 +87,7 @@ const BuryPointDetail: React.FC<{ timeType: string; projectId: string }> = ({
       //   label:
       //     item.label.length > 5 ? item.label.slice(0, 5) + "…" : item.label,
       // }));
-      console.log("埋点数据响应:", response);
+      // console.log("埋点数据响应:", response);
       setData(response);
     } catch (error) {
       console.error("获取埋点数据失败:", error);
@@ -188,14 +188,14 @@ const PageData: React.FC<{ timeType: string; projectId: string }> = ({
       const startTimeStr = formatTime(startTime);
       const endTimeStr = formatTime(endTime);
 
-      console.log(
-        "开始时间:",
-        startTimeStr,
-        "结束时间:",
-        endTimeStr,
-        "projectId:",
-        projectId
-      );
+      // console.log(
+      //   "开始时间:",
+      //   startTimeStr,
+      //   "结束时间:",
+      //   endTimeStr,
+      //   "projectId:",
+      //   projectId
+      // );
 
       // 调用实际API获取页面数据，传递时间参数
       const response = await getPageDataAPI(
@@ -203,7 +203,7 @@ const PageData: React.FC<{ timeType: string; projectId: string }> = ({
         startTimeStr,
         endTimeStr
       );
-      console.log("页面数据响应:", response);
+      // console.log("页面数据响应:", response);
       const res = response.map((item: any) => ({
         ...item,
         label: item.route,
