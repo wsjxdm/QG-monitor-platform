@@ -16,7 +16,7 @@ export const wsMiddleware: Middleware<{}> = (store) => {
   // const currentUserId = currentUser?.id;
   // 建立连接
   const connect = () => {
-    const wsUrl = `ws://192.168.1.161:8080/ws`; // 后端WebSocket地址
+    const wsUrl = `ws://47.113.224.195:30420/ws`; // 后端WebSocket地址
 
     console.log("尝试建立连接");
 
