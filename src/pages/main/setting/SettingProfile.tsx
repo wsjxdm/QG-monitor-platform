@@ -47,6 +47,7 @@ const SettingProfile: React.FC = () => {
 
   useEffect(() => {
     setUserData(userInfo);
+    setAvatarUrl(userData.avatar);
   }, [userInfo]);
 
 
