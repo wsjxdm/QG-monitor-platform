@@ -413,6 +413,7 @@ const ProjectDetailOverview: React.FC = () => {
 
     return (
       <div key={role} style={{ marginBottom: "20px" }}>
+        <div className={styles.memberGroupTitle}>{title}</div>
         <div className={styles.memberGrid}>
           {members.map((member) => (
             <div
@@ -429,7 +430,13 @@ const ProjectDetailOverview: React.FC = () => {
                 />
               </Badge>
               <div className={styles.memberName}>
-                <Text strong>{member.username}</Text>
+                <Text
+                  strong
+                  ellipsis={{ tooltip: member.username }}
+                  style={{ maxWidth: 80 }}
+                >
+                  {member.username}
+                </Text>
               </div>
             </div>
           ))}
@@ -803,21 +810,21 @@ const ProjectDetailOverview: React.FC = () => {
               ) : (
                 <div>
                   <div className={styles.memberGroup}>
-                    <div className={styles.memberGroupTitle}>老板</div>
+                    {/* <div className={styles.memberGroupTitle}>老板</div> */}
                     <Row gutter={[16, 16]}>
                       {renderMemberGrid(owners, "老板", 1)}
                     </Row>
                   </div>
 
                   <div className={styles.memberGroup}>
-                    <div className={styles.memberGroupTitle}>管理员</div>
+                    {/* <div className={styles.memberGroupTitle}>管理员</div> */}
                     <Row gutter={[16, 16]}>
                       {renderMemberGrid(admins, "管理员", 2)}
                     </Row>
                   </div>
 
                   <div className={styles.memberGroup}>
-                    <div className={styles.memberGroupTitle}>成员</div>
+                    {/* <div className={styles.memberGroupTitle}>成员</div> */}
                     <Row gutter={[16, 16]}>
                       {renderMemberGrid(members, "成员", 3)}
                     </Row>

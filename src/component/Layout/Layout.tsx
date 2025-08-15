@@ -77,7 +77,7 @@ const AppLayout = () => {
       }
     };
     fetchData();
-  }, [dispatch, user.id, projectRefreshToken]);
+  }, [dispatch, user?.id, projectRefreshToken]);
 
   useEffect(() => {
     const handleProjectChange = () => {
