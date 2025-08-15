@@ -200,7 +200,7 @@ const AppLayout = () => {
         setSecondLevelKey(pathParts[projectIndex + 1]);
       }
     }
-  }, [location, privateProjects, publicProjects]);
+  }, [location, privateProjects, publicProjects, location.pathname]);
 
   // 第一层导航
   const firstLevelItems = [
@@ -370,11 +370,7 @@ const AppLayout = () => {
   // 判断是否显示第三层导航栏 - 只有在选择了具体项目时才显示
   const showThirdLevel =
     !["all-projects", "public-projects"].includes(secondLevelKey) &&
-    firstLevelKey === "project" &&
-    (secondLevelKey.startsWith("private-") ||
-      secondLevelKey.startsWith("public-") ||
-      secondLevelKey.startsWith("project-") ||
-      secondLevelKey.startsWith("pro-"));
+    firstLevelKey === "project";
 
   //=========组件初始化时配置全局socket==========
   useEffect(() => {

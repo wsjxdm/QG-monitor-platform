@@ -49,9 +49,11 @@ const Work: React.FC = () => {
 
       // 初始化每个项目的加载状态
       const loadingState: Record<string, boolean> = {};
-      response.forEach((project: ProjectItem) => {
-        loadingState[project.uuid as string] = false;
-      });
+      if (response) {
+        response.forEach((project: ProjectItem) => {
+          loadingState[project.uuid as string] = false;
+        });
+      }
       setProjectLoading(loadingState);
     } catch (error) {
       console.error("获取项目列表失败:", error);
@@ -75,9 +77,18 @@ const Work: React.FC = () => {
         return;
       }
 
-      const arry1 = response[0];
-      const arry2 = response[1];
-      const arry3 = response[2];
+      let arry1 = [];
+      let arry2 = [];
+      let arry3 = [];
+      if (response[0]) {
+        arry1 = response[0] || [];
+      }
+      if (response[1]) {
+        arry2 = response[1] || [];
+      }
+      if (response[2]) {
+        arry3 = response[2] || [];
+      }
 
       let updataArry1 = [];
       let updataArry2 = [];
@@ -254,133 +265,134 @@ const Work: React.FC = () => {
           accordion={false}
           style={{ width: "100%" }}
         >
-          {projects.map((project) => (
-            <Panel
-              header={
-                <div>
-                  <strong>{project.name}</strong> (ID: {project.uuid})
-                </div>
-              }
-              key={project.uuid as string}
-            >
-              {projectLoading[project.uuid as string] ? (
-                <Spin tip="加载中...">
-                  <div style={{ height: 100 }} />
-                </Spin>
-              ) : (
-                <div>
-                  {projectErrors[project.uuid as string] &&
-                  projectErrors[project.uuid as string].length > 0 ? (
-                    <div
-                      style={{
-                        maxHeight: "400px",
-                        overflowY: "auto",
-                        overflowX: "auto",
-                        width: "100%",
-                      }}
-                    >
-                      <table
+          {projects &&
+            projects.map((project) => (
+              <Panel
+                header={
+                  <div>
+                    <strong>{project.name}</strong> (ID: {project.uuid})
+                  </div>
+                }
+                key={project.uuid as string}
+              >
+                {projectLoading[project.uuid as string] ? (
+                  <Spin tip="加载中...">
+                    <div style={{ height: 100 }} />
+                  </Spin>
+                ) : (
+                  <div>
+                    {projectErrors[project.uuid as string] &&
+                    projectErrors[project.uuid as string].length > 0 ? (
+                      <div
                         style={{
-                          width: "100%",
-                          borderCollapse: "collapse",
+                          maxHeight: "400px",
+                          overflowY: "auto",
                           overflowX: "auto",
+                          width: "100%",
                         }}
                       >
-                        <thead>
-                          <tr>
-                            {getColumns(project.uuid).map((column) => (
-                              <th
-                                key={column.key as string}
-                                style={{
-                                  textAlign: "left",
-                                  padding: "8px",
-                                  borderBottom: "1px solid #e8e8e8",
-                                  width: column.width as string,
-                                }}
-                              >
-                                {column.title}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {projectErrors[project.uuid as string].map(
-                            (record, index) => (
-                              <tr
-                                key={record.id}
-                                onClick={() =>
-                                  goToErrorDetail(
-                                    project.uuid,
-                                    record.id,
-                                    record.platform || "frontend"
-                                  )
-                                }
-                                style={{
-                                  cursor: "pointer",
-                                  backgroundColor:
-                                    index % 2 === 0 ? "#fafafa" : "#fff",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "#e6f7ff")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    index % 2 === 0 ? "#fafafa" : "#fff")
-                                }
-                              >
-                                {getColumns(project.uuid).map((column) => (
-                                  <td
-                                    key={column.key as string}
-                                    style={{
-                                      padding: "8px",
-                                      borderBottom: "1px solid #e8e8e8",
-                                      whiteSpace: "nowrap",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                    }}
-                                  >
-                                    {column.render
-                                      ? column.render(
-                                          record[
-                                            column.dataIndex as keyof ErrorItem
-                                          ],
-                                          record
-                                        )
-                                      : (() => {
-                                          const value =
+                        <table
+                          style={{
+                            width: "100%",
+                            borderCollapse: "collapse",
+                            overflowX: "auto",
+                          }}
+                        >
+                          <thead>
+                            <tr>
+                              {getColumns(project.uuid).map((column) => (
+                                <th
+                                  key={column.key as string}
+                                  style={{
+                                    textAlign: "left",
+                                    padding: "8px",
+                                    borderBottom: "1px solid #e8e8e8",
+                                    width: column.width as string,
+                                  }}
+                                >
+                                  {column.title}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {projectErrors[project.uuid as string].map(
+                              (record, index) => (
+                                <tr
+                                  key={record.id}
+                                  onClick={() =>
+                                    goToErrorDetail(
+                                      project.uuid,
+                                      record.id,
+                                      record.platform || "frontend"
+                                    )
+                                  }
+                                  style={{
+                                    cursor: "pointer",
+                                    backgroundColor:
+                                      index % 2 === 0 ? "#fafafa" : "#fff",
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#e6f7ff")
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      index % 2 === 0 ? "#fafafa" : "#fff")
+                                  }
+                                >
+                                  {getColumns(project.uuid).map((column) => (
+                                    <td
+                                      key={column.key as string}
+                                      style={{
+                                        padding: "8px",
+                                        borderBottom: "1px solid #e8e8e8",
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                      }}
+                                    >
+                                      {column.render
+                                        ? column.render(
                                             record[
                                               column.dataIndex as keyof ErrorItem
-                                            ];
-                                          if (value instanceof Date) {
-                                            return value.toLocaleString();
-                                          }
-                                          return value ?? null;
-                                        })()}
-                                  </td>
-                                ))}
-                              </tr>
-                            )
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        padding: "16px",
-                        textAlign: "center",
-                        color: "#999",
-                      }}
-                    >
-                      该项目暂无分配给您的任务
-                    </div>
-                  )}
-                </div>
-              )}
-            </Panel>
-          ))}
-          {projects.length === 0 && (
+                                            ],
+                                            record
+                                          )
+                                        : (() => {
+                                            const value =
+                                              record[
+                                                column.dataIndex as keyof ErrorItem
+                                              ];
+                                            if (value instanceof Date) {
+                                              return value.toLocaleString();
+                                            }
+                                            return value ?? null;
+                                          })()}
+                                    </td>
+                                  ))}
+                                </tr>
+                              )
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          padding: "16px",
+                          textAlign: "center",
+                          color: "#999",
+                        }}
+                      >
+                        该项目暂无分配给您的任务
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Panel>
+            ))}
+          {projects && projects.length === 0 && (
             <div
               style={{ padding: "24px", textAlign: "center", color: "#999" }}
             >
