@@ -71,9 +71,35 @@ export const getPlatformDataAPI = async (
 };
 
 //每一个平台展示近一周次数前十的错误(前端)
-export const getPlatformTenAPI = async (projectId: string | number) => {
+export const getPlatformFrontTenAPI = async (projectId: string | number) => {
   try {
     const response = await apiClient.get("graph/getFrontendErrorStats", {
+      params: { projectId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取平台数据失败:", error);
+    throw error;
+  }
+};
+
+//每一个平台展示近一周次数前十的错误(后端)
+export const getPlatformBackenTenAPI = async (projectId: string | number) => {
+  try {
+    const response = await apiClient.get("graph/getBackendErrorStatsPro", {
+      params: { projectId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取平台数据失败:", error);
+    throw error;
+  }
+};
+
+//每一个平台展示近一周次数前十的错误(移动)
+export const getPlatformMobileTenAPI = async (projectId: string | number) => {
+  try {
+    const response = await apiClient.get("graph/getMobileErrorStatsPro", {
       params: { projectId },
     });
     return response.data;

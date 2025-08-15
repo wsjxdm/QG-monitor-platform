@@ -23,7 +23,9 @@ import {
   assignErrorAPI,
   getProjectMembersAPI,
   getPlatformDataAPI,
-  getPlatformTenAPI,
+  getPlatformFrontTenAPI,
+  getPlatformBackenTenAPI,
+  getPlatformMobileTenAPI,
   getIllegalAccessAPI,
   getMapDataAPI,
 } from "../../../../../api/service/issue";
@@ -219,7 +221,14 @@ const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getPlatformTenAPI(projectId);
+      let response;
+      if (platform === "frontend") {
+        response = await getPlatformFrontTenAPI(projectId);
+      } else if (platform === "backend") {
+        response = await getPlatformBackenTenAPI(projectId);
+      } else {
+        response = await getPlatformMobileTenAPI(projectId);
+      }
 
       setErrorCountData(response[0]);
       setErrorRatioData(response[1]);

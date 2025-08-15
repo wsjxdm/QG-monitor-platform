@@ -118,7 +118,7 @@ export default function GlobeArcs({
   }
 
   const globeImageUrl = isFullscreen
-    ? "https://unpkg.com/three-globe/example/img/earth-dark.jpg"
+    ? "http://47.113.224.195:30420/uploads/images/fe1e8d93-0684-497e-92fb-2a30895eea61.jpg"
     : "https://unpkg.com/three-globe/example/img/earth-day.jpg";
   const bumpImageUrl = isFullscreen
     ? "https://unpkg.com/three-globe/example/img/earth-topology.png"
@@ -134,7 +134,6 @@ export default function GlobeArcs({
         width: "100%",
         height: "100%",
         backgroundColor: bgColor,
-        backgroundImage: backgroundImageUrl,
         position: "relative",
         zIndex: isFullscreen ? 9999 : "auto",
       }}
