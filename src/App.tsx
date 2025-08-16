@@ -9,6 +9,15 @@ message.config({
   maxCount: 3,
 });
 function App() {
+  const isMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+
+  if (isMobile && !window.location.pathname.includes("/mobile")) {
+    window.location.href = "/mobile";
+  }
+
   return <Outlet />;
 }
 
