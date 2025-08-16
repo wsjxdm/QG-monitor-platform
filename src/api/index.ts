@@ -10,9 +10,10 @@ import { useNavigate } from "react-router-dom";
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",
-  baseURL: "http://47.113.224.195:32406",
+  // baseURL: "http://47.113.224.195:32406",
   // baseURL: "http://47.113.224.195:32400",
   // baseURL: "http://47.113.224.195:30422/api",
+  baseURL: "http://47.113.224.195:32400",
   timeout: 100000,
   headers: {
     "Content-Type": "application/json",
@@ -64,5 +65,34 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// 创建chatAPI专用实例（新增）
+const chatApiClient: AxiosInstance = axios.create({
+  baseURL: "http://192.168.1.100:8000", // 替换为AI服务地址
+  timeout: 10000000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// chatAPI专用拦截器（新增）
+chatApiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+chatApiClient.interceptors.response.use(
+  (response: AxiosResponse) => response.data,
+  (error) => Promise.reject(error)
+);
+
+// 导出新实例（新增）
+export { chatApiClient };
 
 export default apiClient;
