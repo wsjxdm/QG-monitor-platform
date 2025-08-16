@@ -10,8 +10,8 @@ import { useNavigate } from "react-router-dom";
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",
-  // baseURL: "http://192.168.1.161:8080",
-  baseURL: "http://47.113.224.195:30422/api",
+  baseURL: "http://47.113.224.195:32400",
+  // baseURL: "http://47.113.224.195:30422/api",
   timeout: 100000,
   headers: {
     "Content-Type": "application/json",
