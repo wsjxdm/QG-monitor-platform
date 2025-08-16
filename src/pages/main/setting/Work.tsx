@@ -227,10 +227,11 @@ const Work: React.FC = () => {
   const goToErrorDetail = (
     projectId: string | number,
     errorId: number | string,
-    platform: string
+    platform: string,
+    errorType: string
   ) => {
     navigate(`/main/project/${projectId}/detail/error/${errorId}`, {
-      state: { platform },
+      state: { platform, errorType },
     });
   };
 
@@ -324,7 +325,8 @@ const Work: React.FC = () => {
                                     goToErrorDetail(
                                       project.uuid,
                                       record.id,
-                                      record.platform || "frontend"
+                                      record.platform || "frontend",
+                                      record.errorType
                                     )
                                   }
                                   style={{
