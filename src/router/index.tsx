@@ -13,6 +13,7 @@ import MessageSystem from "../pages/main/message/MessageSystem";
 import MessageTask from "../pages/main/message/MessageTask";
 import SettingProfile from "../pages/main/setting/SettingProfile";
 import Work from "../pages/main/setting/Work";
+import Mobile from "../pages/mobile/mobile.tsx";
 
 import ManagerRouter from "../component/protect/Protectrouter.tsx";
 
@@ -154,6 +155,10 @@ export const router = createBrowserRouter([
             ],
           },
         ],
+      },
+      {
+        path: "/mobile",
+        element: <Mobile />,
       },
     ],
   },
