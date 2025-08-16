@@ -1,27 +1,29 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Drawer, Input, Button, Spin, Avatar, message } from "antd";
-import { SendOutlined, RobotOutlined, UserOutlined } from "@ant-design/icons";
+import { Drawer, Input, Button, Spin, Avatar, message, Switch, Tooltip } from "antd";
+import { SendOutlined, RobotOutlined, UserOutlined, ThunderboltOutlined, HistoryOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "highlight.js/styles/github.css";
+import { useParams } from "react-router-dom";
 import { chatAPI, getInfoAPI, submitInfoAPI } from "../../api/service/chat";
+import styles from "./ChatDrawer.module.css";
 
 const { TextArea } = Input;
+
 
 interface Message {
   id: string;
   content: string;
   role: "user" | "assistant";
   timestamp: Date;
+  type?: string;
+  isHistorical?: boolean;
 }
 
-// 添加新的消息接口，用于与后端通信
 interface ChatMessage {
-  id: string;
-  sendId: number | string;
-  receiverId: number | string;
+  sendId?: number | string;
+  receiverId?: number | string;
   context: string;
-  timestamp: Date;
 }
 
 const renderMarkdownContent = (content: string) => {
@@ -29,10 +31,22 @@ const renderMarkdownContent = (content: string) => {
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        code({ node, inline, className, children, ...props }) {
-          if (inline) {
+        code({ node, className, children, ...props }: any) {
+          const match = /language-(\w+)/.exec(className || '');
+          const isInline = !match;
+
+          if (isInline) {
             return (
-              <code className={className} {...props}>
+              <code
+                className={className}
+                style={{
+                  background: "rgba(79, 172, 254, 0.1)",
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                  fontSize: "13px"
+                }}
+                {...props}
+              >
                 {children}
               </code>
             );
@@ -40,10 +54,12 @@ const renderMarkdownContent = (content: string) => {
           return (
             <pre
               style={{
-                padding: "12px",
-                borderRadius: "4px",
+                padding: "16px",
+                borderRadius: "8px",
                 overflowX: "auto",
-                backgroundColor: "#f6f8fa",
+                background: "linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%)",
+                border: "1px solid #e8ecf0",
+                margin: "12px 0"
               }}
             >
               <code className={className} {...props}>
@@ -150,143 +166,228 @@ const ChatDrawer: React.FC<{
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
-  const [newMessages, setNewMessages] = useState<ChatMessage[]>([]); // 用于存储新对话
+  const [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
+  const [predictMode, setPredictMode] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [historicalMessageCount, setHistoricalMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userId = user?.id; // 假设用户信息存储在 localStorage 的 "user" 键中
 
-  // 初始化消息
+  const { projectId } = useParams<{ projectId: string }>();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = user?.id;
+
+  const initializeMessages = async () => {
+    if (isInitialized) {
+      return;
+    }
+
+    try {
+      setIsInitialized(true);
+      const response = await getInfoAPI(userId);
+
+      if (response && response.code === 404) {
+        const welcomeMessage = {
+          id: "welcome-1",
+          content: `您好！我是AI助手，我可以帮助您分析项目 ${projectId} 的相关问题。有什么可以帮助您的呢？`,
+          role: "assistant" as const,
+          timestamp: new Date(),
+          isHistorical: false,
+        };
+        setMessages([welcomeMessage]);
+        setNewMessages([]);
+        return;
+      }
+
+      if (response && response.code === 200 && response.data && Array.isArray(response.data)) {
+        if (response.data.length === 0) {
+          const welcomeMessage = {
+            id: "welcome-1",
+            content: `您好！我是AI助手，我可以帮助您分析项目 ${projectId} 的相关问题。有什么可以帮助您的呢？`,
+            role: "assistant" as const,
+            timestamp: new Date(),
+            isHistorical: false,
+          };
+          setMessages([welcomeMessage]);
+          setNewMessages([]);
+          return;
+        }
+
+        const formattedMessages: Message[] = response.data.map((msg: any, index: number) => {
+          let role: "user" | "assistant";
+          const msgSendId = Number(msg.sendId);
+          const currentUserId = Number(userId);
+
+          if (msgSendId === 0) {
+            role = "assistant";
+          } else if (msgSendId === currentUserId) {
+            role = "user";
+          } else {
+            role = "assistant";
+          }
+
+          const baseTime = new Date().getTime() - (response.data.length - index) * 60000;
+
+          return {
+            id: String(msg.id),
+            content: msg.context || "消息内容为空",
+            role: role,
+            timestamp: new Date(baseTime),
+            type: msg.type === "predict" ? "predict" : undefined,
+            isHistorical: true,
+          };
+        }).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+        setMessages(formattedMessages);
+        setHistoricalMessageCount(formattedMessages.length);
+        setNewMessages([]);
+
+      } else {
+        const welcomeMessage = {
+          id: "welcome-1",
+          content: `您好！我是AI助手，我可以帮助您分析项目 ${projectId} 的相关问题。有什么可以帮助您的呢？`,
+          role: "assistant" as const,
+          timestamp: new Date(),
+          isHistorical: false,
+        };
+        setMessages([welcomeMessage]);
+        setNewMessages([]);
+      }
+
+    } catch (error) {
+      const welcomeMessage = {
+        id: "welcome-1",
+        content: `您好！我是AI助手，我可以帮助您分析项目 ${projectId} 的相关问题。有什么可以帮助您的呢？`,
+        role: "assistant" as const,
+        timestamp: new Date(),
+        isHistorical: false,
+      };
+      setMessages([welcomeMessage]);
+      setNewMessages([]);
+    }
+  };
+
   useEffect(() => {
-    if (visible && userId) {
+    if (visible && userId && !isInitialized) {
       initializeMessages();
     }
   }, [visible, userId]);
 
-  // 组件卸载时提交新消息
   useEffect(() => {
-    return () => {
-      if (newMessages.length > 0) {
-        submitNewMessages();
-      }
-    };
-  }, [newMessages]);
-
-  const initializeMessages = async () => {
-    try {
-      const response = await getInfoAPI(userId);
-
-      // 转换消息格式
-      const formattedMessages: Message[] = response
-        .map((msg: any) => ({
-          id: msg.id,
-          content: msg.context,
-          role: msg.sendId === 0 ? "assistant" : "user",
-          timestamp: new Date(msg.timestamp || Date.now()),
-        }))
-        .sort(
-          (a: Message, b: Message) =>
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
-
-      setMessages(formattedMessages);
-      setNewMessages([]); // 重置新消息数组
-    } catch (error) {
-      console.error("获取历史消息失败:", error);
-      message.error("获取历史消息失败");
-
-      // 如果获取失败，设置默认欢迎消息
-      setMessages([
-        {
-          id: "1",
-          content: "您好！我是AI助手，有什么可以帮助您的吗？",
-          role: "assistant",
-          timestamp: new Date(),
-        },
-      ]);
+    if (!visible) {
+      setIsInitialized(false);
     }
-  };
-
-  const submitNewMessages = async () => {
-    if (newMessages.length === 0) return;
-
-    try {
-      await submitInfoAPI(newMessages);
-      console.log("新消息已提交:", newMessages);
-    } catch (error) {
-      console.error("提交消息失败:", error);
-      message.error("消息提交失败");
-    }
-  };
+  }, [visible]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      setTimeout(scrollToBottom, 100);
+    }
   }, [messages]);
 
+  const submitNewMessages = async () => {
+    if (newMessages.length === 0) {
+      return;
+    }
+
+    try {
+      await submitInfoAPI(newMessages);
+      setNewMessages([]);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        const backupKey = `chat-backup-${userId}-${Date.now()}`;
+        localStorage.setItem(backupKey, JSON.stringify(newMessages));
+        message.warning("聊天记录已暂存本地，等待后端接口修复");
+      } else {
+        message.error("聊天记录保存失败，请稍后重试");
+      }
+    }
+  };
+
   const handleSend = async () => {
-    if (!inputValue.trim() || loading) return;
+    if (!inputValue.trim() || loading || !userId) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       content: inputValue,
       role: "user",
       timestamp: new Date(),
+      type: predictMode ? "predict" : undefined,
+      isHistorical: false,
     };
 
-    // 添加用户消息到显示列表
     setMessages((prev) => [...prev, userMessage]);
 
-    // 添加用户消息到新消息列表（用于提交到后端）
-    const newUserMessage: ChatMessage = {
-      id: userMessage.id,
-      sendId: userId,
-      receiverId: 0, // 发送给AI
-      context: inputValue,
-      timestamp: userMessage.timestamp,
-    };
-    setNewMessages((prev) => [...prev, newUserMessage]);
-
+    const currentInput = inputValue;
     setInputValue("");
     setLoading(true);
 
     try {
-      // 调用AI接口
-      const response = await chatAPI(inputValue);
+      let aiReplyContent: string;
+
+      try {
+        const response = await chatAPI(currentInput, projectId);
+
+        // 检查响应状态和数据
+        if (response.code === 200 && response.data?.reply) {
+          aiReplyContent = response.data.reply;
+        } else {
+          aiReplyContent = "抱歉，AI服务暂时无法处理您的请求。";
+        }
+      } catch (aiError) {
+        console.error("AI通信错误:", aiError);
+        aiReplyContent = "抱歉，与AI服务通信失败，请稍后重试。";
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const aiMessage: Message = {
         id: `ai-${Date.now()}`,
-        content:
-          response.data?.reply ||
-          response.reply ||
-          "抱歉，我没有理解您的问题。",
+        content: aiReplyContent,
         role: "assistant",
         timestamp: new Date(),
+        type: predictMode ? "predict" : undefined,
+        isHistorical: false,
       };
 
-      // 添加AI消息到显示列表
       setMessages((prev) => [...prev, aiMessage]);
 
-      // 添加AI消息到新消息列表（用于提交到后端）
+      const newUserMessage: ChatMessage = {
+        sendId: userId,
+        context: currentInput,
+      };
+
       const newAiMessage: ChatMessage = {
-        id: aiMessage.id,
-        sendId: 0, // AI发送
         receiverId: userId,
         context: aiMessage.content,
-        timestamp: aiMessage.timestamp,
       };
-      setNewMessages((prev) => [...prev, newAiMessage]);
+
+      setNewMessages((prev) => [...prev, newUserMessage, newAiMessage]);
+
     } catch (error) {
-      console.error("与AI通信失败:", error);
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
-        content: "抱歉，与AI通信失败，请稍后重试。",
+        content: "抱歉，服务暂时不可用，请稍后重试。",
         role: "assistant",
         timestamp: new Date(),
+        isHistorical: false,
       };
       setMessages((prev) => [...prev, errorMessage]);
+
+      const newUserMessage: ChatMessage = {
+        sendId: userId,
+        context: currentInput,
+      };
+
+      const newErrorMessage: ChatMessage = {
+        receiverId: userId,
+        context: errorMessage.content,
+      };
+
+      setNewMessages((prev) => [...prev, newUserMessage, newErrorMessage]);
     } finally {
       setLoading(false);
     }
@@ -300,120 +401,253 @@ const ChatDrawer: React.FC<{
   };
 
   const renderMessageContent = (message: Message) => {
-    return renderMarkdownContent(message.content);
+    return (
+      <div>
+        {renderMarkdownContent(message.content)}
+      </div>
+    );
   };
 
-  // 处理抽屉关闭
-  const handleDrawerClose = () => {
-    // 组件卸载时提交新消息
+  const handleDrawerClose = async () => {
     if (newMessages.length > 0) {
-      submitNewMessages();
+      try {
+        await submitNewMessages();
+      } catch (error) {
+        console.error("保存聊天记录失败:", error);
+      }
     }
     onClose();
+  };
+
+  const handleTextAreaFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    const target = e.target;
+    target.style.borderColor = predictMode ? "#667eea" : "#4facfe";
+    target.style.boxShadow = predictMode
+      ? "0 4px 20px rgba(102, 126, 234, 0.15)"
+      : "0 4px 20px rgba(79, 172, 254, 0.15)";
+  };
+
+  const handleTextAreaBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    const target = e.target;
+    target.style.borderColor = predictMode
+      ? "rgba(102, 126, 234, 0.2)"
+      : "rgba(79, 172, 254, 0.2)";
+    target.style.boxShadow = "0 4px 16px rgba(0,0,0,0.06)";
+  };
+
+  const handleButtonMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const target = e.currentTarget;
+    if (!target.disabled) {
+      target.style.transform = "scale(1.05)";
+      target.style.boxShadow = predictMode
+        ? "0 6px 20px rgba(102, 126, 234, 0.5)"
+        : "0 6px 20px rgba(79, 172, 254, 0.5)";
+    }
+  };
+
+  const handleButtonMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const target = e.currentTarget;
+    target.style.transform = "scale(1)";
+    target.style.boxShadow = predictMode
+      ? "0 4px 16px rgba(102, 126, 234, 0.4)"
+      : "0 4px 16px rgba(79, 172, 254, 0.4)";
   };
 
   return (
     <Drawer
       title={
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <RobotOutlined />
-          <span>AI 助手</span>
+        <div className={styles.drawerHeader}>
+          <div className={styles.avatarContainer}>
+            <RobotOutlined style={{ color: "#fff", fontSize: "18px" }} />
+          </div>
+          <div className={styles.headerContent}>
+            <div className={styles.headerTitle}>
+              AI 智能助手
+            </div>
+            {/* {projectId && (
+              <div className={styles.projectBadge}>
+                项目: {projectId}
+              </div>
+            )} */}
+          </div>
+          {newMessages.length > 0 && (
+            <div className={styles.messageCountBadge}>
+              新消息: {newMessages.length}
+            </div>
+          )}
         </div>
       }
       placement="right"
       closable
       onClose={handleDrawerClose}
       open={visible}
-      width={400}
-      bodyStyle={{ padding: 0, backgroundColor: "#f7faff" }}
+      width={750} // 增加宽度从420px到600px
+      bodyStyle={{
+        padding: 0,
+        background: "linear-gradient(180deg, #f8faff 0%, #ffffff 100%)",
+        height: "100%"
+      }}
+      headerStyle={{
+        background: "linear-gradient(135deg, #ffffff 0%, #f8faff 100%)",
+        borderBottom: "1px solid #f0f0f0",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
+      }}
     >
-      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        {/* 消息区域 */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "16px",
-          }}
-        >
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              style={{
-                display: "flex",
-                justifyContent:
-                  message.role === "user" ? "flex-end" : "flex-start",
-                marginBottom: "12px",
-              }}
-            >
-              {message.role === "assistant" && (
-                <Avatar
-                  style={{
-                    backgroundColor: "#87d4f2",
-                    marginRight: "8px",
-                    flexShrink: 0,
-                  }}
-                  icon={<RobotOutlined />}
-                />
-              )}
-              <div
-                style={{
-                  maxWidth: "75%",
-                  padding: "5px 14px",
-                  borderRadius: "20px",
-                  background:
-                    message.role === "user"
-                      ? "linear-gradient(135deg, #b6e0fe, #88c9f9)"
-                      : "#fff",
-                  color: message.role === "user" ? "#034078" : "#000",
-                  wordBreak: "break-word",
-                  boxShadow:
-                    message.role === "assistant"
-                      ? "0 2px 6px rgba(0,0,0,0.06)"
-                      : "none",
-                }}
-              >
-                <div className="message-content">
-                  {renderMessageContent(message)}
+      <div className={styles.mainContainer}>
+        {/* 预测模式切换 */}
+        <div className={styles.predictModeSection}>
+          <Tooltip title="启用AI深度分析模式，获得更智能的预测性回答">
+            <div className={styles.predictModeContent}>
+              <div className={`${styles.predictModeIcon} ${predictMode ? styles.predictModeIconActive : styles.predictModeIconInactive}`}>
+                <ThunderboltOutlined style={{
+                  color: predictMode ? "#fff" : "rgba(255, 255, 255, 0.8)",
+                  fontSize: "16px",
+                  transform: predictMode ? "scale(1.1)" : "scale(1)",
+                  transition: "all 0.3s ease"
+                }} />
+              </div>
+              <div className={styles.predictModeTextContainer}>
+                <div className={styles.predictModeTitle}>
+                  AI深度分析
+                </div>
+                <div className={styles.predictModeSubtitle}>
+                  {predictMode ? "智能预测已启用" : "点击启用预测模式"}
                 </div>
               </div>
-              {message.role === "user" && (
-                <Avatar
-                  style={{
-                    backgroundColor: "#88c9f9",
-                    marginLeft: "8px",
-                    flexShrink: 0,
-                  }}
-                  icon={<UserOutlined />}
-                />
-              )}
             </div>
-          ))}
+          </Tooltip>
+          <Switch
+            checked={predictMode}
+            onChange={setPredictMode}
+            style={{
+              backgroundColor: predictMode ? "#ff9a9e" : "rgba(255, 255, 255, 0.3)"
+            }}
+          />
+        </div>
+
+        {/* 消息区域 */}
+        <div className={`${styles.messagesContainer} ${styles.chatDrawerContent}`}>
+          {/* 优化的历史消息分割线 */}
+          {historicalMessageCount > 0 && (
+            <div className={styles.historicalDivider}>
+              <div className={styles.historicalDividerLine}></div>
+              <div className={styles.historicalDividerContent}>
+                <div className={styles.historicalIcon}>
+                  <ClockCircleOutlined />
+                </div>
+                <div className={styles.historicalInfo}>
+                  <div className={styles.historicalTitle}>历史对话记录</div>
+                  <div className={styles.historicalCount}>{historicalMessageCount} 条消息</div>
+                </div>
+              </div>
+              <div className={styles.historicalDividerLine}></div>
+            </div>
+          )}
+
+          {messages.map((message, index) => {
+            const isFirstNewMessage = index > 0 &&
+              messages[index - 1].isHistorical &&
+              !message.isHistorical;
+
+            return (
+              <React.Fragment key={message.id}>
+                {/* 优化的新消息分割线 */}
+                {isFirstNewMessage && (
+                  <div className={styles.newMessageDivider}>
+                    <div className={styles.newMessageDividerLine}></div>
+                    <div className={styles.newMessageDividerContent}>
+                      <div className={styles.newMessageIcon}>
+                        ✨
+                      </div>
+                      <span className={styles.newMessageText}>本次对话开始</span>
+                    </div>
+                    <div className={styles.newMessageDividerLine}></div>
+                  </div>
+                )}
+
+                <div
+                  className={`${styles.messageItem} ${message.role === "user" ? styles.messageItemUser : styles.messageItemAssistant
+                    }`}
+                  style={{
+                    opacity: message.isHistorical ? 0.85 : 1,
+                  }}
+                >
+                  {message.role === "assistant" && (
+                    <Avatar
+                      className={`${styles.messageAvatar} ${styles.messageAvatarLeft} ${message.type === "predict" ? styles.messageAvatarPredict : ""
+                        }`}
+                      icon={message.type === "predict" ? <ThunderboltOutlined /> : <RobotOutlined />}
+                      style={{
+                        border: message.isHistorical ? "2px solid #e8e8e8" : undefined,
+                      }}
+                    />
+                  )}
+                  <div
+                    className={`${styles.messageBubble} ${message.role === "user"
+                      ? `${styles.messageBubbleUser} ${message.type === "predict" ? styles.messageBubbleUserPredict : ""}`
+                      : styles.messageBubbleAssistant
+                      }`}
+                    style={{
+                      background: message.isHistorical
+                        ? (message.role === "user"
+                          ? "linear-gradient(135deg, #b8b8b8 0%, #d0d0d0 100%)"
+                          : "#f8f8f8")
+                        : undefined,
+                      border: message.isHistorical && message.role === "assistant"
+                        ? "1px solid #e8e8e8"
+                        : undefined,
+                    }}
+                  >
+                    {message.isHistorical && (
+                      <div className={`${styles.messageBadge} ${message.role === "user" ? styles.messageBadgeUser : styles.messageBadgeAssistant
+                        }`}
+                        style={{
+                          color: message.role === "user" ? "rgba(255, 255, 255, 0.7)" : "#999"
+                        }}
+                      >
+                        <HistoryOutlined style={{ fontSize: "10px" }} />
+                        历史消息
+                      </div>
+                    )}
+
+                    {message.type === "predict" && (
+                      <div className={`${styles.messageBadge} ${message.role === "user" ? styles.messageBadgeUser : styles.messageBadgeAssistant
+                        }`}>
+                        <ThunderboltOutlined style={{ fontSize: "10px" }} />
+                        AI深度分析
+                      </div>
+                    )}
+                    <div className={styles.messageContent}>
+                      {renderMessageContent(message)}
+                    </div>
+                  </div>
+                  {message.role === "user" && (
+                    <Avatar
+                      className={`${styles.messageAvatar} ${styles.messageAvatarRight} ${message.type === "predict" ? styles.messageAvatarPredict : ""
+                        }`}
+                      icon={message.type === "predict" ? <ThunderboltOutlined /> : <UserOutlined />}
+                      style={{
+                        border: message.isHistorical ? "2px solid #e8e8e8" : undefined,
+                      }}
+                    />
+                  )}
+                </div>
+              </React.Fragment>
+            );
+          })}
+
           {loading && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginBottom: "12px",
-              }}
-            >
+            <div className={styles.loadingContainer}>
               <Avatar
-                style={{
-                  backgroundColor: "#87d4f2",
-                  marginRight: "8px",
-                  flexShrink: 0,
-                }}
-                icon={<RobotOutlined />}
+                className={`${styles.messageAvatar} ${styles.messageAvatarLeft} ${predictMode ? styles.messageAvatarPredict : ""
+                  }`}
+                icon={predictMode ? <ThunderboltOutlined /> : <RobotOutlined />}
               />
-              <div
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "20px",
-                  backgroundColor: "#fff",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                }}
-              >
+              <div className={styles.loadingBubble}>
                 <Spin size="small" />
+                <span className={styles.loadingText}>
+                  {predictMode ? "AI正在深度分析中..." : "AI正在思考中..."}
+                </span>
               </div>
             </div>
           )}
@@ -421,36 +655,48 @@ const ChatDrawer: React.FC<{
         </div>
 
         {/* 输入区域 */}
-        <div
-          style={{
-            padding: "12px",
-            borderTop: "1px solid #e8e8e8",
-            backgroundColor: "#f7faff",
-          }}
-        >
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <TextArea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onPressEnter={handlePressEnter}
-              placeholder="输入消息..."
-              autoSize={{ minRows: 1, maxRows: 4 }}
-              disabled={loading}
-              style={{
-                borderRadius: "20px",
-                resize: "none",
-                padding: "8px 12px",
-                scrollbarWidth: "none",
-              }}
-            />
+        <div className={`${styles.inputSection} ${predictMode ? styles.inputSectionPredict : styles.inputSectionNormal
+          }`}>
+          <div className={styles.inputContainer}>
+            <div className={styles.textAreaContainer}>
+              <TextArea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onPressEnter={handlePressEnter}
+                placeholder={predictMode ? "描述您的问题，AI将进行深度分析..." : "输入消息开始对话..."}
+                autoSize={{ minRows: 1, maxRows: 4 }}
+                disabled={loading}
+                className={`${styles.textArea} ${predictMode ? styles.textAreaPredict : styles.textAreaNormal
+                  }`}
+                onFocus={handleTextAreaFocus}
+                onBlur={handleTextAreaBlur}
+              />
+            </div>
             <Button
               type="primary"
               icon={<SendOutlined />}
               shape="circle"
+              size="large"
               onClick={handleSend}
               disabled={!inputValue.trim() || loading}
+              className={`${styles.sendButton} ${predictMode ? styles.sendButtonPredict : styles.sendButtonNormal
+                }`}
+              onMouseEnter={handleButtonMouseEnter}
+              onMouseLeave={handleButtonMouseLeave}
             />
           </div>
+          {predictMode && (
+            <div className={styles.predictModeHint}>
+              <ThunderboltOutlined />
+              AI深度分析模式已启用，将为您提供更智能的预测性回答
+            </div>
+          )}
+          {newMessages.length > 0 && (
+            <div className={styles.newMessagesHint}>
+              <span>💾</span>
+              本次会话有 {newMessages.length} 条新消息，关闭窗口时将自动保存
+            </div>
+          )}
         </div>
       </div>
     </Drawer>
