@@ -88,7 +88,7 @@ const MessageList: React.FC<MessageListProps> = ({
     //点击了标记已读
     const handleClick = (errorId: number, platform: string, projectId: number, errorType: string, e: React.MouseEvent, id: number) => {
         e.stopPropagation();
-        if (e.target.textContent !== "删除消息") {
+        if (e.target.textContent !== "删除消息" && e.target.textContent !== "取消") {
             setMessages(prevMessages =>
                 prevMessages.map(msg =>
                     msg.errorId === errorId ? { ...msg, isRead: true } : msg
@@ -103,7 +103,7 @@ const MessageList: React.FC<MessageListProps> = ({
                 }
             };
             updateStatus();
-            console.log("1", errorType, platform);
+            console.log("1", errorType, platform, errorId);
 
             navigator(`/main/project/${projectId}/detail/error/${errorId}`, {
                 state: { platform, errorType }
@@ -163,6 +163,7 @@ const MessageList: React.FC<MessageListProps> = ({
                 className={styles.card}
             >
                 <List
+                    pagination={{ pageSize: 15 }}
                     loading={loading}
                     dataSource={messages}
                     locale={{ emptyText: <Empty description="暂无消息" /> }}
@@ -211,6 +212,9 @@ const MessageList: React.FC<MessageListProps> = ({
                                             <Popconfirm
                                                 title="确定要删除这条消息吗？"
                                                 onConfirm={(e) => handleClearSingle(item.id, e)}
+                                                onCancel={(e) => {
+                                                    e.stopPropagation();
+                                                }}
                                                 okText="确定"
                                                 cancelText="取消"
                                             >
