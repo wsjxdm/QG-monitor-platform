@@ -13,6 +13,9 @@ import MessageSystem from "../pages/main/message/MessageSystem";
 import MessageTask from "../pages/main/message/MessageTask";
 import SettingProfile from "../pages/main/setting/SettingProfile";
 import Work from "../pages/main/setting/Work";
+import Mobile from "../pages/mobile/mobile.tsx";
+
+import ManagerRouter from "../component/protect/Protectrouter.tsx";
 
 import App from "../App";
 import AppLayout from "../component/Layout/Layout";
@@ -36,39 +39,71 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "all",
-                element: <ProjectAll />,
+                element: (
+                  <ManagerRouter>
+                    <ProjectAll />
+                  </ManagerRouter>
+                ),
               },
               {
                 path: "public",
-                element: <ProjectPublic />,
+                element: (
+                  <ManagerRouter>
+                    <ProjectPublic />
+                  </ManagerRouter>
+                ),
               },
               {
                 path: ":projectId/detail",
                 children: [
                   {
                     path: "overview",
-                    element: <ProjectDetailOverview />,
+                    element: (
+                      <ManagerRouter>
+                        <ProjectDetailOverview />
+                      </ManagerRouter>
+                    ),
                   },
                   {
                     //这是问题详情
                     path: ":type/:detailId",
-                    element: <ProjectItemDetail />, // 这里可以根据需要调整组件
+                    element: (
+                      <ManagerRouter>
+                        <ProjectItemDetail />
+                      </ManagerRouter>
+                    ),
                   },
                   {
                     path: "issues",
-                    element: <ProjectDetailIssues />,
+                    element: (
+                      <ManagerRouter>
+                        <ProjectDetailIssues />
+                      </ManagerRouter>
+                    ),
                   },
                   {
                     path: "performance",
-                    element: <ProjectDetailPerformance />,
+                    element: (
+                      <ManagerRouter>
+                        <ProjectDetailPerformance />
+                      </ManagerRouter>
+                    ),
                   },
                   {
                     path: "log",
-                    element: <ProjectDetailLog />,
+                    element: (
+                      <ManagerRouter>
+                        <ProjectDetailLog />
+                      </ManagerRouter>
+                    ),
                   },
                   {
                     path: "behavior",
-                    element: <ProjectDetailBehavior />,
+                    element: (
+                      <ManagerRouter>
+                        <ProjectDetailBehavior />
+                      </ManagerRouter>
+                    ),
                   },
                   // 后面再加上监控的东西
                 ],
@@ -81,11 +116,19 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "system",
-                element: <MessageSystem />,
+                element: (
+                  <ManagerRouter>
+                    <MessageSystem />
+                  </ManagerRouter>
+                ),
               },
               {
                 path: "task",
-                element: <MessageTask />,
+                element: (
+                  <ManagerRouter>
+                    <MessageTask />
+                  </ManagerRouter>
+                ),
               },
             ],
           },
@@ -95,15 +138,27 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "profile",
-                element: <SettingProfile />,
+                element: (
+                  <ManagerRouter>
+                    <SettingProfile />
+                  </ManagerRouter>
+                ),
               },
               {
                 path: "work",
-                element: <Work />,
+                element: (
+                  <ManagerRouter>
+                    <Work />
+                  </ManagerRouter>
+                ),
               },
             ],
           },
         ],
+      },
+      {
+        path: "/mobile",
+        element: <Mobile />,
       },
     ],
   },

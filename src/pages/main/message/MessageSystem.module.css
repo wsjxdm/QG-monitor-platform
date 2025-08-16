@@ -1,115 +1,116 @@
 .container {
-    padding: 24px;
-    background: #fff;
-    min-height: 100vh;
+  padding: 24px;
+  background: #fff;
+  min-height: 100vh;
+  overflow: hidden;
 }
 
 .card {
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  overflow: hidden;
 }
 
 .card-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #000;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
 }
 
 .list-item {
-    padding: 16px 0;
+  padding: 16px 0;
 }
 
 .meta-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .project-name {
-    font-weight: 600;
-    color: #000;
+  font-weight: 600;
+  color: #000;
 }
 
 .time {
-    font-size: 12px;
-    color: #666;
+  font-size: 12px;
+  color: #666;
 }
 
 .error-message {
-    display: block;
-    font-size: 14px;
-    color: #ff4d4f;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+  display: block;
+  font-size: 14px;
+  color: #ff4d4f;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .additional-info {
-    margin-top: 8px;
+  margin-top: 8px;
 }
 
 .additional-time {
-    font-size: 12px;
-    color: #666;
+  font-size: 12px;
+  color: #666;
 }
 
 .alarm-message {
-    color: white;
+  color: white;
 }
 
 /* 已读/未读样式 */
 .read {
-    opacity: 0.7;
+  opacity: 0.7;
 }
 
 .unread {
-    /* 可以添加一些样式变化 */
+  /* 可以添加一些样式变化 */
 }
 
 /* 未读消息标记小圆点 */
 .unread-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #ff4d4f;
-    /* 未读颜色 */
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-right: 8px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff4d4f;
+  /* 未读颜色 */
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 8px;
 }
 
-
 .response-info {
-    font-size: 10px;
+  font-size: 10px;
 }
 
 /* 已读/未读项目名称样式 */
 .project-name {
-    font-weight: 600;
-    color: #000;
+  font-weight: 600;
+  color: #000;
 }
 
 /* 消息列表项 */
 .list-item {
-    padding: 16px 0;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  padding: 16px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 /* 已读消息样式 */
 .read .project-name {
-    color: #666;
+  color: #666;
 }
 
 .read .error-message {
-    color: #666;
+  color: #666;
 }
 
 .read .additional-time {
-    color: #999;
+  color: #999;
 }
 
 .read:hover {
-    background-color: #f8f8f8;
+  background-color: #f8f8f8;
 }

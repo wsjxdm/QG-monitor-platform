@@ -73,11 +73,11 @@ const AppLayout = () => {
         setPrivateProjects(privateProject.reverse());
         setPublicProjects(publicProject.reverse());
       } catch (error) {
-        message.error("获取项目列表失败");
+        message.info("获取项目列表失败");
       }
     };
     fetchData();
-  }, [dispatch, user.id, projectRefreshToken]);
+  }, [dispatch, user?.id, projectRefreshToken]);
 
   useEffect(() => {
     const handleProjectChange = () => {
