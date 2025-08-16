@@ -325,6 +325,11 @@ const ProjectDetailOverview: React.FC = () => {
     // 只有非普通成员才能操作其他成员
     if (userRole === 2) {
       message.warning("权限不足");
+      return;
+    }
+    if (userRole == null) {
+      message.warning("权限不足");
+      return;
     }
     if (userRole !== 2) {
       setContextMenuMember(member);
@@ -368,7 +373,7 @@ const ProjectDetailOverview: React.FC = () => {
   // 移除成员
   const removeMember = async (memberId: number, memberRole: number) => {
     if (!userRole) {
-      message.error("请先登录");
+      message.error("您没有权限进行操作");
       return;
     }
 
@@ -460,7 +465,7 @@ const ProjectDetailOverview: React.FC = () => {
     <div className={styles.infoItem}>
       <Text className={styles.infoLabel}>{label}</Text>
       {editingField === field ? (
-        <Space style={{ display: "flex", width: "100%" }}>
+        <Space style={{ flex: 1, display: "flex", width: "100%" }}>
           {type === "textarea" ? (
             <Input.TextArea
               value={editValue}
