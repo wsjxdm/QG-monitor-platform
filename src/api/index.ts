@@ -10,7 +10,8 @@ import { useNavigate } from "react-router-dom";
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",
-  baseURL: "http://47.113.224.195:32400",
+  baseURL: "http://47.113.224.195:32406",
+  // baseURL: "http://47.113.224.195:32400",
   // baseURL: "http://47.113.224.195:30422/api",
   timeout: 100000,
   headers: {
@@ -44,9 +45,7 @@ apiClient.interceptors.response.use(
     // 对响应数据做点什么
     console.log("检查token", response.data);
 
-    console.log("检查", response.data.data.code);
-
-    if (response.data.data.code === 401) {
+    if (response.data.code === 401) {
       message.error("登录已过期，请重新登录");
       localStorage.removeItem("user");
       window.location.href = "/";
