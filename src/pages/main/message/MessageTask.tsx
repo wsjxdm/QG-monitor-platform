@@ -13,7 +13,7 @@ const MessageTask: React.FC = () => {
 
   const currentUserId = currentUser?.id;
   const renderAvatar = (item: any) => (
-    <Avatar src={item.avatar} />
+    <Avatar src={item.senderAvatar} />
   );
 
   const { Text } = Typography;

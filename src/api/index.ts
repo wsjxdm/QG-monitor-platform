@@ -5,6 +5,8 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { message } from "antd";
+import { useNavigate } from "react-router-dom";
+
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
@@ -45,11 +47,12 @@ apiClient.interceptors.response.use(
   },
 
   (error) => {
+    const navigate = useNavigate();
     //处理token过期
     if (error.response?.code === 401) {
       message.error("登录已过期，请重新登录");
-      localStorage.removeItem("users");
-      window.location.href = "/"; // 重定向到登录页面
+      localStorage.removeItem("user");
+      navigate("/"); // 重定向到登录页面
     }
     if (error.response?.code === 500) {
       // 处理服务器错误
