@@ -462,7 +462,6 @@ const ProjectDetailIssues: React.FC = () => {
       // 调用 getMapDataAPI 获取地图数据
       const response = await getMapDataAPI(projectId, startTimeStr, endTimeStr);
 
-      console.log("211热水", response);
       // 处理响应数据并转换为 Route 格式
       const routesData = response.map((item: any) => ({
         start: {
@@ -583,6 +582,11 @@ const ProjectDetailIssues: React.FC = () => {
       // 只有非普通成员才能进行指派操作
       if (currentUser && currentUser.role == 2) {
         message.warning("普通成员不能指派问题");
+        return;
+      }
+
+      if (currentUser?.userRole == null) {
+        message.warning("非项目成员不可指派问题");
         return;
       }
 
