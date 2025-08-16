@@ -7,7 +7,6 @@ import type {
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 
-
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",

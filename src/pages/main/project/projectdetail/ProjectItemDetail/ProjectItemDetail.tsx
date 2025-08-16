@@ -107,7 +107,10 @@ const ProjectItemDetail: React.FC = () => {
         const currentUser = JSON.parse(localStorage.getItem("user"));
         getUserResponsibility(projectId, currentUser?.id).then((res) => {
           if (res) {
-            if (res.userRole === 2 && responsibleId !== currentUser?.id) {
+            if (
+              (res.userRole === 2 && responsibleId !== currentUser?.id) ||
+              res.userRole == null
+            ) {
               message.warning("您无权查看此错误详情，请联系项目管理员");
               navigate(`/main/project/${projectId}/detail/issues`);
               return;
