@@ -65,14 +65,14 @@ const Introduction: React.FC = () => {
             style={{ maxHeight: "60px", objectFit: "contain" }}
           />
         </Col>
-        <Col xs={12} sm={6}>
+        {/* <Col xs={12} sm={6}>
           <Image
             src="/public/logo.png"
             width="100%"
             preview={false}
             style={{ maxHeight: "60px", objectFit: "contain" }}
           />
-        </Col>
+        </Col> */}
       </Row>
     </div>
   );

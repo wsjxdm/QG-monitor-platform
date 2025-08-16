@@ -154,6 +154,8 @@ const AppLayout = () => {
       setSecondLevelKey("task-message");
     } else if (path === "/main/setting/profile") {
       setSecondLevelKey("profile");
+    } else if (path === "/main/setting/work") {
+      setSecondLevelKey("work");
     } else if (path.includes("/main/project/") && path.includes("/detail/")) {
       // 处理直接访问项目详情页的情况
       const pathParts = path.split("/");

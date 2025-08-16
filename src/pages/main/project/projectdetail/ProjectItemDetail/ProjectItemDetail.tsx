@@ -125,7 +125,9 @@ const ProjectItemDetail: React.FC = () => {
 
         //获取阈值
         const res = await getIssueThresholdAPI(projectId, errorType, platform);
-        setCurrentThreshold(res?.threshold);
+        if (res) {
+          setCurrentThreshold(res.threshold);
+        }
 
         setErrorData(response);
       } catch (error) {
