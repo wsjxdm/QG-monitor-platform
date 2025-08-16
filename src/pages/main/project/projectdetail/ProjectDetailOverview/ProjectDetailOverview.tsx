@@ -325,6 +325,11 @@ const ProjectDetailOverview: React.FC = () => {
     // 只有非普通成员才能操作其他成员
     if (userRole === 2) {
       message.warning("权限不足");
+      return;
+    }
+    if (userRole == null) {
+      message.warning("权限不足");
+      return;
     }
     if (userRole !== 2) {
       setContextMenuMember(member);
@@ -368,7 +373,7 @@ const ProjectDetailOverview: React.FC = () => {
   // 移除成员
   const removeMember = async (memberId: number, memberRole: number) => {
     if (!userRole) {
-      message.error("请先登录");
+      message.error("您没有权限进行操作");
       return;
     }
 
@@ -413,6 +418,7 @@ const ProjectDetailOverview: React.FC = () => {
 
     return (
       <div key={role} style={{ marginBottom: "20px" }}>
+        <div className={styles.memberGroupTitle}>{title}</div>
         <div className={styles.memberGrid}>
           {members.map((member) => (
             <div
@@ -429,7 +435,13 @@ const ProjectDetailOverview: React.FC = () => {
                 />
               </Badge>
               <div className={styles.memberName}>
-                <Text strong>{member.username}</Text>
+                <Text
+                  strong
+                  ellipsis={{ tooltip: member.username }}
+                  style={{ maxWidth: 80 }}
+                >
+                  {member.username}
+                </Text>
               </div>
             </div>
           ))}
@@ -453,19 +465,19 @@ const ProjectDetailOverview: React.FC = () => {
     <div className={styles.infoItem}>
       <Text className={styles.infoLabel}>{label}</Text>
       {editingField === field ? (
-        <Space>
+        <Space style={{ flex: 1, display: "flex", width: "100%" }}>
           {type === "textarea" ? (
             <Input.TextArea
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               autoSize={{ minRows: 2, maxRows: 6 }}
-              style={{ width: "300px" }}
+              style={{ flex: 1 }}
             />
           ) : (
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              style={{ width: "300px" }}
+              style={{ flex: 1 }}
             />
           )}
           <Button
@@ -473,12 +485,14 @@ const ProjectDetailOverview: React.FC = () => {
             icon={<SaveOutlined />}
             onClick={saveEdit}
             size="small"
+            style={{ marginLeft: 8 }}
           />
           {role == 2 && (
             <Button
               icon={<CloseOutlined />}
               onClick={cancelEdit}
               size="small"
+              style={{ marginLeft: 8 }}
             />
           )}
         </Space>
@@ -516,19 +530,28 @@ const ProjectDetailOverview: React.FC = () => {
     <div className={styles.infoItem}>
       <Text className={styles.infoLabel}>{label}</Text>
       {editingField === field ? (
-        <Space>
+        <Space
+          style={{ display: "flex", width: "100%" }}
+          className={styles.infoValue}
+        >
           <Input
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            style={{ width: "300px" }}
+            style={{ flex: 1 }}
           />
           <Button
             type="primary"
             icon={<SaveOutlined />}
             onClick={saveEdit}
             size="small"
+            style={{ marginLeft: 8 }}
           />
-          <Button icon={<CloseOutlined />} onClick={cancelEdit} size="small" />
+          <Button
+            icon={<CloseOutlined />}
+            onClick={cancelEdit}
+            size="small"
+            style={{ marginLeft: 8 }}
+          />
         </Space>
       ) : (
         <div className={styles.infoValue}>
@@ -653,6 +676,7 @@ const ProjectDetailOverview: React.FC = () => {
 
               <div className={styles.infoCard}>
                 <div className={styles.infoItem}>
+                  <Text className={styles.infoLabel}>项目ID</Text>
                   <div className={styles.infoValue}>
                     <Text>{projectData.uuid}</Text>
                   </div>
@@ -661,6 +685,7 @@ const ProjectDetailOverview: React.FC = () => {
 
               <div className={styles.infoCard}>
                 <div className={styles.infoItem}>
+                  <Text className={styles.infoLabel}>项目创建时间</Text>
                   <div className={styles.infoValue}>
                     <Text>
                       {new Date(projectData.createdTime)
@@ -803,21 +828,21 @@ const ProjectDetailOverview: React.FC = () => {
               ) : (
                 <div>
                   <div className={styles.memberGroup}>
-                    <div className={styles.memberGroupTitle}>老板</div>
+                    {/* <div className={styles.memberGroupTitle}>老板</div> */}
                     <Row gutter={[16, 16]}>
                       {renderMemberGrid(owners, "老板", 1)}
                     </Row>
                   </div>
 
                   <div className={styles.memberGroup}>
-                    <div className={styles.memberGroupTitle}>管理员</div>
+                    {/* <div className={styles.memberGroupTitle}>管理员</div> */}
                     <Row gutter={[16, 16]}>
                       {renderMemberGrid(admins, "管理员", 2)}
                     </Row>
                   </div>
 
                   <div className={styles.memberGroup}>
-                    <div className={styles.memberGroupTitle}>成员</div>
+                    {/* <div className={styles.memberGroupTitle}>成员</div> */}
                     <Row gutter={[16, 16]}>
                       {renderMemberGrid(members, "成员", 3)}
                     </Row>
