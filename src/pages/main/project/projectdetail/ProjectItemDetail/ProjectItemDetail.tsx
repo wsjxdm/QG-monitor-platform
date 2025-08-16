@@ -114,6 +114,7 @@ const ProjectItemDetail: React.FC = () => {
             }
           }
         });
+
         const response = await getErrorDetailAPI(detailId, platform);
         //将获取到的数据中的面包屑中的category为performance的去掉
         if (response?.breadcrumbs) {
@@ -321,11 +322,6 @@ const ProjectItemDetail: React.FC = () => {
       {data.env && (
         <Descriptions.Item label="环境">{data.env}</Descriptions.Item>
       )}
-      <Descriptions.Item label="状态">
-        <Tag color={data.isHandled ? "green" : "red"}>
-          {data.isHandled ? "已处理" : "未处理"}
-        </Tag>
-      </Descriptions.Item>
       {data.filename && (
         <Descriptions.Item label="文件名">{data.filename}</Descriptions.Item>
       )}

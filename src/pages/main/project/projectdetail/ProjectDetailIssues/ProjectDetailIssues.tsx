@@ -65,7 +65,7 @@ interface ProjectMember {
   userId: string | number;
   username: string;
   email?: string;
-  avatar?: string;
+  avatarUrl?: string;
   userRole: number;
   power?: number | string;
 }
@@ -558,7 +558,13 @@ const ProjectDetailIssues: React.FC = () => {
   const fetchProjectMembers = async () => {
     try {
       const response = await getProjectMembersAPI(projectId);
-      setMembers(response);
+      const res = response.map((item) => {
+        return {
+          ...item,
+          avatarUrl: item.avatar,
+        };
+      });
+      setMembers(res);
       // console.log("项目成员:", response);
     } catch (error) {
       console.error("获取项目成员失败:", error);
@@ -619,7 +625,11 @@ const ProjectDetailIssues: React.FC = () => {
         key: member.userId,
         label: (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Avatar size="small" src={member.avatar} icon={<UserOutlined />} />
+            <Avatar
+              size="small"
+              src={member.avatarUrl}
+              icon={<UserOutlined />}
+            />
             <span>{member.username}</span>
           </div>
         ),
@@ -644,7 +654,11 @@ const ProjectDetailIssues: React.FC = () => {
       >
         {record?.delegatorId ? (
           <Tooltip title={`已指派给: ${record.username || "未知用户"}`}>
-            <Avatar size="small" src={record?.avatar} icon={<UserOutlined />} />
+            <Avatar
+              size="small"
+              src={record?.avatarUrl}
+              icon={<UserOutlined />}
+            />
             <span style={{ marginLeft: 8 }}>
               {record.username || "未知用户"}
             </span>
