@@ -1,6 +1,22 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Drawer, Input, Button, Spin, Avatar, message, Switch, Tooltip } from "antd";
-import { SendOutlined, RobotOutlined, UserOutlined, ThunderboltOutlined, HistoryOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import {
+  Drawer,
+  Input,
+  Button,
+  Spin,
+  Avatar,
+  message,
+  Switch,
+  Tooltip,
+} from "antd";
+import {
+  SendOutlined,
+  RobotOutlined,
+  UserOutlined,
+  ThunderboltOutlined,
+  HistoryOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "highlight.js/styles/github.css";
@@ -9,7 +25,6 @@ import { chatAPI, getInfoAPI, submitInfoAPI } from "../../api/service/chat";
 import styles from "./ChatDrawer.module.css";
 
 const { TextArea } = Input;
-
 
 interface Message {
   id: string;
@@ -32,7 +47,7 @@ const renderMarkdownContent = (content: string) => {
       remarkPlugins={[remarkGfm]}
       components={{
         code({ node, className, children, ...props }: any) {
-          const match = /language-(\w+)/.exec(className || '');
+          const match = /language-(\w+)/.exec(className || "");
           const isInline = !match;
 
           if (isInline) {
@@ -43,7 +58,7 @@ const renderMarkdownContent = (content: string) => {
                   background: "rgba(79, 172, 254, 0.1)",
                   padding: "2px 6px",
                   borderRadius: "4px",
-                  fontSize: "13px"
+                  fontSize: "13px",
                 }}
                 {...props}
               >
@@ -59,7 +74,7 @@ const renderMarkdownContent = (content: string) => {
                 overflowX: "auto",
                 background: "linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%)",
                 border: "1px solid #e8ecf0",
-                margin: "12px 0"
+                margin: "12px 0",
               }}
             >
               <code className={className} {...props}>
@@ -176,6 +191,16 @@ const ChatDrawer: React.FC<{
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userId = user?.id;
 
+  useEffect(() => {
+    console.log(
+      "%c [  ]-196",
+      "font-size:13px; background:pink; color:#bf2c9f;",
+      projectId,
+      messages,
+      newMessages
+    );
+  }, [visible]);
+
   const initializeMessages = async () => {
     if (isInitialized) {
       return;
@@ -198,7 +223,12 @@ const ChatDrawer: React.FC<{
         return;
       }
 
-      if (response && response.code === 200 && response.data && Array.isArray(response.data)) {
+      if (
+        response &&
+        response.code === 200 &&
+        response.data &&
+        Array.isArray(response.data)
+      ) {
         if (response.data.length === 0) {
           const welcomeMessage = {
             id: "welcome-1",
@@ -212,35 +242,40 @@ const ChatDrawer: React.FC<{
           return;
         }
 
-        const formattedMessages: Message[] = response.data.map((msg: any, index: number) => {
-          let role: "user" | "assistant";
-          const msgSendId = Number(msg.sendId);
-          const currentUserId = Number(userId);
+        const formattedMessages: Message[] = response.data
+          .map((msg: any, index: number) => {
+            let role: "user" | "assistant";
+            const msgSendId = Number(msg.sendId);
+            const currentUserId = Number(userId);
 
-          if (msgSendId === 0) {
-            role = "assistant";
-          } else if (msgSendId === currentUserId) {
-            role = "user";
-          } else {
-            role = "assistant";
-          }
+            if (msgSendId === 0) {
+              role = "assistant";
+            } else if (msgSendId === currentUserId) {
+              role = "user";
+            } else {
+              role = "assistant";
+            }
 
-          const baseTime = new Date().getTime() - (response.data.length - index) * 60000;
+            const baseTime =
+              new Date().getTime() - (response.data.length - index) * 60000;
 
-          return {
-            id: String(msg.id),
-            content: msg.context || "消息内容为空",
-            role: role,
-            timestamp: new Date(baseTime),
-            type: msg.type === "predict" ? "predict" : undefined,
-            isHistorical: true,
-          };
-        }).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            return {
+              id: String(msg.id),
+              content: msg.context || "消息内容为空",
+              role: role,
+              timestamp: new Date(baseTime),
+              type: msg.type === "predict" ? "predict" : undefined,
+              isHistorical: true,
+            };
+          })
+          .sort(
+            (a, b) =>
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
 
         setMessages(formattedMessages);
         setHistoricalMessageCount(formattedMessages.length);
         setNewMessages([]);
-
       } else {
         const welcomeMessage = {
           id: "welcome-1",
@@ -252,7 +287,6 @@ const ChatDrawer: React.FC<{
         setMessages([welcomeMessage]);
         setNewMessages([]);
       }
-
     } catch (error) {
       const welcomeMessage = {
         id: "welcome-1",
@@ -342,7 +376,7 @@ const ChatDrawer: React.FC<{
         aiReplyContent = "抱歉，与AI服务通信失败，请稍后重试。";
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const aiMessage: Message = {
         id: `ai-${Date.now()}`,
@@ -366,7 +400,6 @@ const ChatDrawer: React.FC<{
       };
 
       setNewMessages((prev) => [...prev, newUserMessage, newAiMessage]);
-
     } catch (error) {
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
@@ -401,11 +434,7 @@ const ChatDrawer: React.FC<{
   };
 
   const renderMessageContent = (message: Message) => {
-    return (
-      <div>
-        {renderMarkdownContent(message.content)}
-      </div>
-    );
+    return <div>{renderMarkdownContent(message.content)}</div>;
   };
 
   const handleDrawerClose = async () => {
@@ -461,9 +490,7 @@ const ChatDrawer: React.FC<{
             <RobotOutlined style={{ color: "#fff", fontSize: "18px" }} />
           </div>
           <div className={styles.headerContent}>
-            <div className={styles.headerTitle}>
-              AI 智能助手
-            </div>
+            <div className={styles.headerTitle}>AI 智能助手</div>
             {/* {projectId && (
               <div className={styles.projectBadge}>
                 项目: {projectId}
@@ -485,12 +512,12 @@ const ChatDrawer: React.FC<{
       bodyStyle={{
         padding: 0,
         background: "linear-gradient(180deg, #f8faff 0%, #ffffff 100%)",
-        height: "100%"
+        height: "100%",
       }}
       headerStyle={{
         background: "linear-gradient(135deg, #ffffff 0%, #f8faff 100%)",
         borderBottom: "1px solid #f0f0f0",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
       }}
     >
       <div className={styles.mainContainer}>
@@ -498,18 +525,24 @@ const ChatDrawer: React.FC<{
         <div className={styles.predictModeSection}>
           <Tooltip title="启用AI深度分析模式，获得更智能的预测性回答">
             <div className={styles.predictModeContent}>
-              <div className={`${styles.predictModeIcon} ${predictMode ? styles.predictModeIconActive : styles.predictModeIconInactive}`}>
-                <ThunderboltOutlined style={{
-                  color: predictMode ? "#fff" : "rgba(255, 255, 255, 0.8)",
-                  fontSize: "16px",
-                  transform: predictMode ? "scale(1.1)" : "scale(1)",
-                  transition: "all 0.3s ease"
-                }} />
+              <div
+                className={`${styles.predictModeIcon} ${
+                  predictMode
+                    ? styles.predictModeIconActive
+                    : styles.predictModeIconInactive
+                }`}
+              >
+                <ThunderboltOutlined
+                  style={{
+                    color: predictMode ? "#fff" : "rgba(255, 255, 255, 0.8)",
+                    fontSize: "16px",
+                    transform: predictMode ? "scale(1.1)" : "scale(1)",
+                    transition: "all 0.3s ease",
+                  }}
+                />
               </div>
               <div className={styles.predictModeTextContainer}>
-                <div className={styles.predictModeTitle}>
-                  AI深度分析
-                </div>
+                <div className={styles.predictModeTitle}>AI深度分析</div>
                 <div className={styles.predictModeSubtitle}>
                   {predictMode ? "智能预测已启用" : "点击启用预测模式"}
                 </div>
@@ -520,13 +553,17 @@ const ChatDrawer: React.FC<{
             checked={predictMode}
             onChange={setPredictMode}
             style={{
-              backgroundColor: predictMode ? "#ff9a9e" : "rgba(255, 255, 255, 0.3)"
+              backgroundColor: predictMode
+                ? "#ff9a9e"
+                : "rgba(255, 255, 255, 0.3)",
             }}
           />
         </div>
 
         {/* 消息区域 */}
-        <div className={`${styles.messagesContainer} ${styles.chatDrawerContent}`}>
+        <div
+          className={`${styles.messagesContainer} ${styles.chatDrawerContent}`}
+        >
           {/* 优化的历史消息分割线 */}
           {historicalMessageCount > 0 && (
             <div className={styles.historicalDivider}>
@@ -537,7 +574,9 @@ const ChatDrawer: React.FC<{
                 </div>
                 <div className={styles.historicalInfo}>
                   <div className={styles.historicalTitle}>历史对话记录</div>
-                  <div className={styles.historicalCount}>{historicalMessageCount} 条消息</div>
+                  <div className={styles.historicalCount}>
+                    {historicalMessageCount} 条消息
+                  </div>
                 </div>
               </div>
               <div className={styles.historicalDividerLine}></div>
@@ -545,7 +584,8 @@ const ChatDrawer: React.FC<{
           )}
 
           {messages.map((message, index) => {
-            const isFirstNewMessage = index > 0 &&
+            const isFirstNewMessage =
+              index > 0 &&
               messages[index - 1].isHistorical &&
               !message.isHistorical;
 
@@ -556,53 +596,82 @@ const ChatDrawer: React.FC<{
                   <div className={styles.newMessageDivider}>
                     <div className={styles.newMessageDividerLine}></div>
                     <div className={styles.newMessageDividerContent}>
-                      <div className={styles.newMessageIcon}>
-                        ✨
-                      </div>
-                      <span className={styles.newMessageText}>本次对话开始</span>
+                      <div className={styles.newMessageIcon}>✨</div>
+                      <span className={styles.newMessageText}>
+                        本次对话开始
+                      </span>
                     </div>
                     <div className={styles.newMessageDividerLine}></div>
                   </div>
                 )}
 
                 <div
-                  className={`${styles.messageItem} ${message.role === "user" ? styles.messageItemUser : styles.messageItemAssistant
-                    }`}
+                  className={`${styles.messageItem} ${
+                    message.role === "user"
+                      ? styles.messageItemUser
+                      : styles.messageItemAssistant
+                  }`}
                   style={{
                     opacity: message.isHistorical ? 0.85 : 1,
                   }}
                 >
                   {message.role === "assistant" && (
                     <Avatar
-                      className={`${styles.messageAvatar} ${styles.messageAvatarLeft} ${message.type === "predict" ? styles.messageAvatarPredict : ""
-                        }`}
-                      icon={message.type === "predict" ? <ThunderboltOutlined /> : <RobotOutlined />}
+                      className={`${styles.messageAvatar} ${
+                        styles.messageAvatarLeft
+                      } ${
+                        message.type === "predict"
+                          ? styles.messageAvatarPredict
+                          : ""
+                      }`}
+                      icon={
+                        message.type === "predict" ? (
+                          <ThunderboltOutlined />
+                        ) : (
+                          <RobotOutlined />
+                        )
+                      }
                       style={{
-                        border: message.isHistorical ? "2px solid #e8e8e8" : undefined,
+                        border: message.isHistorical
+                          ? "2px solid #e8e8e8"
+                          : undefined,
                       }}
                     />
                   )}
                   <div
-                    className={`${styles.messageBubble} ${message.role === "user"
-                      ? `${styles.messageBubbleUser} ${message.type === "predict" ? styles.messageBubbleUserPredict : ""}`
-                      : styles.messageBubbleAssistant
-                      }`}
+                    className={`${styles.messageBubble} ${
+                      message.role === "user"
+                        ? `${styles.messageBubbleUser} ${
+                            message.type === "predict"
+                              ? styles.messageBubbleUserPredict
+                              : ""
+                          }`
+                        : styles.messageBubbleAssistant
+                    }`}
                     style={{
                       background: message.isHistorical
-                        ? (message.role === "user"
+                        ? message.role === "user"
                           ? "linear-gradient(135deg, #b8b8b8 0%, #d0d0d0 100%)"
-                          : "#f8f8f8")
+                          : "#f8f8f8"
                         : undefined,
-                      border: message.isHistorical && message.role === "assistant"
-                        ? "1px solid #e8e8e8"
-                        : undefined,
+                      border:
+                        message.isHistorical && message.role === "assistant"
+                          ? "1px solid #e8e8e8"
+                          : undefined,
                     }}
                   >
                     {message.isHistorical && (
-                      <div className={`${styles.messageBadge} ${message.role === "user" ? styles.messageBadgeUser : styles.messageBadgeAssistant
+                      <div
+                        className={`${styles.messageBadge} ${
+                          message.role === "user"
+                            ? styles.messageBadgeUser
+                            : styles.messageBadgeAssistant
                         }`}
                         style={{
-                          color: message.role === "user" ? "rgba(255, 255, 255, 0.7)" : "#999"
+                          color:
+                            message.role === "user"
+                              ? "rgba(255, 255, 255, 0.7)"
+                              : "#999",
                         }}
                       >
                         <HistoryOutlined style={{ fontSize: "10px" }} />
@@ -611,8 +680,13 @@ const ChatDrawer: React.FC<{
                     )}
 
                     {message.type === "predict" && (
-                      <div className={`${styles.messageBadge} ${message.role === "user" ? styles.messageBadgeUser : styles.messageBadgeAssistant
-                        }`}>
+                      <div
+                        className={`${styles.messageBadge} ${
+                          message.role === "user"
+                            ? styles.messageBadgeUser
+                            : styles.messageBadgeAssistant
+                        }`}
+                      >
                         <ThunderboltOutlined style={{ fontSize: "10px" }} />
                         AI深度分析
                       </div>
@@ -623,11 +697,24 @@ const ChatDrawer: React.FC<{
                   </div>
                   {message.role === "user" && (
                     <Avatar
-                      className={`${styles.messageAvatar} ${styles.messageAvatarRight} ${message.type === "predict" ? styles.messageAvatarPredict : ""
-                        }`}
-                      icon={message.type === "predict" ? <ThunderboltOutlined /> : <UserOutlined />}
+                      className={`${styles.messageAvatar} ${
+                        styles.messageAvatarRight
+                      } ${
+                        message.type === "predict"
+                          ? styles.messageAvatarPredict
+                          : ""
+                      }`}
+                      icon={
+                        message.type === "predict" ? (
+                          <ThunderboltOutlined />
+                        ) : (
+                          <UserOutlined />
+                        )
+                      }
                       style={{
-                        border: message.isHistorical ? "2px solid #e8e8e8" : undefined,
+                        border: message.isHistorical
+                          ? "2px solid #e8e8e8"
+                          : undefined,
                       }}
                     />
                   )}
@@ -639,8 +726,9 @@ const ChatDrawer: React.FC<{
           {loading && (
             <div className={styles.loadingContainer}>
               <Avatar
-                className={`${styles.messageAvatar} ${styles.messageAvatarLeft} ${predictMode ? styles.messageAvatarPredict : ""
-                  }`}
+                className={`${styles.messageAvatar} ${
+                  styles.messageAvatarLeft
+                } ${predictMode ? styles.messageAvatarPredict : ""}`}
                 icon={predictMode ? <ThunderboltOutlined /> : <RobotOutlined />}
               />
               <div className={styles.loadingBubble}>
@@ -655,19 +743,27 @@ const ChatDrawer: React.FC<{
         </div>
 
         {/* 输入区域 */}
-        <div className={`${styles.inputSection} ${predictMode ? styles.inputSectionPredict : styles.inputSectionNormal
-          }`}>
+        <div
+          className={`${styles.inputSection} ${
+            predictMode ? styles.inputSectionPredict : styles.inputSectionNormal
+          }`}
+        >
           <div className={styles.inputContainer}>
             <div className={styles.textAreaContainer}>
               <TextArea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onPressEnter={handlePressEnter}
-                placeholder={predictMode ? "描述您的问题，AI将进行深度分析..." : "输入消息开始对话..."}
+                placeholder={
+                  predictMode
+                    ? "描述您的问题，AI将进行深度分析..."
+                    : "输入消息开始对话..."
+                }
                 autoSize={{ minRows: 1, maxRows: 4 }}
                 disabled={loading}
-                className={`${styles.textArea} ${predictMode ? styles.textAreaPredict : styles.textAreaNormal
-                  }`}
+                className={`${styles.textArea} ${
+                  predictMode ? styles.textAreaPredict : styles.textAreaNormal
+                }`}
                 onFocus={handleTextAreaFocus}
                 onBlur={handleTextAreaBlur}
               />
@@ -679,8 +775,9 @@ const ChatDrawer: React.FC<{
               size="large"
               onClick={handleSend}
               disabled={!inputValue.trim() || loading}
-              className={`${styles.sendButton} ${predictMode ? styles.sendButtonPredict : styles.sendButtonNormal
-                }`}
+              className={`${styles.sendButton} ${
+                predictMode ? styles.sendButtonPredict : styles.sendButtonNormal
+              }`}
               onMouseEnter={handleButtonMouseEnter}
               onMouseLeave={handleButtonMouseLeave}
             />

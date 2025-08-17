@@ -49,6 +49,8 @@ interface LogItem {
   stack: string;
   environmentSnapshot: environmentSnapshot;
   event: string;
+  level: string;
+  logMessage?: string;
 }
 
 interface MethodCallItem {
@@ -93,7 +95,16 @@ const MethodCallChart: React.FC<{ projectId: string }> = ({ projectId }) => {
 
       // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
       const formatTime = (date: Date) => {
-        return date.toISOString().replace("T", " ").substring(0, 19);
+        const pad = (num: number) => num.toString().padStart(2, "0");
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       };
 
       const startTimeStr = formatTime(startTime);
@@ -274,17 +285,6 @@ const ProjectDetailLog: React.FC = () => {
       ),
     },
     {
-      title: "API",
-      dataIndex: "api",
-      key: "api",
-      width: 200,
-      render: (api: string) => (
-        <Text ellipsis strong>
-          {api}
-        </Text>
-      ),
-    },
-    {
       title: "环境",
       dataIndex: "environment",
       key: "environment",
@@ -293,8 +293,8 @@ const ProjectDetailLog: React.FC = () => {
     },
     {
       title: "类型",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "level",
+      key: "level",
       width: 100,
       render: renderTypeTag,
     },
@@ -304,6 +304,17 @@ const ProjectDetailLog: React.FC = () => {
       key: "module",
       width: 120,
       render: (module: string) => <Text ellipsis>{module}</Text>,
+    },
+    {
+      title: "日志信息",
+      dataIndex: "logMessage",
+      key: "logMessage",
+      width: 200,
+      render: (logMessage: string) => (
+        <Text ellipsis strong>
+          {logMessage}
+        </Text>
+      ),
     },
   ];
 
