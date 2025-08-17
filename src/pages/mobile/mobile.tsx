@@ -10,7 +10,8 @@ const Mobile: React.FC = () => {
   use3DTilt(containerRef);
 
   const handleDownload = () => {
-    const downloadUrl = "/path/to/your/mobile/app.apk";
+    const downloadUrl =
+      "http://47.113.224.195:30410/uploads/installs/Mini-Sentry.apk.1";
     window.location.href = downloadUrl;
   };
 

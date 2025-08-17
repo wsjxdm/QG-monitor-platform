@@ -95,7 +95,7 @@ const ProjectHeader: React.FC = () => {
       // message.success("成功加入项目");
       setIsJoinModalVisible(false);
       joinForm.resetFields();
-      // 跳转到项目总览页面（这里使用模拟项目ID）
+      eventBus.emit("projectListChanged");
       navigate(`/main/project/${response.projectId}/detail/overview`);
     } catch (error) {
       message.error("加入项目失败");
