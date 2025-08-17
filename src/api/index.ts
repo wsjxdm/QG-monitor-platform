@@ -44,9 +44,7 @@ apiClient.interceptors.response.use(
     // 对响应数据做点什么
     console.log("检查token", response.data);
 
-    console.log("检查", response.data.data.code);
-
-    if (response.data.data.code === 401) {
+    if (response.data.code === 401) {
       message.error("登录已过期，请重新登录");
       localStorage.removeItem("user");
       window.location.href = "/";
