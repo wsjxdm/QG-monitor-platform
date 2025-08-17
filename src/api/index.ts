@@ -68,7 +68,7 @@ apiClient.interceptors.response.use(
 
 // 创建chatAPI专用实例（新增）
 const chatApiClient: AxiosInstance = axios.create({
-  baseURL: "http://192.168.1.100:8000", // 替换为AI服务地址
+  baseURL: "http://47.113.224.195:32408", // 替换为AI服务地址
   timeout: 10000000,
   headers: {
     "Content-Type": "application/json",

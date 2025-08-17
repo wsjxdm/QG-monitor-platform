@@ -145,17 +145,8 @@ const ProjectItemDetail: React.FC = () => {
   }, [detailId, platform]);
 
   // 格式化时间戳
-  const formatTime = (date: Date) => {
-    const pad = (num: number) => num.toString().padStart(2, "0");
-
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1);
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-    const seconds = pad(date.getSeconds());
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  const formatTimestamp = (timestamp: string | number | Date) => {
+    return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
   };
 
   const handleSetThreshold = async (values: { threshold: number }) => {
