@@ -700,7 +700,7 @@ const ProjectDetailPerformance: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {record.duration && (
+            {record.duration !== 0 && record.duration && (
               <Col span={8}>
                 <Text strong>耗时: </Text>
                 <Text>{record.duration}ms</Text>

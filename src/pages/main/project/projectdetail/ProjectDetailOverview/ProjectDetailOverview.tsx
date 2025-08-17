@@ -310,9 +310,27 @@ const ProjectDetailOverview: React.FC = () => {
   };
 
   // 添加复制邀请码到剪贴板的函数
-  const copyInviteCodeToClipboard = () => {
-    navigator.clipboard.writeText(inviteCode);
-    message.success("邀请码已复制到剪贴板");
+  const copyInviteCodeToClipboard = async () => {
+    try {
+      if (!navigator.clipboard) {
+        // 如果不支持 Clipboard API，使用传统方法
+        const textarea = document.createElement("textarea");
+        textarea.value = inviteCode;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      } else {
+        // 使用现代 Clipboard API
+        await navigator.clipboard.writeText(inviteCode);
+      }
+      message.success("邀请码已复制到剪贴板");
+    } catch (err) {
+      message.error("复制失败，请手动复制");
+      console.error("Failed to copy:", err);
+    }
   };
   // 隐藏教程弹窗
   const hideTutorialModal = () => {
@@ -885,6 +903,39 @@ const ProjectDetailOverview: React.FC = () => {
             >
               查看项目接入教程
             </Button>
+          </div>
+
+          {/*广告区域 */}
+          <div className={styles.adSection}>
+            <div className={styles.adCard}>
+              <div className={styles.adHeader}>
+                <Title level={5} className={styles.adTitle}>
+                  🚀 升级您的项目体验
+                </Title>
+              </div>
+              <div className={styles.adContent}>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>⚡</span>
+                  <Text className={styles.adText}>高性能API接口</Text>
+                </div>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>📊</span>
+                  <Text className={styles.adText}>实时数据监控</Text>
+                </div>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>🔒</span>
+                  <Text className={styles.adText}>企业级安全保障</Text>
+                </div>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>🎯</span>
+                  <Text className={styles.adText}>智能分析报告</Text>
+                </div>
+              </div>
+              <Button type="primary" className={styles.adButton} size="large">
+                立即升级 Pro 版
+              </Button>
+              <Text className={styles.adSubtext}>30天免费试用，随时取消</Text>
+            </div>
           </div>
         </div>
       </div>

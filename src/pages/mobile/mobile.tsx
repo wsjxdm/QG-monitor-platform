@@ -10,8 +10,8 @@ const Mobile: React.FC = () => {
   use3DTilt(containerRef);
 
   const handleDownload = () => {
-    // 这里替换为实际的移动端安装包下载链接
-    const downloadUrl = "/path/to/your/mobile/app.apk";
+    const downloadUrl =
+      "http://47.113.224.195:30410/uploads/installs/Mini-Sentry.apk.1";
     window.location.href = downloadUrl;
   };
 
