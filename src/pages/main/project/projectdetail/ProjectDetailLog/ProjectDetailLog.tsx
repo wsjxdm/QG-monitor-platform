@@ -117,7 +117,7 @@ const MethodCallChart: React.FC<{ projectId: string }> = ({ projectId }) => {
         endTimeStr
       );
 
-      setData(response || []);
+      setData(response);
     } catch (error) {
       console.error("获取方法调用统计失败:", error);
       setData([]);

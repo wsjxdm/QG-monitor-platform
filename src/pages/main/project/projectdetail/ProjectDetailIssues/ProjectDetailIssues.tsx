@@ -427,7 +427,7 @@ const IllegalAccessChart: React.FC<{ projectId: string; timeType: string }> = ({
           justifyContent: "space-between",
         }}
       >
-        <Title level={5}>非法访问统计图表组件</Title>
+        <Title level={5}>非法访问统计图表</Title>
         {/* 时间筛选器已移至父组件 */}
       </div>
       <div style={{ height: 300 }}>

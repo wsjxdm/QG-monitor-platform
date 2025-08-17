@@ -310,9 +310,27 @@ const ProjectDetailOverview: React.FC = () => {
   };
 
   // 添加复制邀请码到剪贴板的函数
-  const copyInviteCodeToClipboard = () => {
-    navigator.clipboard.writeText(inviteCode);
-    message.success("邀请码已复制到剪贴板");
+  const copyInviteCodeToClipboard = async () => {
+    try {
+      if (!navigator.clipboard) {
+        // 如果不支持 Clipboard API，使用传统方法
+        const textarea = document.createElement("textarea");
+        textarea.value = inviteCode;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      } else {
+        // 使用现代 Clipboard API
+        await navigator.clipboard.writeText(inviteCode);
+      }
+      message.success("邀请码已复制到剪贴板");
+    } catch (err) {
+      message.error("复制失败，请手动复制");
+      console.error("Failed to copy:", err);
+    }
   };
   // 隐藏教程弹窗
   const hideTutorialModal = () => {
