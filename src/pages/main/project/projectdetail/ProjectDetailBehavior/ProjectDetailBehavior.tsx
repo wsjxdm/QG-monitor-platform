@@ -44,10 +44,18 @@ const BuryPointDetail: React.FC<{ timeType: string; projectId: string }> = ({
 }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [localTimeType, setLocalTimeType] = useState(timeType);
+
+  // 时间筛选选项
+  const timeOptions = [
+    { value: "day", label: "近1天" },
+    { value: "week", label: "近7天" },
+    { value: "month", label: "近30天" },
+  ];
 
   useEffect(() => {
     fetchBuryPointData();
-  }, [timeType, projectId]);
+  }, [localTimeType, projectId]);
 
   const fetchBuryPointData = async () => {
     setLoading(true);
@@ -55,7 +63,7 @@ const BuryPointDetail: React.FC<{ timeType: string; projectId: string }> = ({
       const endTime = new Date();
       const startTime = new Date();
 
-      switch (timeType) {
+      switch (localTimeType) {
         case "day":
           startTime.setDate(startTime.getDate() - 1);
           break;
@@ -123,27 +131,37 @@ const BuryPointDetail: React.FC<{ timeType: string; projectId: string }> = ({
           return s.length > 5 ? s.slice(0, 5) + "…" : s;
         },
         labelFontSize: 12,
-        // 如果标签重叠，尝试旋转（可选）
-        transform: [
-          {
-            type: "rotate",
-            optionalAngles: [0, -45],
-            recoverWhenFailed: true,
-          },
-        ],
       },
     },
   };
 
   return (
-    <div style={{ height: 300 }}>
-      {loading ? (
-        <Spin />
-      ) : data?.length > 0 ? (
-        <Column autoFit {...config} />
-      ) : (
-        <Empty />
-      )}
+    <div>
+      {/* 独立的时间筛选器 */}
+      <div
+        style={{
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Title level={5}>页面数据</Title>
+        <Select
+          value={localTimeType}
+          style={{ width: 120 }}
+          onChange={setLocalTimeType} // 更新本地时间类型
+          options={timeOptions}
+        />
+      </div>
+      <div style={{ height: 300 }}>
+        {loading ? (
+          <Spin />
+        ) : data?.length > 0 ? (
+          <Column autoFit {...config} />
+        ) : (
+          <Empty />
+        )}
+      </div>
     </div>
   );
 };
@@ -510,7 +528,7 @@ const ProjectDetailBehavior: React.FC = () => {
 
       <Row gutter={[16, 16]}>
         <Col span={24}>
-          <Card title="埋点数据" bordered={false}>
+          <Card bordered={false}>
             <BuryPointDetail timeType="day" projectId={projectId} />
           </Card>
         </Col>

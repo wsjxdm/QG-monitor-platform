@@ -49,6 +49,8 @@ interface LogItem {
   stack: string;
   environmentSnapshot: environmentSnapshot;
   event: string;
+  level: string;
+  logMessage?: string;
 }
 
 interface MethodCallItem {
@@ -283,17 +285,6 @@ const ProjectDetailLog: React.FC = () => {
       ),
     },
     {
-      title: "API",
-      dataIndex: "api",
-      key: "api",
-      width: 200,
-      render: (api: string) => (
-        <Text ellipsis strong>
-          {api}
-        </Text>
-      ),
-    },
-    {
       title: "环境",
       dataIndex: "environment",
       key: "environment",
@@ -302,8 +293,8 @@ const ProjectDetailLog: React.FC = () => {
     },
     {
       title: "类型",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "level",
+      key: "level",
       width: 100,
       render: renderTypeTag,
     },
@@ -313,6 +304,17 @@ const ProjectDetailLog: React.FC = () => {
       key: "module",
       width: 120,
       render: (module: string) => <Text ellipsis>{module}</Text>,
+    },
+    {
+      title: "日志信息",
+      dataIndex: "logMessage",
+      key: "logMessage",
+      width: 200,
+      render: (logMessage: string) => (
+        <Text ellipsis strong>
+          {logMessage}
+        </Text>
+      ),
     },
   ];
 

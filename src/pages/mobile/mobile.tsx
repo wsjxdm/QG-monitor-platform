@@ -10,7 +10,6 @@ const Mobile: React.FC = () => {
   use3DTilt(containerRef);
 
   const handleDownload = () => {
-    // 这里替换为实际的移动端安装包下载链接
     const downloadUrl = "/path/to/your/mobile/app.apk";
     window.location.href = downloadUrl;
   };
