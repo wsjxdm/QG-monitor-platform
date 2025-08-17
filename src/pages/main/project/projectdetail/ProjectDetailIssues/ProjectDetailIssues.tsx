@@ -36,7 +36,7 @@ import type { Route } from "../../../../../component/GlobeArcs";
 const { Title } = Typography;
 
 //todo 用户的权限判断
-const currentUser = JSON.parse(localStorage.getItem("user"));
+// const currentUser = JSON.parse(localStorage.getItem("user"));
 // const currentUser = {
 //   role: 1,
 //   id: 14,
@@ -81,6 +81,9 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [timeType, setTimeType] = useState("day"); // 时间筛选移到组件内部
+  const [currentUser, setCurrentUser] = useState(
+    JSON.parse(localStorage.getItem("user"))
+  );
 
   // 时间筛选选项
   const timeOptions = [
@@ -123,11 +126,27 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
 
       // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
       const formatTime = (date: Date) => {
-        return date.toISOString().replace("T", " ").substring(0, 19);
+        const pad = (num: number) => num.toString().padStart(2, "0");
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       };
 
       const startTimeStr = formatTime(startTime);
       const endTimeStr = formatTime(endTime);
+
+      console.log(
+        "%c [  ]-135",
+        "font-size:13px; background:pink; color:#bf2c9f;",
+        startTimeStr,
+        endTimeStr
+      );
       // 调用实际API获取平台数据，传递startTime和endTime参数
       const response = await getPlatformDataAPI(
         projectId,
@@ -345,7 +364,16 @@ const IllegalAccessChart: React.FC<{ projectId: string; timeType: string }> = ({
 
       // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
       const formatTime = (date: Date) => {
-        return date.toISOString().replace("T", " ").substring(0, 19);
+        const pad = (num: number) => num.toString().padStart(2, "0");
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       };
 
       const startTimeStr = formatTime(startTime);
@@ -427,6 +455,21 @@ const ProjectDetailIssues: React.FC = () => {
       altitude: 0.22,
     },
   ]);
+  const [currentUser, setCurrentUser] = useState(
+    JSON.parse(localStorage.getItem("user"))
+  );
+
+  useEffect(() => {
+    getUserResponsibility(projectId, currentUser.id).then((res) => {
+      if (res) {
+        setCurrentUser((prevUser) => ({
+          ...prevUser,
+          role: res.userRole,
+        }));
+      }
+    });
+  }, [projectId]);
+
   // 添加统一的时间筛选状态
   const [illegalAccessTimeType, setIllegalAccessTimeType] = useState("day");
 
@@ -453,7 +496,16 @@ const ProjectDetailIssues: React.FC = () => {
 
       // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
       const formatTime = (date: Date) => {
-        return date.toISOString().replace("T", " ").substring(0, 19);
+        const pad = (num: number) => num.toString().padStart(2, "0");
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       };
 
       const startTimeStr = formatTime(startTime);
@@ -506,13 +558,6 @@ const ProjectDetailIssues: React.FC = () => {
   ) => {
     getUserResponsibility(projectId, currentUser?.id).then((res) => {
       if (res) {
-        console.log(
-          "%c [ ]-211",
-          "color: #f00; font-weight: bold;background: #fff;width: 100%;",
-          res.userRole,
-          responsibleId,
-          currentUser?.id
-        );
         if (res.userRole === 2 && responsibleId !== currentUser?.id) {
           message.warning("您无权查看此错误详情，请联系项目管理员");
           return;
@@ -585,8 +630,14 @@ const ProjectDetailIssues: React.FC = () => {
         return;
       }
 
-      if (currentUser?.userRole == null) {
+      if (currentUser?.role == null) {
         message.warning("非项目成员不可指派问题");
+
+        console.log(
+          "%c [  ]-597",
+          "font-size:13px; background:pink; color:#bf2c9f;",
+          currentUser.role
+        );
         return;
       }
 
@@ -608,6 +659,9 @@ const ProjectDetailIssues: React.FC = () => {
                 delegatorId: delegatorId,
                 username:
                   members.find((m) => m.userId == responsibleId)?.username ||
+                  null,
+                avatarUrl:
+                  members.find((m) => m.userId == responsibleId)?.avatarUrl ||
                   null,
               }
             : item

@@ -71,7 +71,16 @@ const BuryPointDetail: React.FC<{ timeType: string; projectId: string }> = ({
 
       // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
       const formatTime = (date: Date) => {
-        return date.toISOString().replace("T", " ").substring(0, 19);
+        const pad = (num: number) => num.toString().padStart(2, "0");
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       };
 
       const startTimeStr = formatTime(startTime);
@@ -182,7 +191,16 @@ const PageData: React.FC<{ timeType: string; projectId: string }> = ({
 
       // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
       const formatTime = (date: Date) => {
-        return date.toISOString().replace("T", " ").substring(0, 19);
+        const pad = (num: number) => num.toString().padStart(2, "0");
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       };
 
       const startTimeStr = formatTime(startTime);

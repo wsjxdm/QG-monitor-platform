@@ -886,6 +886,39 @@ const ProjectDetailOverview: React.FC = () => {
               查看项目接入教程
             </Button>
           </div>
+
+          {/*广告区域 */}
+          <div className={styles.adSection}>
+            <div className={styles.adCard}>
+              <div className={styles.adHeader}>
+                <Title level={5} className={styles.adTitle}>
+                  🚀 升级您的项目体验
+                </Title>
+              </div>
+              <div className={styles.adContent}>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>⚡</span>
+                  <Text className={styles.adText}>高性能API接口</Text>
+                </div>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>📊</span>
+                  <Text className={styles.adText}>实时数据监控</Text>
+                </div>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>🔒</span>
+                  <Text className={styles.adText}>企业级安全保障</Text>
+                </div>
+                <div className={styles.adFeature}>
+                  <span className={styles.adIcon}>🎯</span>
+                  <Text className={styles.adText}>智能分析报告</Text>
+                </div>
+              </div>
+              <Button type="primary" className={styles.adButton} size="large">
+                立即升级 Pro 版
+              </Button>
+              <Text className={styles.adSubtext}>30天免费试用，随时取消</Text>
+            </div>
+          </div>
         </div>
       </div>
       {/* 教程弹窗 */}
