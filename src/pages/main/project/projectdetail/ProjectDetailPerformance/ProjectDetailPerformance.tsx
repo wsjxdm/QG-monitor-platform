@@ -614,13 +614,13 @@ const ProjectDetailPerformance: React.FC = () => {
       width: 120,
       render: renderCaptureTypeTag,
     },
-    {
-      title: "耗时",
-      dataIndex: "duration",
-      key: "duration",
-      width: 100,
-      render: (duration?: number) => (duration ? `${duration}ms` : null),
-    },
+    // {
+    //   title: "耗时",
+    //   dataIndex: "duration",
+    //   key: "duration",
+    //   width: 100,
+    //   render: (duration?: number) => (duration ? `${duration}ms` : null),
+    // },
     {
       title: "用户代理",
       dataIndex: "userAgent",
