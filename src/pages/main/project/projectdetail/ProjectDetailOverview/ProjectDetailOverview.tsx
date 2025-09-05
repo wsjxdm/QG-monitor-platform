@@ -370,7 +370,7 @@ const ProjectDetailOverview: React.FC = () => {
       return;
     }
     try {
-      await changeUserLevelAPI(projectId, memberId, newRole);
+      await changeUserLevelAPI(user.id, projectId, memberId, newRole);
       //如果用户修改自己的权限，更新当前用户的权限状态
       if (memberId === user.id) {
         setUserRole(newRole);
@@ -383,6 +383,12 @@ const ProjectDetailOverview: React.FC = () => {
       // console.log("更新后的成员列表:", groupMembers);
       message.success("成员角色更新成功");
     } catch (error) {
+      getProjectMembers(projectId).then((res) => {
+        if (res) {
+          // console.log("项目成员列表:", res);
+          setGroupMembers(res);
+        }
+      });
       message.error("成员角色更新失败");
     }
     closeContextMenu();

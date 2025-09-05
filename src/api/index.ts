@@ -11,8 +11,9 @@ import { useNavigate } from "react-router-dom";
 const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",
   // baseURL: "http://47.113.224.195:32406",
-  // baseURL: "http://47.113.224.195:32400",
-  baseURL: "http://47.113.224.195:30422/api",
+  baseURL: "http://47.113.224.195:32402",
+  // baseURL: "http://192.168.1.161:8082",
+  // baseURL: "http://47.113.224.195:30422/api",
   // baseURL: "http://47.113.224.195:32400",
   timeout: 100000,
   headers: {
@@ -51,6 +52,14 @@ apiClient.interceptors.response.use(
       localStorage.removeItem("user");
       window.location.href = "/";
       return;
+    }
+
+    if (response.data.code === 403) {
+      console.log(
+        "%c [  ]-59",
+        "font-size:13px; background:pink; color:#bf2c9f;"
+      );
+      throw new Error("权限不足");
     }
     return response.data;
   },

@@ -1,3 +1,4 @@
+import { current } from "@reduxjs/toolkit";
 import apiClient from "../index";
 
 // 私有项目获取函数
@@ -125,19 +126,24 @@ export const kickUserAPI = async (
 
 //修改用户层级
 export const changeUserLevelAPI = async (
+  currentUserId: string | number,
   projectId: string,
   userId: string | number,
   newRole: string | number
 ) => {
   try {
     const response = await apiClient.put(`/roles`, {
+      currentUserId,
       projectId,
       userId,
       userRole: newRole,
     });
     console.log("Change user level response:", response);
     return response.data;
-  } catch (error: any) { }
+  } catch (error: any) {
+    console.error("Error changing user level:", error);
+    throw error;
+  }
 };
 
 //获取邀请码
