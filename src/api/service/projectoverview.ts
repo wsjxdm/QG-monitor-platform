@@ -159,9 +159,9 @@ export const getInviteCodeAPI = async (projectId: string) => {
 };
 
 //todo获取教程md文件
-export const getTutorialMarkdown = async () => {
+export const getTutorialMarkdown = async (type: string) => {
   try {
-    const response = await apiClient.get("/markdownContents/select");
+    const response = await apiClient.get(`/markdownContents/select/${type}`);
     console.log("Tutorial markdown response:", response);
     return response.data;
   } catch (error: any) {
