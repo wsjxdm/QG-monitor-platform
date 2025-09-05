@@ -389,6 +389,29 @@ const ProjectDetailOverview: React.FC = () => {
           setGroupMembers(res);
         }
       });
+      //获取当前成员的权限
+      getUserResponsibility(projectId, user.id).then((res) => {
+        console.log(
+          "%c [ ]-272",
+          "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+          res
+        );
+        if (res) {
+          setRole(res.power);
+          setUserRole(res.userRole);
+          // 将日志移到这里
+          console.log(
+            "%c [ ]-273",
+            "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+            res.userRole,
+            res.power
+          );
+          if (res.power === 0) {
+            message.warning("您无权进入该项目，请联系项目管理员");
+            navigate("/main/project/all");
+          }
+        }
+      });
       message.error("成员角色更新失败");
     }
     closeContextMenu();
@@ -396,7 +419,13 @@ const ProjectDetailOverview: React.FC = () => {
 
   // 移除成员
   const removeMember = async (memberId: number, memberRole: number) => {
-    if (!userRole) {
+    console.log(
+      "%c [  ]-401",
+      "font-size:13px; background:pink; color:#bf2c9f;",
+      userRole
+    );
+
+    if (userRole == 2) {
       message.error("您没有权限进行操作");
       return;
     }
