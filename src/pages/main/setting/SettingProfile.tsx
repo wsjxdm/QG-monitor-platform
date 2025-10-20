@@ -63,8 +63,9 @@ const SettingProfile: React.FC = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      // await updateUserAPI(values);
-      dispatch(
+
+      // 更新用户信息
+      const result = await dispatch(
         updateUserInfo({
           user: {
             id: userInfo.id,
@@ -72,28 +73,24 @@ const SettingProfile: React.FC = () => {
             email: values.email,
           },
         })
-      );
+      ).unwrap();
 
+      // 如果有头像更新
       if (formData) {
         const response = await updateUserAvatarAPI(formData);
-        console.log(
-          "这里是updateUserAvatarAPI更新头像的返回头像链接",
-          response.data
-        );
-
         if (response.code === 200) {
           dispatch(setAvatar(response.data));
-          console.log("使用dispatch后检查redux是否储存了头像", userInfo);
           message.success("修改头像成功");
         } else {
-          message.error("修改头像失败");
+          throw new Error("修改头像失败");
         }
       }
 
       setIsEditing(false);
       message.success("信息更新成功");
-    } catch (error) {
-      message.error("请检查输入信息");
+    } catch (error: any) {
+      // 显示具体的错误信息
+      message.error(error.message);
     }
   };
 

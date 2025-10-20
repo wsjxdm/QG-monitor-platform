@@ -73,6 +73,7 @@ interface projectData {
   invitedCode: string;
   groupCode?: string;
   webhook?: string;
+  uuid?: string | number;
 }
 
 interface ProjectMember {
@@ -150,6 +151,10 @@ const ProjectDetailOverview: React.FC = () => {
       if (res) {
         // console.log("项目成员列表:", res);
         setGroupMembers(res);
+      } else {
+        //提示错误并跳转回项目列表
+        message.error("获取项目成员失败，请稍后重试");
+        navigate("/main/project/all");
       }
     });
     // getTutorialMarkdown().then((res) => {

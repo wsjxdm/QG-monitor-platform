@@ -15,7 +15,7 @@ interface TutorialModalProps {
 interface TutorialContent {
   id: number;
   title: string;
-  content: string;
+  content?: string | null;
   platform: string;
   createdTime: string;
   updatedTime: string;
@@ -62,7 +62,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ visible, onClose }) => {
   useEffect(() => {
     if (visible) {
       // 当模态框打开时，加载当前标签页的内容
-      if (!tutorials[activeTab].content) {
+      if (!tutorials[activeTab]?.content) {
         fetchTutorialMarkdown(activeTab);
       }
     }
@@ -70,7 +70,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ visible, onClose }) => {
 
   const fetchTutorialMarkdown = async (type: string) => {
     // 如果已经有内容，避免重复获取
-    if (tutorials[type].content) return;
+    if (tutorials[type]?.content) return;
 
     setLoading((prev) => ({ ...prev, [type]: true }));
     try {
@@ -93,7 +93,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ visible, onClose }) => {
   const handleTabChange = (key: string) => {
     setActiveTab(key);
     // 如果该标签页内容还未加载，则加载内容
-    if (!tutorials[key].content) {
+    if (!tutorials[key]?.content) {
       fetchTutorialMarkdown(key);
     }
   };
@@ -149,7 +149,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ visible, onClose }) => {
                   },
                 }}
               >
-                {tutorials.frontend.content}
+                {tutorials.frontend?.content}
               </ReactMarkdown>
             )}
           </div>
@@ -183,7 +183,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ visible, onClose }) => {
                   },
                 }}
               >
-                {tutorials.backend.content}
+                {tutorials.backend?.content}
               </ReactMarkdown>
             )}
           </div>
@@ -217,7 +217,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ visible, onClose }) => {
                   },
                 }}
               >
-                {tutorials.mobile.content}
+                {tutorials.mobile?.content}
               </ReactMarkdown>
             )}
           </div>
