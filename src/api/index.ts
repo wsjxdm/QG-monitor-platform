@@ -10,11 +10,12 @@ import { useNavigate } from "react-router-dom";
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",
-  // baseURL: "http://47.113.224.195:32406",
-  baseURL: "http://47.113.224.195:32402",
-  // baseURL: "http://192.168.1.161:8082",
-  // baseURL: "http://47.113.224.195:30422/api",
-  // baseURL: "http://47.113.224.195:32400",
+  // baseURL: "http://47.113.224.195:32409",
+  baseURL: "http://47.113.224.195:30422/api",
+  // baseURL: "http://192.168.1.161:32409",
+  // baseURL: "http://192.168.1.161:32409/api",
+  // baseURL: "http://47.113.224.195:32409",
+  // baseURL: "http://47.113.224.195:32400/api",
   timeout: 100000,
   headers: {
     "Content-Type": "application/json",
@@ -61,6 +62,10 @@ apiClient.interceptors.response.use(
       );
       throw new Error("权限不足");
     }
+    // if (response.data.code < 200 || response.data.code >= 300) {
+    //   message.error(response.data.message || "请求出错");
+    //   throw new Error(response.data.message || "请求出错");
+    // }
     return response.data;
   },
 
