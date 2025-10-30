@@ -11,8 +11,8 @@ const apiClient: AxiosInstance = axios.create({
   // baseURL: "http://47.113.224.195:32406",
   // baseURL: "http://47.113.224.195:32406",
   // baseURL: "http://47.113.224.195:32402",
-  // baseURL: "http://192.168.1.161:8082",
-  baseURL: "http://47.113.224.195:30422/api",
+  baseURL: "http://192.168.1.161:8082",
+  // baseURL: "http://47.113.224.195:30422/api",
   // baseURL: "http://47.113.224.195:32400",
   timeout: 100000,
   headers: {
@@ -37,7 +37,7 @@ apiClient.interceptors.request.use(
   (error) => {
     // 对请求错误做些什么
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器
@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
     if (response.data.code === 403) {
       console.log(
         "%c [  ]-59",
-        "font-size:13px; background:pink; color:#bf2c9f;"
+        "font-size:13px; background:pink; color:#bf2c9f;",
       );
       throw new Error("权限不足");
     }
@@ -75,7 +75,7 @@ apiClient.interceptors.response.use(
 
     //和后台对再写
     return Promise.reject(error);
-  }
+  },
 );
 
 // 创建chatAPI专用实例（新增）
@@ -96,12 +96,12 @@ chatApiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 chatApiClient.interceptors.response.use(
   (response: AxiosResponse) => response.data,
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // 导出新实例（新增）
