@@ -4,7 +4,7 @@ import apiClient from "..";
 export const getLogDataAPI = async (projectId: string | number) => {
   console.log("获取日志数据参数:", projectId);
   try {
-    const response = await apiClient.get(`logs/selectByCondition`, {
+    const response = await apiClient.get(`/graph/selectLogsByCondition`, {
       params: {
         projectId,
       },

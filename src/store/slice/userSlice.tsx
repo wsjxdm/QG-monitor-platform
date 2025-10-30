@@ -8,6 +8,7 @@ import { updateUserInfoAPI } from "../../api/service/userService";
 import { updateUserAvatarAPI } from "../../api/service/userService";
 import { encryptWithAESAndRSA } from "../../utils/encrypt";
 import { decryptWithAESAndRSA } from "../../utils/encrypt";
+import { message } from "antd";
 
 // 定义用户信息的类型
 export interface UserInfo {
@@ -72,6 +73,9 @@ export const updateUserInfo = createAsyncThunk(
             );
             // 发送更新用户信息请求
             const response = await updateUserInfoAPI(encryptedData, encryptedKey);
+            if(response.status !== 200){
+                throw new Error(response.message);
+            }
             const decryptedData = decryptWithAESAndRSA(
                 response.data.encryptedData,
                 response.data.encryptedKey,
@@ -79,10 +83,9 @@ export const updateUserInfo = createAsyncThunk(
             );
             console.log("这是dispatch更新后返回的用户信息(这里检查有没有返回头像)", decryptedData);
 
-            return JSON.parse(decryptedData); // 假设更新成功返回的数据在 response.data 中
+            return JSON.parse(decryptedData);
         } catch (error: any) {
-            // 处理错误情况
-            throw error;
+            throw new Error(error.message);
         }
     }
 );

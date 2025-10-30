@@ -5,7 +5,6 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { message } from "antd";
-import { useNavigate } from "react-router-dom";
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
@@ -61,6 +60,10 @@ apiClient.interceptors.response.use(
       );
       throw new Error("权限不足");
     }
+    // if (response.data.code < 200 || response.data.code >= 300) {
+    //   message.error(response.data.message || "请求出错");
+    //   throw new Error(response.data.message || "请求出错");
+    // }
     return response.data;
   },
 
