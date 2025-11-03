@@ -1,0 +1,120 @@
+.layout {
+  height: 100%;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.firstLevelHeader {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  z-index: 1000;
+  position: relative;
+}
+
+.logo {
+  color: #1890ff;
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 40px;
+  white-space: nowrap;
+}
+
+.firstLevelMenu {
+  flex: 1;
+  border: none;
+  background: transparent;
+}
+
+.firstLevelMenu :global(.ant-menu-item) {
+  padding: 0 20px;
+  margin: 0;
+}
+
+.firstLevelMenu :global(.ant-menu-item-selected) {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.userButton {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.userButton:hover {
+  color: #1890ff;
+}
+
+.buttonLayout {
+  flex: 1;
+  display: flex;
+}
+
+.secondLayout {
+  flex: 1;
+  overflow: hidden;
+}
+
+.secondLevelSider {
+  background: #ffffff !important;
+  border-right: 1px solid #f0f0f0;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  width: 256px;
+}
+
+.secondLevelSider::-webkit-scrollbar {
+  display: none;
+}
+
+.secondLevelMenu {
+  border-right: none;
+  height: 100%;
+}
+
+.thirdLevelSider {
+  background: #ffffff !important;
+  border-right: 1px solid #f0f0f0;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  width: 150px;
+}
+
+.thirdLevelSider::-webkit-scrollbar {
+  display: none;
+}
+
+.thirdLevelMenu {
+  border-right: none;
+  height: 100%;
+}
+
+.thirdLevelMenu :global(.ant-menu-item) {
+  padding-left: 24px !important;
+  font-size: 14px;
+}
+
+.content {
+  padding: 5px;
+  background: #ffffff;
+  overflow-y: auto;
+  flex: 1;
+  height: 100%;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
+}
+
+.content :global(.ant-layout-content) {
+  overflow-y: auto;
+  height: 100%;
+}
