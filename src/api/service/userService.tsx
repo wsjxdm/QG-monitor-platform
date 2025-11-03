@@ -13,7 +13,7 @@ export const login = async (encryptedData: string, encryptedKey: string) => {
 //找回密码
 export const findPassword = async (
   encryptedData: string,
-  encryptedKey: string
+  encryptedKey: string,
 ) => {
   const body = {
     encryptedData,
@@ -26,7 +26,7 @@ export const findPassword = async (
 //注册路由
 export const registerAPI = async (
   encryptedData: string,
-  encryptedKey: string
+  encryptedKey: string,
 ) => {
   const body = {
     encryptedData,
@@ -39,7 +39,7 @@ export const registerAPI = async (
 //获取验证码
 export const getCodeAPI = async (
   encryptedData: string,
-  encryptedKey: string
+  encryptedKey: string,
 ) => {
   const response = await apiClient.get("/users/sendCodeByEmail", {
     params: {
@@ -73,7 +73,7 @@ export const getUserInfoAPI = async (id: number) => {
 //修改用户信息
 export const updateUserInfoAPI = async (
   encryptedData: string,
-  encryptedKey: string
+  encryptedKey: string,
 ) => {
   const response = await apiClient.put("/users/updateUser", {
     encryptedData,
@@ -83,7 +83,7 @@ export const updateUserInfoAPI = async (
 };
 
 //更新用户头像
-export const updateUserAvatarAPI = async (formData: FormData) => {
+export const updateUserAvatarAPI = async (formData: FormData | unknown) => {
   const response = await apiClient.post("/users/updateAvatar", formData, {
     headers: {
       "Content-Type": "multipart/form-data",

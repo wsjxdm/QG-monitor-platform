@@ -1,8 +1,6 @@
 import CryptoJS from "crypto-js";
 import forge from "node-forge";
 
-
-
 // AES 解密函数
 export const decryptWithAES = (ciphertext: string, key: string): string => {
   try {
@@ -12,13 +10,13 @@ export const decryptWithAES = (ciphertext: string, key: string): string => {
     // 2. 提取IV（前16字节）
     const iv = CryptoJS.lib.WordArray.create(
       encryptedBytes.words.slice(0, 4), // 16 bytes = 4 words
-      16
+      16,
     );
 
     // 3. 提取密文（剩余部分）
     const ciphertextBytes = CryptoJS.lib.WordArray.create(
       encryptedBytes.words.slice(4),
-      encryptedBytes.sigBytes - 16
+      encryptedBytes.sigBytes - 16,
     );
 
     // 4. 将字符串密钥转为CryptoJS格式
@@ -32,7 +30,7 @@ export const decryptWithAES = (ciphertext: string, key: string): string => {
         iv: iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7,
-      }
+      },
     );
     console.log("Decrypted raw bytes:", decrypted.toString(CryptoJS.enc.Hex));
     return decrypted.toString(CryptoJS.enc.Utf8);
@@ -42,11 +40,11 @@ export const decryptWithAES = (ciphertext: string, key: string): string => {
   }
 };
 
-
-
-
 // AES 加密函数 (与Java后端完全匹配)
-export const encryptWithAES = (data: string, keyBase64: string): string => {
+export const encryptWithAES = (
+  data: string | null,
+  keyBase64: string,
+): string => {
   // 将Base64密钥转换为CryptoJS格式
   const key = CryptoJS.enc.Base64.parse(keyBase64);
 
@@ -57,7 +55,7 @@ export const encryptWithAES = (data: string, keyBase64: string): string => {
   const encrypted = CryptoJS.AES.encrypt(data, key, {
     iv: iv,
     mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7
+    padding: CryptoJS.pad.Pkcs7,
   });
 
   // 将IV和密文合并(IV在前)
@@ -87,11 +85,11 @@ export const encryptWithRSA = (data: string, publicKeyPem: string): string => {
     const binaryData = forge.util.decode64(data);
 
     // 使用OAEP with SHA-256 and MGF1 with SHA-256
-    const encrypted = publicKey.encrypt(binaryData, 'RSA-OAEP', {
+    const encrypted = publicKey.encrypt(binaryData, "RSA-OAEP", {
       md: forge.md.sha256.create(),
       mgf1: {
-        md: forge.md.sha256.create()
-      }
+        md: forge.md.sha256.create(),
+      },
     });
 
     return forge.util.encode64(encrypted);
@@ -103,8 +101,8 @@ export const encryptWithRSA = (data: string, publicKeyPem: string): string => {
 
 // 双重加密 (AES+RSA)
 export const encryptWithAESAndRSA = (
-  data: string,
-  rsaPublicKey: string
+  data: string | null,
+  rsaPublicKey: string,
 ): { encryptedData: string; encryptedKey: string } => {
   try {
     // 1. 生成AES密钥（32字节/256位）
@@ -122,7 +120,7 @@ export const encryptWithAESAndRSA = (
 
     return {
       encryptedData,
-      encryptedKey
+      encryptedKey,
     };
   } catch (error) {
     console.error("AES+RSA 加密失败:", error);
@@ -130,15 +128,10 @@ export const encryptWithAESAndRSA = (
   }
 };
 
-
-
-
-
-
 // RSA 解密函数 用一开始给的私钥来解密密码
 export const decryptWithRSA = (
   encryptedData: string,
-  privateKeyPem: string
+  privateKeyPem: string,
 ): string => {
   try {
     // console.log("", privateKeyPem);
@@ -163,15 +156,13 @@ export const decryptWithRSA = (
   }
 };
 
-
-
 // 结合 AES 和 RSA 的解密函数
 // 1. 使用 RSA 私钥解密 AES 密钥
 // 2. 使用解密后的 AES 密钥解密数据
 export const decryptWithAESAndRSA = (
   encryptedData: string,
   encryptedKey: string,
-  rsaPrivateKey: string
+  rsaPrivateKey: string,
 ): string => {
   try {
     // 使用 RSA 私钥解密 AES 密钥

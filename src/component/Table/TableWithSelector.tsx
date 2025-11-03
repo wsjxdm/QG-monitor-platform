@@ -1,4 +1,3 @@
-// src/component/Table/TableWithSelector.tsx
 import React, { useState, useEffect } from "react";
 import styles from "./TableWithSelector.module.css";
 import { Table, Select, Input, Button, Empty, Spin } from "antd";

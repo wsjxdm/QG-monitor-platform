@@ -5,10 +5,8 @@ import {
   Dropdown,
   Avatar,
   Tooltip,
-  Tag,
   Spin,
   message,
-  Table,
   Select,
   Row,
   Col,
@@ -32,6 +30,7 @@ import {
 import { getUserResponsibility } from "../../../../../api/service/projectoverview";
 import GlobeArcs from "../../../../../component/GlobeArcs";
 import type { Route } from "../../../../../component/GlobeArcs";
+import type { User } from "../../../../../store/slice/userSlice";
 
 const { Title } = Typography;
 
@@ -78,11 +77,11 @@ interface IllegalAccessItem {
 
 // 错误趋势
 const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(false);
   const [timeType, setTimeType] = useState("day"); // 时间筛选移到组件内部
-  const [currentUser, setCurrentUser] = useState(
-    JSON.parse(localStorage.getItem("user"))
+  const [currentUser] = useState<User | null>(
+    JSON.parse(localStorage.getItem("user") || ""),
   );
 
   // 时间筛选选项
@@ -95,8 +94,10 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
   useEffect(() => {
     fetchPlatformData();
     const fetchRole = async () => {
-      const role = await getUserResponsibility(projectId, currentUser.id);
-      return role.userRole;
+      if (currentUser) {
+        const role = await getUserResponsibility(projectId, currentUser.id);
+        return role.userRole;
+      }
     };
     fetchRole().then((role) => {
       currentUser.role = role;
@@ -145,13 +146,13 @@ const PlatformData: React.FC<{ projectId: string }> = ({ projectId }) => {
         "%c [  ]-135",
         "font-size:13px; background:pink; color:#bf2c9f;",
         startTimeStr,
-        endTimeStr
+        endTimeStr,
       );
       // 调用实际API获取平台数据，传递startTime和endTime参数
       const response = await getPlatformDataAPI(
         projectId,
         startTimeStr,
-        endTimeStr
+        endTimeStr,
       );
 
       setData(response || []);
@@ -219,14 +220,14 @@ interface TopErrorsChartProps {
 
 const TopErrorsChart: React.FC<TopErrorsChartProps> = ({ projectId }) => {
   const [errorCountData, setErrorCountData] = useState<ErrorCountDataItem[]>(
-    []
+    [],
   );
   const [errorRatioData, setErrorRatioData] = useState<ErrorRatioDataItem[]>(
-    []
+    [],
   );
   const [loading, setLoading] = useState(false);
   const [platform, setPlatform] = useState<"frontend" | "backend" | "mobile">(
-    "frontend"
+    "frontend",
   );
 
   // 平台选项
@@ -382,7 +383,7 @@ const IllegalAccessChart: React.FC<{ projectId: string; timeType: string }> = ({
       const response = await getIllegalAccessAPI(
         projectId,
         startTimeStr,
-        endTimeStr
+        endTimeStr,
       );
 
       setData(response);
@@ -456,7 +457,7 @@ const ProjectDetailIssues: React.FC = () => {
     },
   ]);
   const [currentUser, setCurrentUser] = useState(
-    JSON.parse(localStorage.getItem("user"))
+    JSON.parse(localStorage.getItem("user")),
   );
 
   useEffect(() => {
@@ -554,7 +555,7 @@ const ProjectDetailIssues: React.FC = () => {
     errorId: number,
     platform: string,
     errorType: string,
-    responsibleId: number | string | null
+    responsibleId: number | string | null,
   ) => {
     getUserResponsibility(projectId, currentUser?.id).then((res) => {
       if (res) {
@@ -621,7 +622,7 @@ const ProjectDetailIssues: React.FC = () => {
     responsibleId: string | number,
     delegatorId: string | number,
     platform: string,
-    errorType: string
+    errorType: string,
   ) => {
     try {
       // 只有非普通成员才能进行指派操作
@@ -636,7 +637,7 @@ const ProjectDetailIssues: React.FC = () => {
         console.log(
           "%c [  ]-597",
           "font-size:13px; background:pink; color:#bf2c9f;",
-          currentUser.role
+          currentUser.role,
         );
         return;
       }
@@ -646,7 +647,7 @@ const ProjectDetailIssues: React.FC = () => {
         delegatorId,
         platform,
         responsibleId,
-        projectId
+        projectId,
       );
       message.success("指派成功");
 
@@ -664,8 +665,8 @@ const ProjectDetailIssues: React.FC = () => {
                   members.find((m) => m.userId == responsibleId)?.avatarUrl ||
                   null,
               }
-            : item
-        )
+            : item,
+        ),
       );
       // console.log(data);
     } catch (error) {
@@ -700,7 +701,7 @@ const ProjectDetailIssues: React.FC = () => {
           key,
           currentUser.id,
           record.platform,
-          record.errorType
+          record.errorType,
         );
       },
     };
@@ -1020,7 +1021,7 @@ const ProjectDetailIssues: React.FC = () => {
                 record.id as number,
                 record.platform,
                 record.errorType,
-                record.responsibleId
+                record.responsibleId,
               );
             },
           })}
