@@ -5,7 +5,7 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { message } from "antd";
-import { useNavigate } from "react-router-dom";
+
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({

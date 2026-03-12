@@ -4,9 +4,11 @@ import Title from "./component/title";
 import Footer from "./component/foot";
 import React from "react";
 import { Row, Col } from "antd";
+import usePerformanceMonitoring from "../../hooks/performance";
 
 const Home: React.FC = () => {
 
+    usePerformanceMonitoring();
     return (
         <div style={{
             width: "100%",

@@ -6,8 +6,15 @@ import { useState } from "react"; // 添加 useState
 const Form = () => {
     const [activeKey, setActiveKey] = useState('1'); // 添加状态管理
 
+    //修改一下bug 
+    //添加了key之后每次切换回注册tab都会创建一个新的RegisterForm组件，不会出现复用之前填入表单的信息
+    const [registerFormKey, setRegisterFormKey] = useState(0);
+
     const handleTabChange = (key: string) => {
         setActiveKey(key);
+        if (key === '1') {
+            setRegisterFormKey(prev => prev + 1);
+        }
     };
 
     const items = [
@@ -19,7 +26,7 @@ const Form = () => {
         {
             key: '2',
             label: `注册`,
-            children: <RegisterForm onTabChange={handleTabChange} />,
+            children: <RegisterForm key={registerFormKey} onTabChange={handleTabChange} />,
         },
     ];
 

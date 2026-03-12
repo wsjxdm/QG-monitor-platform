@@ -219,10 +219,10 @@ const AppLayout = () => {
       icon: <UnorderedListOutlined />,
       children: privateProjects?.length
         ? privateProjects.map((project) => ({
-            key: `private-${project.uuid}`,
-            label: project.name,
-            icon: <ProjectOutlined />,
-          }))
+          key: `private-${project.uuid}`,
+          label: project.name,
+          icon: <ProjectOutlined />,
+        }))
         : [],
       onTitleClick: () => {
         navigate("/main/project/all");
@@ -234,10 +234,10 @@ const AppLayout = () => {
       icon: <GlobalOutlined />,
       children: publicProjects?.length
         ? publicProjects.map((project) => ({
-            key: `public-${project.uuid}`,
-            label: project.name,
-            icon: <ProjectOutlined />,
-          }))
+          key: `public-${project.uuid}`,
+          label: project.name,
+          icon: <ProjectOutlined />,
+        }))
         : [],
       onTitleClick: () => {
         navigate("/main/project/public");

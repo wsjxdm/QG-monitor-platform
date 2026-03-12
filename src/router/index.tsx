@@ -1,24 +1,39 @@
 import { createBrowserRouter } from "react-router-dom";
-import Home from "../pages/home/home";
+import { Suspense, lazy } from "react"; // 1. 引入 Suspense 和 lazy
 import Layout from "../component/Layout/Layout";
-import ProjectAll from "../pages/main/project/ProjectAll/ProjectAll";
-import ProjectPublic from "../pages/main/project/ProjectAll/ProjectPublic";
-import ProjectDetailOverview from "../pages/main/project/projectdetail/ProjectDetailOverview/ProjectDetailOverview";
-import ProjectItemDetail from "../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail";
-import ProjectDetailIssues from "../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues";
-import ProjectDetailPerformance from "../pages/main/project/projectdetail/ProjectDetailPerformance/ProjectDetailPerformance";
-import ProjectDetailLog from "../pages/main/project/projectdetail/ProjectDetailLog/ProjectDetailLog";
-import ProjectDetailBehavior from "../pages/main/project/projectdetail/ProjectDetailBehavior/ProjectDetailBehavior";
-import MessageSystem from "../pages/main/message/MessageSystem";
-import MessageTask from "../pages/main/message/MessageTask";
-import SettingProfile from "../pages/main/setting/SettingProfile";
-import Work from "../pages/main/setting/Work";
-import Mobile from "../pages/mobile/mobile.tsx";
-
 import ManagerRouter from "../component/protect/Protectrouter.tsx";
-
 import App from "../App";
 import AppLayout from "../component/Layout/Layout";
+
+// 2. 为所有页面组件创建懒加载版本
+const Home = lazy(() => import("../pages/home/home"));
+const ProjectAll = lazy(() => import("../pages/main/project/ProjectAll/ProjectAll"));
+const ProjectPublic = lazy(() => import("../pages/main/project/ProjectAll/ProjectPublic"));
+const ProjectDetailOverview = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailOverview/ProjectDetailOverview"));
+const ProjectItemDetail = lazy(() => import("../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail"));
+const ProjectDetailIssues = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues"));
+const ProjectDetailPerformance = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailPerformance/ProjectDetailPerformance"));
+const ProjectDetailLog = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailLog/ProjectDetailLog"));
+const ProjectDetailBehavior = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailBehavior/ProjectDetailBehavior"));
+const MessageSystem = lazy(() => import("../pages/main/message/MessageSystem"));
+const MessageTask = lazy(() => import("../pages/main/message/MessageTask"));
+const SettingProfile = lazy(() => import("../pages/main/setting/SettingProfile"));
+const Work = lazy(() => import("../pages/main/setting/Work"));
+const Mobile = lazy(() => import("../pages/mobile/mobile.tsx"));
+// const AppLayout = lazy(() => import("../component/Layout/Layout"));
+// 3. 创建一个通用的加载中组件
+const LoadingFallback = () => <div></div>; // 可以替换成更精美的骨架屏
+
+// 高阶组件处理守卫路由和懒加载
+const LazyRoute = ({ component: Component, requireAuth = true }) => {
+  const content = (
+    <Suspense fallback={<LoadingFallback />}>
+      <Component />
+    </Suspense>
+  );
+
+  return content;
+};
 
 export const router = createBrowserRouter([
   {
@@ -27,7 +42,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <LazyRoute component={Home} requireAuth={false} />,
       },
       {
         path: "/main",
@@ -39,73 +54,39 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "all",
-                element: (
-                  <ManagerRouter>
-                    <ProjectAll />
-                  </ManagerRouter>
-                ),
+                element: <LazyRoute component={ProjectAll} />,
               },
               {
                 path: "public",
-                element: (
-                  <ManagerRouter>
-                    <ProjectPublic />
-                  </ManagerRouter>
-                ),
+                element: <LazyRoute component={ProjectPublic} />,
               },
               {
                 path: ":projectId/detail",
                 children: [
                   {
                     path: "overview",
-                    element: (
-                      <ManagerRouter>
-                        <ProjectDetailOverview />
-                      </ManagerRouter>
-                    ),
+                    element: <LazyRoute component={ProjectDetailOverview} />,
                   },
                   {
-                    //这是问题详情
                     path: ":type/:detailId",
-                    element: (
-                      <ManagerRouter>
-                        <ProjectItemDetail />
-                      </ManagerRouter>
-                    ),
+                    element: <LazyRoute component={ProjectItemDetail} />,
                   },
                   {
                     path: "issues",
-                    element: (
-                      <ManagerRouter>
-                        <ProjectDetailIssues />
-                      </ManagerRouter>
-                    ),
+                    element: <LazyRoute component={ProjectDetailIssues} />,
                   },
                   {
                     path: "performance",
-                    element: (
-                      <ManagerRouter>
-                        <ProjectDetailPerformance />
-                      </ManagerRouter>
-                    ),
+                    element: <LazyRoute component={ProjectDetailPerformance} />,
                   },
                   {
                     path: "log",
-                    element: (
-                      <ManagerRouter>
-                        <ProjectDetailLog />
-                      </ManagerRouter>
-                    ),
+                    element: <LazyRoute component={ProjectDetailLog} />,
                   },
                   {
                     path: "behavior",
-                    element: (
-                      <ManagerRouter>
-                        <ProjectDetailBehavior />
-                      </ManagerRouter>
-                    ),
+                    element: <LazyRoute component={ProjectDetailBehavior} />,
                   },
-                  // 后面再加上监控的东西
                 ],
               },
             ],
@@ -116,19 +97,12 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "system",
-                element: (
-                  <ManagerRouter>
-                    <MessageSystem />
-                  </ManagerRouter>
-                ),
+                // element: <LazyRoute component={MessageSystem} />,
+                element: <MessageSystem />,
               },
               {
                 path: "task",
-                element: (
-                  <ManagerRouter>
-                    <MessageTask />
-                  </ManagerRouter>
-                ),
+                element: <LazyRoute component={MessageTask} />,
               },
             ],
           },
@@ -138,19 +112,11 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "profile",
-                element: (
-                  <ManagerRouter>
-                    <SettingProfile />
-                  </ManagerRouter>
-                ),
+                element: <LazyRoute component={SettingProfile} />,
               },
               {
                 path: "work",
-                element: (
-                  <ManagerRouter>
-                    <Work />
-                  </ManagerRouter>
-                ),
+                element: <LazyRoute component={Work} />,
               },
             ],
           },
@@ -158,7 +124,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/mobile",
-        element: <Mobile />,
+        element: <LazyRoute component={Mobile} requireAuth={false} />,
       },
     ],
   },

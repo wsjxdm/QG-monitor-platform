@@ -1,4 +1,3 @@
-// MessageList.tsx - 通用消息列表组件
 import React, { useState, useEffect } from 'react';
 import { List, Card, Avatar, Typography, Empty, Popconfirm, Button } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
@@ -57,9 +56,13 @@ const MessageList: React.FC<MessageListProps> = ({
             try {
                 console.log("receiverId", receiverId);
 
-                const data = await getMessagesAPI(receiverId, messageTypeCode);
-                setMessages(data);
-                console.log(data);
+                // const data = await getMessagesAPI(receiverId, messageTypeCode);
+                const response = await fetch(`/api/message/list`)
+                const data = await response.json();
+                console.log("检查mock的数据", data.data);
+
+                setMessages(data.data);
+                // console.log(data);
 
             } catch (error) {
                 console.error("获取消息失败:", error);

@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import Globe from "react-globe.gl";
 import { FullscreenOutlined, FullscreenExitOutlined } from "@ant-design/icons";
 
 export type Route = {
@@ -29,6 +28,20 @@ export default function GlobeArcs({
   const globeRef = useRef<any>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [GlobeComponent, setGlobeComponent] = useState<any>(null);
+
+  // 动态导入 Globe 组件
+  useEffect(() => {
+    let isMounted = true;
+    import("react-globe.gl").then((module) => {
+      if (isMounted) {
+        setGlobeComponent(() => module.default);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // 切换全屏
   const handleFullscreen = () => {
@@ -162,31 +175,37 @@ export default function GlobeArcs({
           {isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
         </button>
       </div>
-      <Globe
-        ref={globeRef}
-        width={size.width}
-        height={size.height}
-        backgroundColor={isFullscreen ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)"}
-        globeImageUrl={globeImageUrl}
-        bumpImageUrl={bumpImageUrl}
-        backgroundImageUrl={isFullscreen ? backgroundImageUrl : ""}
-        arcsData={arcs}
-        arcColor={(d: any) => d.color}
-        arcStroke={0.8}
-        arcDashLength={0.4}
-        arcDashGap={0.4}
-        arcDashAnimateTime={1200}
-        pointsData={points}
-        pointColor={(d: any) => (d.type === "start" ? "#2dd4bf" : "#60a5fa")}
-        pointAltitude={0.02}
-        pointRadius={pointSize}
-        pointLabel={(d: any) =>
-          d.type === "start"
-            ? `起点：${d.city} \n 非法访问次数：${d.event}`
-            : `终点：${d.city}`
-        }
-        enablePointerInteraction={true}
-      />
+      {GlobeComponent ? (
+        <GlobeComponent
+          ref={globeRef}
+          width={size.width}
+          height={size.height}
+          backgroundColor={isFullscreen ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)"}
+          globeImageUrl={globeImageUrl}
+          bumpImageUrl={bumpImageUrl}
+          backgroundImageUrl={isFullscreen ? backgroundImageUrl : ""}
+          arcsData={arcs}
+          arcColor={(d: any) => d.color}
+          arcStroke={0.8}
+          arcDashLength={0.4}
+          arcDashGap={0.4}
+          arcDashAnimateTime={1200}
+          pointsData={points}
+          pointColor={(d: any) => (d.type === "start" ? "#2dd4bf" : "#60a5fa")}
+          pointAltitude={0.02}
+          pointRadius={pointSize}
+          pointLabel={(d: any) =>
+            d.type === "start"
+              ? `起点：${d.city} \n 非法访问次数：${d.event}`
+              : `终点：${d.city}`
+          }
+          enablePointerInteraction={true}
+        />
+      ) : (
+        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          Loading...
+        </div>
+      )}
     </div>
   );
 }
