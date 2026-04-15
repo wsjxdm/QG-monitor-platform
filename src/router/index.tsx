@@ -6,34 +6,50 @@ import App from "../App";
 import AppLayout from "../component/Layout/Layout";
 
 // 2. 为所有页面组件创建懒加载版本
-const Home = lazy(() => import("../pages/home/home"));
-const ProjectAll = lazy(() => import("../pages/main/project/ProjectAll/ProjectAll"));
-const ProjectPublic = lazy(() => import("../pages/main/project/ProjectAll/ProjectPublic"));
-const ProjectDetailOverview = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailOverview/ProjectDetailOverview"));
-const ProjectItemDetail = lazy(() => import("../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail"));
-const ProjectDetailIssues = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues"));
-const ProjectDetailPerformance = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailPerformance/ProjectDetailPerformance"));
-const ProjectDetailLog = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailLog/ProjectDetailLog"));
-const ProjectDetailBehavior = lazy(() => import("../pages/main/project/projectdetail/ProjectDetailBehavior/ProjectDetailBehavior"));
-const MessageSystem = lazy(() => import("../pages/main/message/MessageSystem"));
-const MessageTask = lazy(() => import("../pages/main/message/MessageTask"));
-const SettingProfile = lazy(() => import("../pages/main/setting/SettingProfile"));
-const Work = lazy(() => import("../pages/main/setting/Work"));
-const Mobile = lazy(() => import("../pages/mobile/mobile.tsx"));
+function lazyWithPreLoad(load: () => Promise<any>) {
+  const Component = lazy(load);
+  (Component as any).preload = load;
+  return Component;
+}
+
+
+
+const Home = lazyWithPreLoad(() => import("../pages/home/home"));
+const ProjectAll = lazyWithPreLoad(() => import("../pages/main/project/ProjectAll/ProjectAll"));
+const ProjectPublic = lazyWithPreLoad(() => import("../pages/main/project/ProjectAll/ProjectPublic"));
+const ProjectDetailOverview = lazyWithPreLoad(() => import("../pages/main/project/projectdetail/ProjectDetailOverview/ProjectDetailOverview"));
+const ProjectItemDetail = lazyWithPreLoad(() => import("../pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail"));
+const ProjectDetailIssues = lazyWithPreLoad(() => import("../pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues"));
+const ProjectDetailPerformance = lazyWithPreLoad(() => import("../pages/main/project/projectdetail/ProjectDetailPerformance/ProjectDetailPerformance"));
+const ProjectDetailLog = lazyWithPreLoad(() => import("../pages/main/project/projectdetail/ProjectDetailLog/ProjectDetailLog"));
+const ProjectDetailBehavior = lazyWithPreLoad(() => import("../pages/main/project/projectdetail/ProjectDetailBehavior/ProjectDetailBehavior"));
+const MessageSystem = lazyWithPreLoad(() => import("../pages/main/message/MessageSystem"));
+const MessageTask = lazyWithPreLoad(() => import("../pages/main/message/MessageTask"));
+const SettingProfile = lazyWithPreLoad(() => import("../pages/main/setting/SettingProfile"));
+const Work = lazyWithPreLoad(() => import("../pages/main/setting/Work"));
+const Mobile = lazyWithPreLoad(() => import("../pages/mobile/mobile.tsx"));
 // const AppLayout = lazy(() => import("../component/Layout/Layout"));
+
+export const routerMap = {
+  "/pages/home/home": Home,
+  "/pages/main/project/ProjectAll/ProjectAll": ProjectAll,
+  "/pages/main/project/ProjectPublic/ProjectPublic": ProjectPublic,
+  "/pages/main/project/projectdetail/ProjectDetailOverview/ProjectDetailOverview": ProjectDetailOverview,
+  "/pages/main/project/projectdetail/ProjectItemDetail/ProjectItemDetail": ProjectItemDetail,
+  "/pages/main/project/projectdetail/ProjectDetailIssues/ProjectDetailIssues": ProjectDetailIssues,
+  "/pages/main/project/projectdetail/ProjectDetailPerformance/ProjectDetailPerformance": ProjectDetailPerformance,
+  "/pages/main/project/projectdetail/ProjectDetailLog/ProjectDetailLog": ProjectDetailLog,
+  "/pages/main/project/projectdetail/ProjectDetailBehavior/ProjectDetailBehavior": ProjectDetailBehavior,
+  "/pages/main/message/MessageSystem/MessageSystem": MessageSystem,
+  "/pages/main/message/MessageTask/MessageTask": MessageTask,
+  "/pages/main/setting/SettingProfile/SettingProfile": SettingProfile,
+  "/pages/main/setting/Work/Work": Work,
+  "/pages/mobile/mobile": Mobile,
+}
 // 3. 创建一个通用的加载中组件
 const LoadingFallback = () => <div></div>; // 可以替换成更精美的骨架屏
 
-// 高阶组件处理守卫路由和懒加载
-const LazyRoute = ({ component: Component, requireAuth = true }) => {
-  const content = (
-    <Suspense fallback={<LoadingFallback />}>
-      <Component />
-    </Suspense>
-  );
 
-  return content;
-};
 
 export const router = createBrowserRouter([
   {
@@ -42,7 +58,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <LazyRoute component={Home} requireAuth={false} />,
+        element: <Home />,
       },
       {
         path: "/main",
@@ -54,38 +70,38 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "all",
-                element: <LazyRoute component={ProjectAll} />,
+                element: <ProjectAll />,
               },
               {
                 path: "public",
-                element: <LazyRoute component={ProjectPublic} />,
+                element: <ProjectPublic />,
               },
               {
                 path: ":projectId/detail",
                 children: [
                   {
                     path: "overview",
-                    element: <LazyRoute component={ProjectDetailOverview} />,
+                    element: <ProjectDetailOverview />,
                   },
                   {
                     path: ":type/:detailId",
-                    element: <LazyRoute component={ProjectItemDetail} />,
+                    element: <ProjectItemDetail />,
                   },
                   {
                     path: "issues",
-                    element: <LazyRoute component={ProjectDetailIssues} />,
+                    element: <ProjectDetailIssues />,
                   },
                   {
                     path: "performance",
-                    element: <LazyRoute component={ProjectDetailPerformance} />,
+                    element: <ProjectDetailPerformance />,
                   },
                   {
                     path: "log",
-                    element: <LazyRoute component={ProjectDetailLog} />,
+                    element: <ProjectDetailLog />,
                   },
                   {
                     path: "behavior",
-                    element: <LazyRoute component={ProjectDetailBehavior} />,
+                    element: <ProjectDetailBehavior />,
                   },
                 ],
               },
@@ -97,12 +113,11 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "system",
-                // element: <LazyRoute component={MessageSystem} />,
                 element: <MessageSystem />,
               },
               {
                 path: "task",
-                element: <LazyRoute component={MessageTask} />,
+                element: <MessageTask />,
               },
             ],
           },
@@ -112,11 +127,11 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "profile",
-                element: <LazyRoute component={SettingProfile} />,
+                element: <SettingProfile />,
               },
               {
                 path: "work",
-                element: <LazyRoute component={Work} />,
+                element: <Work />,
               },
             ],
           },
@@ -124,7 +139,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/mobile",
-        element: <LazyRoute component={Mobile} requireAuth={false} />,
+        element: <Mobile />,
       },
     ],
   },
