@@ -1,4 +1,4 @@
-const cache = new WeakMap();
+const cache = new Map();
 
 export function getCache(loader) {
     return cache.get(loader);
