@@ -2,6 +2,7 @@ import Reconnect from './reconnect';
 import HeartBeat from './heartBeat';
 import EventBus from './eventBus';
 import Sync from './syncScheduler';
+import MessageQueue from './messageQueue';
 
 
 class WebSocketManager {
@@ -16,10 +17,24 @@ class WebSocketManager {
     }
     connect() {
         this.socket = new WebSocket('ws://192.168.1.100:8080/ws/test');
-        //!! 注意this绑定问题，这里如果不绑定，this指向这个socket实例，而不是WebSocketManager实例
         this.socket.onopen = this.handleOpen.bind(this);
         this.socket.onmessage = this.handleMessage.bind(this);
         this.socket.onclose = this.handleClose.bind(this);
+        this.socket.onerror = this.handleError.bind(this);
+
+        MessageQueue.onRetry = (msg) => {
+            if (this.socket && this.isConnected) {
+                this.socket.send(JSON.stringify({ id: msg.id, ...msg.payload }));
+            }
+        };
+        MessageQueue.onTimeout = (msg) => {
+            EventBus.publish('messageTimeout', msg);
+        };
+    }
+
+    handleError(error) {
+        console.error('WebSocket 错误:', error);
+        EventBus.publish('error', error);
     }
 
     handleOpen() {
@@ -31,8 +46,16 @@ class WebSocketManager {
 
     handleMessage(event) {
         console.log('WebSocket 接收到消息');
-        if (event.data.type !== 'pong') {
-            Sync.addUpdate(event.data.type);
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'ack') {
+            MessageQueue.ack(data.id);
+            return;
+        }
+
+        if (data.type !== 'pong') {
+            MessageQueue.ack(data.id);
+            Sync.addUpdate(data.type);
         } else {
             HeartBeat.handlePong();
         }
@@ -45,10 +68,20 @@ class WebSocketManager {
         Reconnect.reconnect();
     }
 
-    send(message) {
-        if (this.socket && this.isConnected) {
-            this.socket.send(message);
+    send(message, needAck = false) {
+        if (!this.socket || !this.isConnected) {
+            console.warn('WebSocket 未连接，消息无法发送');
+            return null;
         }
+
+        let messageWithId = message;
+        if (needAck && typeof message === 'object') {
+            const id = MessageQueue.add(message, message.type);
+            messageWithId = { ...message, id };
+        }
+
+        this.socket.send(JSON.stringify(messageWithId));
+        return messageWithId.id || null;
     }
 
     close() {

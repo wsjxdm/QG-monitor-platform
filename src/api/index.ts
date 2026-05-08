@@ -25,13 +25,22 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 在发送请求之前带上token
     //这里应该使用对token进行加密
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
-    const key = JSON.parse(localStorage.getItem("user"))?.key;
+    const token = JSON.parse(localStorage.getItem("user") as string)?.token;
+    const key = JSON.parse(localStorage.getItem("user") as string)?.key;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       config.headers.RSAKey = `${key}`;
     }
+
+    const controller = new AbortController();
+
+    config.signal = controller.signal;
+    // 10秒后取消请求
+    config.controller = controller;
+
+
+
     return config;
   },
   (error) => {
@@ -78,7 +87,7 @@ const chatApiClient: AxiosInstance = axios.create({
 // chatAPI专用拦截器（新增）
 chatApiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    const token = JSON.parse(localStorage.getItem("user") as string)?.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

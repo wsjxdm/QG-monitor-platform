@@ -1,13 +1,13 @@
 const cache = new Map();
 
-export function getCache(loader) {
-    return cache.get(loader);
+export function getCache(key) {
+    return cache.get(key);
 }
 
-export function setCache(loader, promise) {
-    cache.set(loader, promise);
+export function setCache(key, promise) {
+    cache.set(key, promise);
 }
 
-export function deleteCache(loader) {
-    cache.delete(loader);
+export function deleteCache(key) {
+    cache.delete(key);
 }

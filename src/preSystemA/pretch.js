@@ -1,12 +1,18 @@
 import { getCache, setCache, deleteCache } from './cache';
+import { getModule } from './module';
 import { schedule } from './scheduler';
 
-export function preload(loader, options = {}) {
+export function preload(key, options = {}) {
     const priority = options.priority || 'low';
 
-    const cached = getCache(loader);
+    const cached = getCache(key);
     if (cached) {
         return cached;
+    }
+
+    const loader = getModule(key);
+    if (!loader) {
+        throw new Error(`Module ${key} not found`);
     }
 
     let resolvePromise;
@@ -17,7 +23,7 @@ export function preload(loader, options = {}) {
         rejectPromise = reject;
     });
 
-    setCache(loader, promise);
+    setCache(key, promise);
 
     const task = () => loader()
         .then((res) => {
@@ -25,7 +31,7 @@ export function preload(loader, options = {}) {
             return res;
         })
         .catch((err) => {
-            deleteCache(loader);
+            deleteCache(key);
             rejectPromise(err);
             throw err;
         });
