@@ -9,7 +9,6 @@ class Reconnect {
 
     //实现逐级延迟重连
     reconnect() {
-
         const delay = Math.min(this.reconnectMaxDelay, Math.pow(2, this.reconnectAttempts) * 1000);
 
         if (this.reconnectAttempts < this.maxReconnectAttempts) {

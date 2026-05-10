@@ -7,7 +7,7 @@ class MessageQueue {
         this.checkInterval = 1000;
         this.onRetry = null;
         this.onTimeout = null;
-        this.startRetryCheck();
+        this.isStarted = false;
     }
 
     generateId() {
@@ -25,11 +25,21 @@ class MessageQueue {
             timeout: 5000
         };
         this.queue.set(id, message);
+
+        if (!this.isStarted && this.queue.size === 1) {
+            this.startRetryCheck();
+        }
         return id;
     }
 
     ack(id) {
-        return this.queue.delete(id);
+        const deleted = this.queue.delete(id);
+
+        if (deleted && this.queue.size === 0 && this.isStarted) {
+            this.stopRetryCheck();
+        }
+
+        return deleted;
     }
 
     get(id) {
@@ -69,12 +79,19 @@ class MessageQueue {
     }
 
     startRetryCheck() {
+        if (this.isStarted) return; // 防止重复启动
+
+        this.isStarted = true;
         this.retryTimer = setInterval(() => {
             const now = Date.now();
             for (const [id, message] of this.queue) {
                 if (now - message.timestamp > message.timeout) {
                     this.retry(id);
                 }
+            }
+
+            if (this.queue.size === 0) {
+                this.stopRetryCheck();
             }
         }, this.checkInterval);
     }
@@ -83,11 +100,13 @@ class MessageQueue {
         if (this.retryTimer) {
             clearInterval(this.retryTimer);
             this.retryTimer = null;
+            this.isStarted = false;
         }
     }
 
     clear() {
         this.queue.clear();
+        this.stopRetryCheck();
     }
 }
 

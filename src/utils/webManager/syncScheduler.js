@@ -1,6 +1,5 @@
 import EventBus from "./eventBus";
 
-
 class SyncScheduler {
     constructor() {
         this.scheduleQueue = [];
@@ -22,7 +21,9 @@ class SyncScheduler {
 
     async processQueue() {
         //队列中是放入的版本号，我只需要用里面最小的版本号进行http请求就好
-        const minVersion = Math.min(...this.scheduleQueue);
+        if (this.scheduleQueue.length === 0) return;
+
+        const minVersion = Math.max(...this.scheduleQueue);
         try {
             const response = await fetch('api', {
                 method: 'POST',
@@ -38,6 +39,8 @@ class SyncScheduler {
             }
             const data = await response.json();
             EventBus.publish('updateVersion', data);
+
+            this.scheduleQueue = [];
 
         } catch (error) {
             console.error('同步请求失败:', error);

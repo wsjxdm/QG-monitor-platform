@@ -15,6 +15,7 @@ class WebSocketManager {
         this.isConnected = false;
         WebSocketManager.instance = this;
     }
+
     connect() {
         this.socket = new WebSocket('ws://192.168.1.100:8080/ws/test');
         this.socket.onopen = this.handleOpen.bind(this);
