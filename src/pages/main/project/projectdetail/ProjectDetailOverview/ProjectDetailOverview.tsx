@@ -58,6 +58,7 @@ import {
 } from "../../../../../api/service/projectoverview";
 import project from "../../../../../mock/project";
 import { eventBus } from "../../../../../utils/event";
+import TutorialModal from "../../../../../component/TutorialModal/TutorialModal";
 
 const { Title, Text } = Typography;
 
@@ -72,6 +73,7 @@ interface projectData {
   invitedCode: string;
   groupCode?: string;
   webhook?: string;
+  uuid?: string | number;
 }
 
 interface ProjectMember {
@@ -149,14 +151,18 @@ const ProjectDetailOverview: React.FC = () => {
       if (res) {
         // console.log("项目成员列表:", res);
         setGroupMembers(res);
+      } else {
+        //提示错误并跳转回项目列表
+        message.error("获取项目成员失败，请稍后重试");
+        navigate("/main/project/all");
       }
     });
-    getTutorialMarkdown().then((res) => {
-      if (res) {
-        // console.log("获取到的教程:", res);
-        setMarkdown(res[0].content);
-      }
-    });
+    // getTutorialMarkdown().then((res) => {
+    //   if (res) {
+    //     // console.log("获取到的教程:", res);
+    //     setMarkdown(res[0].content);
+    //   }
+    // });
   }, [projectId]);
 
   // 开始编辑字段
@@ -268,23 +274,36 @@ const ProjectDetailOverview: React.FC = () => {
     }
   };
 
-  // 显示教程弹窗
-  const showTutorialModal = async () => {
+  const showTutorialModal = () => {
     setIsTutorialModalVisible(true);
-    setIsTutorialModalLoading(true);
-    try {
-      // 从后台获取markdown文件
-      const markdownContent = await getTutorialMarkdown();
-      // console.log("获取到的教程:", markdownContent);
-      // 设置获取到的内容
-      setMarkdown(markdownContent[0].content);
-      setIsTutorialModalLoading(false);
-    } catch (error) {
-      message.error("获取文件失败，请稍后重试");
-      // 出错时也停止加载状态
-      setIsTutorialModalLoading(false);
-    }
   };
+
+  const hideTutorialModal = () => {
+    setIsTutorialModalVisible(false);
+  };
+
+  // // 显示教程弹窗
+  // const showTutorialModal = async () => {
+  //   setIsTutorialModalVisible(true);
+  //   setIsTutorialModalLoading(true);
+  //   try {
+  //     // 从后台获取markdown文件
+  //     const markdownContent = await getTutorialMarkdown();
+  //     // console.log("获取到的教程:", markdownContent);
+  //     // 设置获取到的内容
+  //     setMarkdown(markdownContent[0].content);
+  //     setIsTutorialModalLoading(false);
+  //   } catch (error) {
+  //     message.error("获取文件失败，请稍后重试");
+  //     // 出错时也停止加载状态
+  //     setIsTutorialModalLoading(false);
+  //   }
+  // };
+
+  // // 隐藏教程弹窗
+  // const hideTutorialModal = () => {
+  //   setIsTutorialModalVisible(false);
+  // };
 
   // 修改 showInviteModal 函数
   const showInviteModal = async () => {
@@ -332,10 +351,6 @@ const ProjectDetailOverview: React.FC = () => {
       console.error("Failed to copy:", err);
     }
   };
-  // 隐藏教程弹窗
-  const hideTutorialModal = () => {
-    setIsTutorialModalVisible(false);
-  };
 
   // 处理成员右键菜单
   const handleMemberContextMenu = (member: any, e: React.MouseEvent) => {
@@ -370,7 +385,7 @@ const ProjectDetailOverview: React.FC = () => {
       return;
     }
     try {
-      await changeUserLevelAPI(projectId, memberId, newRole);
+      await changeUserLevelAPI(user.id, projectId, memberId, newRole);
       //如果用户修改自己的权限，更新当前用户的权限状态
       if (memberId === user.id) {
         setUserRole(newRole);
@@ -383,6 +398,35 @@ const ProjectDetailOverview: React.FC = () => {
       // console.log("更新后的成员列表:", groupMembers);
       message.success("成员角色更新成功");
     } catch (error) {
+      getProjectMembers(projectId).then((res) => {
+        if (res) {
+          // console.log("项目成员列表:", res);
+          setGroupMembers(res);
+        }
+      });
+      //获取当前成员的权限
+      getUserResponsibility(projectId, user.id).then((res) => {
+        console.log(
+          "%c [ ]-272",
+          "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+          res
+        );
+        if (res) {
+          setRole(res.power);
+          setUserRole(res.userRole);
+          // 将日志移到这里
+          console.log(
+            "%c [ ]-273",
+            "color: #f00; font-weight: bold;background: #fff;width: 100%;",
+            res.userRole,
+            res.power
+          );
+          if (res.power === 0) {
+            message.warning("您无权进入该项目，请联系项目管理员");
+            navigate("/main/project/all");
+          }
+        }
+      });
       message.error("成员角色更新失败");
     }
     closeContextMenu();
@@ -390,7 +434,13 @@ const ProjectDetailOverview: React.FC = () => {
 
   // 移除成员
   const removeMember = async (memberId: number, memberRole: number) => {
-    if (!userRole) {
+    console.log(
+      "%c [  ]-401",
+      "font-size:13px; background:pink; color:#bf2c9f;",
+      userRole
+    );
+
+    if (userRole == 2) {
       message.error("您没有权限进行操作");
       return;
     }
@@ -940,7 +990,7 @@ const ProjectDetailOverview: React.FC = () => {
         </div>
       </div>
       {/* 教程弹窗 */}
-      <Modal
+      {/* <Modal
         title="项目接入教程"
         open={isTutorialModalVisible}
         onCancel={hideTutorialModal}
@@ -983,7 +1033,11 @@ const ProjectDetailOverview: React.FC = () => {
             </ReactMarkdown>
           )}
         </div>
-      </Modal>
+      </Modal> */}
+      <TutorialModal
+        visible={isTutorialModalVisible}
+        onClose={hideTutorialModal}
+      />
       {/* 邀请码弹窗 */}
       <Modal
         title="项目邀请码"

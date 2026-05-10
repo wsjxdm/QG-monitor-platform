@@ -34,7 +34,7 @@ export const encryptWithAES = async (data: string, keyBase64: string): Promise<s
   const encrypted = CryptoJS.AES.encrypt(data, key, {
     iv: iv,
     mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7
+    padding: CryptoJS.pad.Pkcs7,
   });
   const combined = iv.concat(encrypted.ciphertext);
   return combined.toString(CryptoJS.enc.Base64);
