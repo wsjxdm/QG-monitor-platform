@@ -71,52 +71,21 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "all",
-<<<<<<< HEAD
                 element: <ProjectAll />,
               },
               {
                 path: "public",
                 element: <ProjectPublic />,
-=======
-                element: (
-                  <React.Suspense fallback={<Loading />}>
-                    <ManagerRouter>
-                      <ProjectAll />
-                    </ManagerRouter>
-                  </React.Suspense>
-                ),
-              },
-              {
-                path: "public",
-                element: (
-                  <React.Suspense fallback={<Loading />}>
-                    <ManagerRouter>
-                      <ProjectPublic />
-                    </ManagerRouter>
-                  </React.Suspense>
-                ),
->>>>>>> 72e2bfe48ccffc3a71b44fe4a4c2ab268217064d
               },
               {
                 path: ":projectId/detail",
                 children: [
                   {
                     path: "overview",
-<<<<<<< HEAD
                     element: <ProjectDetailOverview />,
-=======
-                    element: (
-                      <React.Suspense fallback={<Loading />}>
-                        <ManagerRouter>
-                          <ProjectDetailOverview />
-                        </ManagerRouter>
-                      </React.Suspense>
-                    ),
->>>>>>> 72e2bfe48ccffc3a71b44fe4a4c2ab268217064d
                   },
                   {
                     path: ":type/:detailId",
-<<<<<<< HEAD
                     element: <ProjectItemDetail />,
                   },
                   {
@@ -134,55 +103,6 @@ export const router = createBrowserRouter([
                   {
                     path: "behavior",
                     element: <ProjectDetailBehavior />,
-=======
-                    element: (
-                      <React.Suspense fallback={<Loading />}>
-                        <ManagerRouter>
-                          <ProjectItemDetail />
-                        </ManagerRouter>
-                      </React.Suspense>
-                    ),
-                  },
-                  {
-                    path: "issues",
-                    element: (
-                      <React.Suspense fallback={<Loading />}>
-                        <ManagerRouter>
-                          <ProjectDetailIssues />
-                        </ManagerRouter>
-                      </React.Suspense>
-                    ),
-                  },
-                  {
-                    path: "performance",
-                    element: (
-                      <React.Suspense fallback={<Loading />}>
-                        <ManagerRouter>
-                          <ProjectDetailPerformance />
-                        </ManagerRouter>
-                      </React.Suspense>
-                    ),
-                  },
-                  {
-                    path: "log",
-                    element: (
-                      <React.Suspense fallback={<Loading />}>
-                        <ManagerRouter>
-                          <ProjectDetailLog />
-                        </ManagerRouter>
-                      </React.Suspense>
-                    ),
-                  },
-                  {
-                    path: "behavior",
-                    element: (
-                      <React.Suspense fallback={null}>
-                        <ManagerRouter>
-                          <ProjectDetailBehavior />
-                        </ManagerRouter>
-                      </React.Suspense>
-                    ),
->>>>>>> 72e2bfe48ccffc3a71b44fe4a4c2ab268217064d
                   },
                 ],
               },
@@ -194,31 +114,11 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "system",
-<<<<<<< HEAD
                 element: <MessageSystem />,
               },
               {
                 path: "task",
                 element: <MessageTask />,
-=======
-                element: (
-                  <React.Suspense fallback={<Loading />}>
-                    <ManagerRouter>
-                      <MessageSystem />
-                    </ManagerRouter>
-                  </React.Suspense>
-                ),
-              },
-              {
-                path: "task",
-                element: (
-                  <React.Suspense fallback={<Loading />}>
-                    <ManagerRouter>
-                      <MessageTask />
-                    </ManagerRouter>
-                  </React.Suspense>
-                ),
->>>>>>> 72e2bfe48ccffc3a71b44fe4a4c2ab268217064d
               },
             ],
           },
@@ -228,31 +128,11 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "profile",
-<<<<<<< HEAD
                 element: <SettingProfile />,
               },
               {
                 path: "work",
                 element: <Work />,
-=======
-                element: (
-                  <React.Suspense fallback={<Loading />}>
-                    <ManagerRouter>
-                      <SettingProfile />
-                    </ManagerRouter>
-                  </React.Suspense>
-                ),
-              },
-              {
-                path: "work",
-                element: (
-                  <React.Suspense fallback={<Loading />}>
-                    <ManagerRouter>
-                      <Work />
-                    </ManagerRouter>
-                  </React.Suspense>
-                ),
->>>>>>> 72e2bfe48ccffc3a71b44fe4a4c2ab268217064d
               },
             ],
           },

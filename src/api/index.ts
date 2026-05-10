@@ -5,10 +5,6 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { message } from "antd";
-<<<<<<< HEAD
-
-=======
->>>>>>> 72e2bfe48ccffc3a71b44fe4a4c2ab268217064d
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
